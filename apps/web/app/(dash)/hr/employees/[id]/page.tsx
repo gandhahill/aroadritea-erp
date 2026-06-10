@@ -1,14 +1,14 @@
-import type { PermissionCode } from '@erp/shared/types';
 import { getSession } from '@/lib/auth';
 import { getEmployee } from '@erp/services/hr';
 import { can } from '@erp/services/iam';
+import type { PermissionCode } from '@erp/shared/types';
 import type { AuditContext } from '@erp/shared/types';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
 import { fetchAssignableRoles } from '../actions';
-import { EditLoginModal } from './edit-login-modal';
 import { DeleteEmployeeButton } from './delete-employee-button';
+import { EditLoginModal } from './edit-login-modal';
 
 export const metadata: Metadata = { title: 'Employee Detail' };
 
@@ -68,9 +68,13 @@ export default async function EmployeeDetailPage({
     throw new Error(result.error.message ?? result.error.messageKey ?? 'Failed to load employee');
   }
   const emp = result.value;
-  
-  const canEditLogin = await can(ctx.userId, 'iam.manage_users', { locationId: emp.locationId ?? undefined });
-  const canEditEmployee = await can(ctx.userId, 'hr.employee.write', { locationId: emp.locationId ?? undefined });
+
+  const canEditLogin = await can(ctx.userId, 'iam.manage_users', {
+    locationId: emp.locationId ?? undefined,
+  });
+  const canEditEmployee = await can(ctx.userId, 'hr.employee.write', {
+    locationId: emp.locationId ?? undefined,
+  });
   const canChangeRole = await can(ctx.userId, '*.*');
   const roles = canEditLogin ? await fetchAssignableRoles() : [];
   const year = new Date().getFullYear();
@@ -114,7 +118,9 @@ export default async function EmployeeDetailPage({
               {commonT('edit')}
             </a>
           )}
-          {canEditLogin && <EditLoginModal employeeId={emp.id} roles={roles} canChangeRole={canChangeRole} />}
+          {canEditLogin && (
+            <EditLoginModal employeeId={emp.id} roles={roles} canChangeRole={canChangeRole} />
+          )}
           {canEditEmployee && <DeleteEmployeeButton employeeId={emp.id} />}
           <span
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${statusCfg.bg} ${statusCfg.text}`}

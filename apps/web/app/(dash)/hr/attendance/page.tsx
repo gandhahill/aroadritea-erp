@@ -10,10 +10,15 @@ import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import { authorizedLocationIdsForTenant } from '@/lib/authz';
 import { and, db, desc, eq, inArray, isNull, sql } from '@erp/db';
-import { attendance, employees } from '@erp/db/schema/hr';
 import { locations } from '@erp/db/schema/auth';
 import { users } from '@erp/db/schema/auth';
-import { listAttendanceSummary, getAbsentDatesForPeriod, getDispensedDetailsForPeriod, getEmployeesWithFaceTemplates } from '@erp/services/hr';
+import { attendance, employees } from '@erp/db/schema/hr';
+import {
+  getAbsentDatesForPeriod,
+  getDispensedDetailsForPeriod,
+  getEmployeesWithFaceTemplates,
+  listAttendanceSummary,
+} from '@erp/services/hr';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
@@ -22,7 +27,7 @@ import { AttendanceSummaryClient } from './attendance-summary-client';
 
 export const metadata: Metadata = { title: 'Attendance' };
 
-function pickName(name: unknown, locale: string, fallback: string = ''): string {
+function pickName(name: unknown, locale: string, fallback = ''): string {
   if (!name || typeof name !== 'object') return fallback;
   const value = name as Record<string, string | undefined>;
   return value[locale] ?? value.id ?? value.en ?? value.zh ?? fallback;
@@ -98,10 +103,14 @@ export default async function AttendancePage({
     const lastDay = new Date(Number(yearStr), Number(monthStr), 0).getDate();
     const periodEnd = `${yearStr}-${monthStr?.padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
     const empIds = summaryItems.map((r) => r.employeeId);
-    const dispensedDetailsMap = empIds.length > 0
-      ? await getDispensedDetailsForPeriod(tenantId, empIds, periodStart, periodEnd)
-      : new Map();
-    const dispensationDetails: Record<string, Array<{ workDate: string; reason: string; givenBy?: string | null }>> = {};
+    const dispensedDetailsMap =
+      empIds.length > 0
+        ? await getDispensedDetailsForPeriod(tenantId, empIds, periodStart, periodEnd)
+        : new Map();
+    const dispensationDetails: Record<
+      string,
+      Array<{ workDate: string; reason: string; givenBy?: string | null }>
+    > = {};
     for (const [empId, details] of dispensedDetailsMap) {
       dispensationDetails[empId] = details;
     }
@@ -124,14 +133,16 @@ export default async function AttendancePage({
     }
 
     // Fetch which employees have active face templates
-    const faceTemplateSet = empIds.length > 0
-      ? await getEmployeesWithFaceTemplates(tenantId, empIds)
-      : new Set<string>();
+    const faceTemplateSet =
+      empIds.length > 0 ? await getEmployeesWithFaceTemplates(tenantId, empIds) : new Set<string>();
     const employeesWithFace: string[] = [...faceTemplateSet];
 
     return (
       <div className="space-y-6">
-        <PageHeader title={<>{t('title')}</>} description={<>{t('subtitle', { total: summaryItems.length })}</>} />
+        <PageHeader
+          title={<>{t('title')}</>}
+          description={<>{t('subtitle', { total: summaryItems.length })}</>}
+        />
 
         <AttendanceSummaryClient
           items={summaryItems}
@@ -158,7 +169,10 @@ export default async function AttendancePage({
   if (!scope.global) baseConds.push(inArray(attendance.locationId, scope.locationIds));
   if (employeeId) baseConds.push(eq(attendance.employeeId, employeeId));
   if (dateFrom) baseConds.push(sql`${attendance.checkInAt} >= ${`${dateFrom}T00:00:00+07:00`}`);
-  if (dateTo) baseConds.push(sql`${attendance.checkInAt} < ${`${dateTo}T00:00:00+07:00`}::timestamptz + interval '1 day'`);
+  if (dateTo)
+    baseConds.push(
+      sql`${attendance.checkInAt} < ${`${dateTo}T00:00:00+07:00`}::timestamptz + interval '1 day'`,
+    );
 
   const whereClause = and(...baseConds);
 
@@ -231,14 +245,13 @@ export default async function AttendancePage({
     workedMinutes: r.workedMinutes ? Number(r.workedMinutes) : null,
     lateForgiven: r.lateForgiven,
     lateForgivenReason: r.lateForgivenReason,
-    lateForgivenBy: r.lateForgivenBy ? (forgiverNames.get(r.lateForgivenBy) ?? r.lateForgivenBy) : null,
+    lateForgivenBy: r.lateForgivenBy
+      ? (forgiverNames.get(r.lateForgivenBy) ?? r.lateForgivenBy)
+      : null,
     lateForgivenAt: r.lateForgivenAt?.toISOString() ?? null,
   }));
 
-  const employeeConds = [
-    eq(employees.tenantId, tenantId),
-    isNull(employees.deletedAt),
-  ];
+  const employeeConds = [eq(employees.tenantId, tenantId), isNull(employees.deletedAt)];
   if (!scope.global) employeeConds.push(inArray(employees.locationId, scope.locationIds));
   const allEmployees = await db
     .select({ id: employees.id, name: employees.name })

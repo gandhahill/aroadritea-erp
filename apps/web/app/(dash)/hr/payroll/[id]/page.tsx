@@ -43,8 +43,6 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
-
-
 function statusColor(status: string): string {
   const map: Record<string, string> = {
     draft: 'bg-brand-cream-2 text-brand-ink-2',

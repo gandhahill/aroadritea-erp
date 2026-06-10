@@ -14,10 +14,7 @@ export default async function McpTokensPage() {
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const [tokens, t] = await Promise.all([
-    fetchMcpTokens(),
-    getTranslations('settings.mcpTokens'),
-  ]);
+  const [tokens, t] = await Promise.all([fetchMcpTokens(), getTranslations('settings.mcpTokens')]);
 
   return (
     <div className="space-y-6">

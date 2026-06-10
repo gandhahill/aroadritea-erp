@@ -7,6 +7,7 @@
 
 'use client';
 
+import { Button } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -15,7 +16,6 @@ import { MemberLookup } from './member-lookup';
 import { OrderCart } from './order-cart';
 import { ParkCartDialog, RecallCartDialog } from './parked-orders-modal';
 import { PaymentModal } from './payment-modal';
-import { Button } from '@erp/ui';
 import { usePosCart } from './pos-cart-context';
 import { ProductSearch } from './product-search';
 
@@ -58,8 +58,17 @@ export default function PosPage() {
           <div className="flex h-14 shrink-0 items-center justify-between border-b border-brand-cream-3 px-4">
             <h2 className="text-base font-semibold text-brand-ink">{t('orderLines')}</h2>
             <div className="flex items-center gap-2">
-              <Button variant="secondary" size="sm" onClick={() => setShowRecall(true)}>{t('recallCart.btn') || 'Recalls'}</Button>
-              <Button variant="secondary" size="sm" disabled={state.lines.length === 0} onClick={() => setShowPark(true)}>{t('parkCart.btn') || 'Hold'}</Button>
+              <Button variant="secondary" size="sm" onClick={() => setShowRecall(true)}>
+                {t('recallCart.btn') || 'Recalls'}
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={state.lines.length === 0}
+                onClick={() => setShowPark(true)}
+              >
+                {t('parkCart.btn') || 'Hold'}
+              </Button>
               {state.lines.length > 0 && (
                 <span className="text-xs text-brand-ink-3">
                   {t('itemCount', { count: state.lines.length })}

@@ -7,13 +7,13 @@
  * Permission: accounting.view
  */
 
+import { and, asc, db, desc, eq, gte, lt, lte, sql } from '@erp/db';
+import { accounts, journalEntries, journalLines } from '@erp/db/schema/accounting';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { requirePermission } from '../iam';
-import { db, eq, and, lte, gte, sql, desc, asc, lt } from '@erp/db';
-import { journalEntries, journalLines, accounts } from '@erp/db/schema/accounting';
 import dayjs from 'dayjs';
+import { requirePermission } from '../iam';
 
 export interface GeneralLedgerInput {
   accountId: string;
@@ -84,9 +84,7 @@ export async function getGeneralLedger(
         eq(journalEntries.status, 'posted'),
       ];
 
-      const lineConditions: ReturnType<typeof eq>[] = [
-        eq(journalLines.accountId, input.accountId)
-      ];
+      const lineConditions: ReturnType<typeof eq>[] = [eq(journalLines.accountId, input.accountId)];
       if (input.locationId) {
         lineConditions.push(eq(journalLines.locationId, input.locationId));
       }
@@ -99,7 +97,13 @@ export async function getGeneralLedger(
         })
         .from(journalLines)
         .innerJoin(journalEntries, eq(journalLines.journalEntryId, journalEntries.id))
-        .where(and(...baseJeConditions, lt(journalEntries.postingDate, input.startDate), ...lineConditions));
+        .where(
+          and(
+            ...baseJeConditions,
+            lt(journalEntries.postingDate, input.startDate),
+            ...lineConditions,
+          ),
+        );
 
       const begDebit = BigInt(beginningRows[0]?.totalDebit || 0n);
       const begCredit = BigInt(beginningRows[0]?.totalCredit || 0n);
@@ -110,7 +114,7 @@ export async function getGeneralLedger(
         ...baseJeConditions,
         gte(journalEntries.postingDate, input.startDate),
         lte(journalEntries.postingDate, input.endDate),
-        ...lineConditions
+        ...lineConditions,
       );
 
       // Count total lines in the period
@@ -132,14 +136,16 @@ export async function getGeneralLedger(
         .where(periodConditions);
       const periodDebit = BigInt(periodAgg?.totalDebit || 0n);
       const periodCredit = BigInt(periodAgg?.totalCredit || 0n);
-      const periodNetChange = isDebitNormal ? periodDebit - periodCredit : periodCredit - periodDebit;
+      const periodNetChange = isDebitNormal
+        ? periodDebit - periodCredit
+        : periodCredit - periodDebit;
       const endingBalance = beginningBalance + periodNetChange;
 
       const limit = input.limit ?? totalLines;
       const offset = input.offset ?? 0;
 
       // Fetch the page of rows
-      let currentRowsQuery = db
+      const currentRowsQuery = db
         .select({
           journalEntryId: journalEntries.id,
           journalNumber: journalEntries.number,
@@ -166,16 +172,17 @@ export async function getGeneralLedger(
             totalCredit: sql<string>`COALESCE(SUM(sub.credit), 0)`,
           })
           .from(
-            db.select({
-              debit: journalLines.debit,
-              credit: journalLines.credit,
-            })
-            .from(journalLines)
-            .innerJoin(journalEntries, eq(journalLines.journalEntryId, journalEntries.id))
-            .where(periodConditions)
-            .orderBy(asc(journalEntries.postingDate), asc(journalEntries.createdAt))
-            .limit(offset)
-            .as('sub')
+            db
+              .select({
+                debit: journalLines.debit,
+                credit: journalLines.credit,
+              })
+              .from(journalLines)
+              .innerJoin(journalEntries, eq(journalLines.journalEntryId, journalEntries.id))
+              .where(periodConditions)
+              .orderBy(asc(journalEntries.postingDate), asc(journalEntries.createdAt))
+              .limit(offset)
+              .as('sub'),
           );
         const preDebit = BigInt(prePageRows[0]?.totalDebit || 0n);
         const preCredit = BigInt(prePageRows[0]?.totalCredit || 0n);
@@ -212,7 +219,7 @@ export async function getGeneralLedger(
       const start = dayjs(input.startDate);
       const end = dayjs(input.endDate);
       const days = end.diff(start, 'day');
-      
+
       let compStart, compEnd;
       if (days > 31) {
         // Previous year
@@ -231,11 +238,15 @@ export async function getGeneralLedger(
         })
         .from(journalLines)
         .innerJoin(journalEntries, eq(journalLines.journalEntryId, journalEntries.id))
-        .where(and(...baseJeConditions, lt(journalEntries.postingDate, compStart), ...lineConditions));
+        .where(
+          and(...baseJeConditions, lt(journalEntries.postingDate, compStart), ...lineConditions),
+        );
 
       const compBegDebit = BigInt(compBeginningRows[0]?.totalDebit || 0n);
       const compBegCredit = BigInt(compBeginningRows[0]?.totalCredit || 0n);
-      const comparativeBeginningBalance = isDebitNormal ? compBegDebit - compBegCredit : compBegCredit - compBegDebit;
+      const comparativeBeginningBalance = isDebitNormal
+        ? compBegDebit - compBegCredit
+        : compBegCredit - compBegDebit;
 
       const compCurrentRows = await db
         .select({
@@ -249,14 +260,16 @@ export async function getGeneralLedger(
             ...baseJeConditions,
             gte(journalEntries.postingDate, compStart),
             lte(journalEntries.postingDate, compEnd),
-            ...lineConditions
-          )
+            ...lineConditions,
+          ),
         );
 
       const compCurrDebit = BigInt(compCurrentRows[0]?.totalDebit || 0n);
       const compCurrCredit = BigInt(compCurrentRows[0]?.totalCredit || 0n);
-      const compNetChange = isDebitNormal ? compCurrDebit - compCurrCredit : compCurrCredit - compCurrDebit;
-      
+      const compNetChange = isDebitNormal
+        ? compCurrDebit - compCurrCredit
+        : compCurrCredit - compCurrDebit;
+
       const comparativeEndingBalance = comparativeBeginningBalance + compNetChange;
 
       return {

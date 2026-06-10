@@ -20,10 +20,9 @@ const LOCALE_TABS = [
 ];
 import { PageHeader } from '@/components/page-header';
 
-
 import { Button, Input, Select } from '@erp/ui';
-import { MarkdownEditor } from './components/markdown-editor';
 import { useTranslations } from 'next-intl';
+import { MarkdownEditor } from './components/markdown-editor';
 
 export function CmsPostForm({ post, isNew = false }: Props) {
   const t = useTranslations('cms.posts');
@@ -202,11 +201,11 @@ export function CmsPostForm({ post, isNew = false }: Props) {
               {LOCALE_TABS.map((tab) => (
                 <div key={tab.code}>
                   <p className="mb-1 text-xs font-medium text-brand-ink-3">{tab.label}</p>
-                    <MarkdownEditor
-                      value={contentVals[tab.code] ?? ''}
-                      onChange={(val) => setContentVals((v) => ({ ...v, [tab.code]: val }))}
-                      placeholder={`${tc('labels.content')} (${tab.code.toUpperCase()})`}
-                    />
+                  <MarkdownEditor
+                    value={contentVals[tab.code] ?? ''}
+                    onChange={(val) => setContentVals((v) => ({ ...v, [tab.code]: val }))}
+                    placeholder={`${tc('labels.content')} (${tab.code.toUpperCase()})`}
+                  />
                 </div>
               ))}
             </div>
@@ -309,7 +308,9 @@ export function CmsPostForm({ post, isNew = false }: Props) {
               <h3 className="mb-2 text-sm font-semibold text-red-700">{tc('labels.dangerZone')}</h3>
               {showDeleteConfirm ? (
                 <div className="space-y-2">
-                  <p className="text-sm text-red-600">{tc('labels.confirmDelete') || t('confirmDelete')}</p>
+                  <p className="text-sm text-red-600">
+                    {tc('labels.confirmDelete') || t('confirmDelete')}
+                  </p>
                   <div className="flex gap-2">
                     <button
                       onClick={handleDelete}

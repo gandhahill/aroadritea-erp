@@ -80,10 +80,14 @@ export const CreateProductInputSchema = z.object({
   /** Cost classification for month-end periodic adjustment: HPP (COGS) vs supply expense. Null = not classified. */
   hppCategory: z.enum(['hpp', 'supply_expense']).nullable().optional(),
   imageUrl: ImageReferenceSchema.optional(),
-  initialStocks: z.array(z.object({
-    locationId: z.string().min(1),
-    qty: z.string().regex(/^\d+(\.\d+)?$/),
-  })).optional(),
+  initialStocks: z
+    .array(
+      z.object({
+        locationId: z.string().min(1),
+        qty: z.string().regex(/^\d+(\.\d+)?$/),
+      }),
+    )
+    .optional(),
 });
 
 export type CreateProductInput = z.infer<typeof CreateProductInputSchema>;
@@ -178,7 +182,10 @@ export const AdjustmentLineInputSchema = z.object({
   productId: z.string().min(1),
   variantId: z.string().optional(),
   batchNo: z.string().optional(),
-  expiryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  expiryDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
   qtyBefore: z.string().regex(/^\d+(\.\d+)?$/),
   qtyAfter: z.string().regex(/^\d+(\.\d+)?$/),
   qtyDelta: z.string().regex(/^-?\d+(\.\d+)?$/),
@@ -220,7 +227,10 @@ export const TransferLineInputSchema = z.object({
   productId: z.string().min(1),
   variantId: z.string().optional(),
   batchNo: z.string().optional(),
-  expiryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  expiryDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
   qty: z
     .string()
     .regex(/^\d+(\.\d+)?$/)

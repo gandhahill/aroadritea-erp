@@ -25,23 +25,23 @@ import {
 } from '@erp/db';
 import { auditLog } from '@erp/db/schema/audit';
 import {
+  approvePO,
+  approvePurchaseRequisition,
+  cancelPurchaseInvoice,
   confirmGRN,
   createGRN,
   createPO,
-  submitPO,
-  approvePO,
-  trackPurchaseOrderShipment,
   createPurchaseInvoice,
-  verifyPurchaseInvoice,
-  cancelPurchaseInvoice,
   createPurchaseRequisition,
-  submitPurchaseRequisition,
-  approvePurchaseRequisition,
   createRFQ,
+  submitPO,
+  submitPurchaseRequisition,
+  trackPurchaseOrderShipment,
+  verifyPurchaseInvoice,
 } from '@erp/services/purchasing';
 import { generateId } from '@erp/shared/id';
-import { revalidatePath } from 'next/cache';
 import { getTranslations } from 'next-intl/server';
+import { revalidatePath } from 'next/cache';
 
 export interface PurchasingDashboardData {
   purchaseOrders: Array<{
@@ -118,7 +118,11 @@ export async function fetchPurchasingDashboard(): Promise<PurchasingDashboardDat
     ctx.tenantId,
   );
   if (!viewScope.global && viewScope.locationIds.length === 0) {
-    return { purchaseOrders: [], suppliers: [], canCreate: createScope.global || createScope.locationIds.length > 0 };
+    return {
+      purchaseOrders: [],
+      suppliers: [],
+      canCreate: createScope.global || createScope.locationIds.length > 0,
+    };
   }
 
   const [poRows, supplierRows] = await Promise.all([
@@ -151,9 +155,7 @@ export async function fetchPurchasingDashboard(): Promise<PurchasingDashboardDat
       .where(
         and(
           eq(purchaseOrders.tenantId, ctx.tenantId),
-          ...(viewScope.global
-            ? []
-            : [inArray(purchaseOrders.locationId, viewScope.locationIds)]),
+          ...(viewScope.global ? [] : [inArray(purchaseOrders.locationId, viewScope.locationIds)]),
         ),
       )
       .orderBy(desc(purchaseOrders.orderDate), desc(purchaseOrders.createdAt)),
@@ -169,7 +171,13 @@ export async function fetchPurchasingDashboard(): Promise<PurchasingDashboardDat
         isActive: partners.isActive,
       })
       .from(partners)
-      .where(and(eq(partners.tenantId, ctx.tenantId), eq(partners.kind, 'supplier'), eq(partners.isActive, true)))
+      .where(
+        and(
+          eq(partners.tenantId, ctx.tenantId),
+          eq(partners.kind, 'supplier'),
+          eq(partners.isActive, true),
+        ),
+      )
       .orderBy(asc(partners.name)),
   ]);
 
@@ -238,9 +246,7 @@ export async function fetchPurchaseOrderFormData(): Promise<PurchaseOrderFormDat
           eq(locations.tenantId, ctx.tenantId),
           eq(locations.status, 'active'),
           eq(locations.type, 'store'),
-          ...(createScope.global
-            ? []
-            : [inArray(locations.id, createScope.locationIds)]),
+          ...(createScope.global ? [] : [inArray(locations.id, createScope.locationIds)]),
         ),
       )
       .orderBy(asc(locations.code)),
@@ -351,7 +357,8 @@ export async function updateSupplierAction(
   const name = String(formData.get('supplierName') ?? '').trim();
   if (!name) return { success: false, error: t('supplierNameRequired') };
 
-  await db.update(partners)
+  await db
+    .update(partners)
     .set({
       name,
       phone: String(formData.get('supplierPhone') ?? '').trim() || null,
@@ -391,7 +398,8 @@ export async function deleteSupplierAction(id: string, formData?: FormData): Pro
   const allowed = await hasGlobalPermission(ctx.userId, 'purchasing.po.create');
   if (!allowed) return { success: false, error: t('unauthorized') };
 
-  await db.update(partners)
+  await db
+    .update(partners)
     .set({
       isActive: false,
       updatedBy: ctx.userId,
@@ -521,7 +529,6 @@ export async function syncPurchaseShipmentAction(formData: FormData): Promise<Ac
     { ...ctx, locationId: poRow.locationId },
   );
 
-
   revalidatePath('/purchasing');
   revalidatePath('/purchasing/shipments');
   revalidatePath(`/purchasing/po/${poId}`);
@@ -615,9 +622,7 @@ export async function fetchShipmentDashboard(): Promise<{
         // Once goods are fully received (or PO closed/cancelled) there is
         // nothing left to track — keep the shipments board to in-progress POs.
         sql`${purchaseOrders.status} NOT IN ('received', 'closed', 'cancelled')`,
-        ...(viewScope.global
-          ? []
-          : [inArray(purchaseOrders.locationId, viewScope.locationIds)]),
+        ...(viewScope.global ? [] : [inArray(purchaseOrders.locationId, viewScope.locationIds)]),
       ),
     )
     .orderBy(desc(purchaseOrders.orderDate));
@@ -829,14 +834,16 @@ export async function fetchGRNReport(
     'purchasing.view',
     ctx.tenantId,
   );
-  if (!viewScope.global && viewScope.locationIds.length === 0) return { data: [], total: 0, locations: [] };
+  if (!viewScope.global && viewScope.locationIds.length === 0)
+    return { data: [], total: 0, locations: [] };
 
   const conditions = [eq(goodsReceiptNotes.tenantId, ctx.tenantId)];
   if (status) {
     conditions.push(eq(goodsReceiptNotes.status, status));
   }
   if (locationId) {
-    if (!viewScope.global && !viewScope.locationIds.includes(locationId)) return { data: [], total: 0, locations: [] };
+    if (!viewScope.global && !viewScope.locationIds.includes(locationId))
+      return { data: [], total: 0, locations: [] };
     conditions.push(eq(goodsReceiptNotes.locationId, locationId));
   } else if (!viewScope.global) {
     conditions.push(inArray(goodsReceiptNotes.locationId, viewScope.locationIds));

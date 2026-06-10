@@ -124,19 +124,17 @@ export const userNotificationPreferences = pgTable(
   {
     ...pk,
     ...tenantCol,
-    
+
     userId: text('user_id').notNull(), // FK users
-    
+
     emailEnabled: boolean('email_enabled').notNull().default(true),
     pushEnabled: boolean('push_enabled').notNull().default(true),
     inAppEnabled: boolean('in_app_enabled').notNull().default(true),
-    
+
     // e.g. { "PO_APPROVED": true, "LOW_STOCK": false }
     eventPreferences: jsonb('event_preferences').$type<Record<string, boolean>>().default({}),
-    
+
     ...auditCols,
   },
-  (t) => [
-    index('unp_user_idx').on(t.userId),
-  ]
+  (t) => [index('unp_user_idx').on(t.userId)],
 );

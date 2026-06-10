@@ -46,20 +46,44 @@ export function MarkdownEditor({ value, onChange, placeholder }: MarkdownEditorP
     <div className="rounded-md border border-brand-cream-3 focus-within:border-brand-red focus-within:ring-1 focus-within:ring-brand-red">
       {/* Toolbar */}
       <div className="flex items-center gap-1 border-b border-brand-cream-3 bg-brand-cream-1/30 p-2">
-        <Button variant="ghost" size="sm" type="button" onClick={handleBold} className="h-8 px-2 font-bold">
+        <Button
+          variant="ghost"
+          size="sm"
+          type="button"
+          onClick={handleBold}
+          className="h-8 px-2 font-bold"
+        >
           B
         </Button>
-        <Button variant="ghost" size="sm" type="button" onClick={handleItalic} className="h-8 px-2 italic">
+        <Button
+          variant="ghost"
+          size="sm"
+          type="button"
+          onClick={handleItalic}
+          className="h-8 px-2 italic"
+        >
           I
         </Button>
         <Button variant="ghost" size="sm" type="button" onClick={handleLink} className="h-8 px-2">
           Link
         </Button>
-        <Button variant="ghost" size="sm" type="button" onClick={handleCode} className="h-8 px-2 font-mono">
+        <Button
+          variant="ghost"
+          size="sm"
+          type="button"
+          onClick={handleCode}
+          className="h-8 px-2 font-mono"
+        >
           &lt;/&gt;
         </Button>
         <div className="mx-2 h-4 w-px bg-brand-cream-3" />
-        <Button variant="secondary" size="sm" type="button" onClick={() => setShowMedia(true)} className="h-8">
+        <Button
+          variant="secondary"
+          size="sm"
+          type="button"
+          onClick={() => setShowMedia(true)}
+          className="h-8"
+        >
           + Media Library
         </Button>
       </div>

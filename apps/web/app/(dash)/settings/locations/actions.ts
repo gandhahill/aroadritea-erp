@@ -118,7 +118,8 @@ export async function saveLocation(input: LocationDraft): Promise<LocationAction
   if (!/^[A-Z0-9_-]{2,16}$/.test(code)) {
     return { success: false, error: 'settings.locations.errors.invalidCode' };
   }
-  if (!input.name.id.trim()) return { success: false, error: 'settings.locations.errors.missingIdName' };
+  if (!input.name.id.trim())
+    return { success: false, error: 'settings.locations.errors.missingIdName' };
 
   // GPS validation — if any one of the three is set, all three should be set
   const gpsLatTrim = (input.gpsLat ?? '').trim();

@@ -104,7 +104,13 @@ export async function getEmployee(
       const [row] = await db
         .select()
         .from(employees)
-        .where(and(eq(employees.tenantId, ctx.tenantId), eq(employees.id, employeeId), isNull(employees.deletedAt)))
+        .where(
+          and(
+            eq(employees.tenantId, ctx.tenantId),
+            eq(employees.id, employeeId),
+            isNull(employees.deletedAt),
+          ),
+        )
         .limit(1);
 
       if (!row) {
@@ -262,8 +268,14 @@ export async function getEmployee(
         bpjsKesehatan: decryptPiiForDisplay(row.bpjsKesehatan, 'employees.bpjsKesehatan'),
         bpjsTenagakerja: decryptPiiForDisplay(row.bpjsTenagakerja, 'employees.bpjsTenagakerja'),
         bankName: row.bankName,
-        bankAccountNumber: decryptPiiForDisplay(row.bankAccountNumber, 'employees.bankAccountNumber'),
-        bankAccountHolder: decryptPiiForDisplay(row.bankAccountHolder, 'employees.bankAccountHolder'),
+        bankAccountNumber: decryptPiiForDisplay(
+          row.bankAccountNumber,
+          'employees.bankAccountNumber',
+        ),
+        bankAccountHolder: decryptPiiForDisplay(
+          row.bankAccountHolder,
+          'employees.bankAccountHolder',
+        ),
         vehiclePlateNumber: row.vehiclePlateNumber,
         emergencyContactName: row.emergencyContactName,
         emergencyContactPhone: decryptPiiForDisplay(

@@ -1,8 +1,8 @@
+import { PageHeader } from '@/components/page-header';
 import { getTranslations } from 'next-intl/server';
+import Link from 'next/link';
 import { fetchOutgoingShipments } from './actions';
 import { ShipmentsClient } from './client';
-import { PageHeader } from '@/components/page-header';
-import Link from 'next/link';
 
 export const metadata = {
   title: 'Outgoing Shipments',

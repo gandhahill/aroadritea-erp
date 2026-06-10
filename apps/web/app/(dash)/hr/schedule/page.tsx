@@ -10,10 +10,10 @@ import { locations } from '@erp/db/schema/auth';
 import { can } from '@erp/services/iam';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { fetchRoster } from './actions';
 import { ScheduleGrid } from './schedule-grid';
-import Link from 'next/link';
 
 export const metadata: Metadata = { title: 'Shift Schedule' };
 

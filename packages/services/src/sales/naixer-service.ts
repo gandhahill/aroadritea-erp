@@ -1,14 +1,14 @@
 import { db } from '@erp/db';
+import { products } from '@erp/db/schema/inventory';
 import { salesOrderLines, salesOrders } from '@erp/db/schema/pos';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
-import { products } from '@erp/db/schema/inventory';
 import { eq } from 'drizzle-orm';
 
 /**
  * Generates the Naixer KDS payload for a given sale order.
  * Follows ADR-0007 specification.
- * 
+ *
  * Format A: [SaleNumber]|[Qty]x[ProductName]|[Qty]x[ProductName]
  * Format B: [SaleNumber]-[ProductCode]-[Qty]-[ProductCode]-[Qty]
  */
@@ -52,10 +52,7 @@ export async function generateNaixerPayload(
   }
 
   // Save the payload to the sale record
-  await db
-    .update(salesOrders)
-    .set({ naixerPayload: payload })
-    .where(eq(salesOrders.id, saleId));
+  await db.update(salesOrders).set({ naixerPayload: payload }).where(eq(salesOrders.id, saleId));
 
   return ok(payload);
 }

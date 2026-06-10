@@ -249,9 +249,7 @@ export function OrdersClient({ rows }: Props) {
 
       <aside className="rounded-xl border border-brand-cream-3 bg-card p-4 shadow-sm">
         {!selectedId ? (
-          <div className="py-10 text-center text-sm text-brand-ink-3">
-            {t('selectOrderHint')}
-          </div>
+          <div className="py-10 text-center text-sm text-brand-ink-3">{t('selectOrderHint')}</div>
         ) : loadingDetail ? (
           <div className="py-10 text-center text-sm text-brand-ink-3">{t('loadingDetail')}</div>
         ) : !detail ? (
@@ -262,7 +260,9 @@ export function OrdersClient({ rows }: Props) {
           <>
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-xs uppercase tracking-widest text-brand-ink-3">{t('modal.order')}</p>
+                <p className="text-xs uppercase tracking-widest text-brand-ink-3">
+                  {t('modal.order')}
+                </p>
                 <p className="font-mono text-base font-semibold text-brand-ink">{detail.number}</p>
                 <p className="mt-0.5 text-xs text-brand-ink-3">
                   {channelLabel(detail.channel, t)} · {detail.cashierName} ·{' '}
@@ -382,9 +382,7 @@ export function OrdersClient({ rows }: Props) {
                 {modal === 'void' ? t('modal.voidTitle') : t('modal.refundTitle')} · {detail.number}
               </h3>
               <p className="mt-0.5 text-xs text-brand-ink-3">
-                {modal === 'void'
-                  ? t('modal.voidDesc')
-                  : t('modal.refundDesc')}
+                {modal === 'void' ? t('modal.voidDesc') : t('modal.refundDesc')}
               </p>
             </div>
             <div className="space-y-3 p-5">
@@ -471,9 +469,7 @@ export function OrdersClient({ rows }: Props) {
                   className="mt-1 w-full rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
                   autoFocus={modal === 'void'}
                 />
-                <p className="mt-0.5 text-[11px] text-brand-ink-3">
-                  {t('modal.reasonHint')}
-                </p>
+                <p className="mt-0.5 text-[11px] text-brand-ink-3">{t('modal.reasonHint')}</p>
               </label>
               {error ? <p className="text-xs text-rose-600">{error}</p> : null}
             </div>

@@ -1,5 +1,10 @@
 import { db } from '@erp/db';
-import { purchaseRequisitions, purchaseRequisitionLines, rfqs, rfqLines } from '@erp/db/schema/purchasing';
+import {
+  purchaseRequisitionLines,
+  purchaseRequisitions,
+  rfqLines,
+  rfqs,
+} from '@erp/db/schema/purchasing';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
@@ -37,12 +42,7 @@ async function generateRFQNumber(tenantId: string, rfqDate: string): Promise<str
   const result = await db
     .select({ count: sql<number>`count(*)` })
     .from(rfqs)
-    .where(
-      and(
-        eq(rfqs.tenantId, tenantId),
-        sql`${rfqs.number} LIKE ${prefix + '%'}`,
-      ),
-    );
+    .where(and(eq(rfqs.tenantId, tenantId), sql`${rfqs.number} LIKE ${prefix + '%'}`));
 
   const currentCount = Number(result[0]?.count ?? 0);
   const nextSeq = (currentCount + 1).toString().padStart(4, '0');
@@ -55,7 +55,9 @@ export async function createPurchaseRequisition(
 ): Promise<Result<{ id: string; number: string }>> {
   const parsed = CreatePurchaseRequisitionInputSchema.safeParse(rawInput);
   if (!parsed.success) {
-    return err(AppError.validation('purchasing.errors.invalid_input', { detail: parsed.error.message }));
+    return err(
+      AppError.validation('purchasing.errors.invalid_input', { detail: parsed.error.message }),
+    );
   }
   const input = parsed.data;
 
@@ -114,11 +116,18 @@ export async function submitPurchaseRequisition(
 ): Promise<Result<{ id: string; status: string }>> {
   const parsed = PRIdInputSchema.safeParse(rawInput);
   if (!parsed.success) return err(AppError.validation('invalid input'));
-  
-  const [pr] = await db.select().from(purchaseRequisitions).where(eq(purchaseRequisitions.id, parsed.data.prId)).limit(1);
+
+  const [pr] = await db
+    .select()
+    .from(purchaseRequisitions)
+    .where(eq(purchaseRequisitions.id, parsed.data.prId))
+    .limit(1);
   if (!pr || pr.status !== 'draft') return err(AppError.businessRule('invalid state'));
 
-  await db.update(purchaseRequisitions).set({ status: 'submitted', submittedBy: ctx.userId, submittedAt: new Date() }).where(eq(purchaseRequisitions.id, pr.id));
+  await db
+    .update(purchaseRequisitions)
+    .set({ status: 'submitted', submittedBy: ctx.userId, submittedAt: new Date() })
+    .where(eq(purchaseRequisitions.id, pr.id));
   return ok({ id: pr.id, status: 'submitted' });
 }
 
@@ -128,11 +137,18 @@ export async function approvePurchaseRequisition(
 ): Promise<Result<{ id: string; status: string }>> {
   const parsed = PRIdInputSchema.safeParse(rawInput);
   if (!parsed.success) return err(AppError.validation('invalid input'));
-  
-  const [pr] = await db.select().from(purchaseRequisitions).where(eq(purchaseRequisitions.id, parsed.data.prId)).limit(1);
+
+  const [pr] = await db
+    .select()
+    .from(purchaseRequisitions)
+    .where(eq(purchaseRequisitions.id, parsed.data.prId))
+    .limit(1);
   if (!pr || pr.status !== 'submitted') return err(AppError.businessRule('invalid state'));
 
-  await db.update(purchaseRequisitions).set({ status: 'approved', approvedBy: ctx.userId, approvedAt: new Date() }).where(eq(purchaseRequisitions.id, pr.id));
+  await db
+    .update(purchaseRequisitions)
+    .set({ status: 'approved', approvedBy: ctx.userId, approvedAt: new Date() })
+    .where(eq(purchaseRequisitions.id, pr.id));
   return ok({ id: pr.id, status: 'approved' });
 }
 
@@ -141,8 +157,11 @@ export async function createRFQ(
   ctx: AuditContext,
 ): Promise<Result<{ id: string; number: string }>> {
   const parsed = CreateRFQInputSchema.safeParse(rawInput);
-  if (!parsed.success) return err(AppError.validation('purchasing.errors.invalid_input', { detail: parsed.error.message }));
-  
+  if (!parsed.success)
+    return err(
+      AppError.validation('purchasing.errors.invalid_input', { detail: parsed.error.message }),
+    );
+
   const input = parsed.data;
 
   const number = await generateRFQNumber(ctx.tenantId, input.rfqDate);

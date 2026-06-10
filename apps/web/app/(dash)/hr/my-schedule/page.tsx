@@ -49,7 +49,7 @@ export default async function MySchedulePage({
 
   const from = params.from ?? defaultFrom;
   const to = params.to ?? defaultTo;
-  
+
   const t = await getTranslations('hr.mySchedule');
   const localeStr = 'id-ID';
 
@@ -128,11 +128,9 @@ export default async function MySchedulePage({
                     {r.kind === 'off' ? '—' : r.shiftName || r.shiftCode || '—'}
                   </td>
                   <td className="px-4 py-3 font-mono text-brand-ink-2">
-                    {r.kind === 'off' ? '—' : (r.startTime ? `${r.startTime} - ${r.endTime}` : '—')}
+                    {r.kind === 'off' ? '—' : r.startTime ? `${r.startTime} - ${r.endTime}` : '—'}
                   </td>
-                  <td className="px-4 py-3 text-brand-ink-2 max-w-xs truncate">
-                    {r.notes || '—'}
-                  </td>
+                  <td className="px-4 py-3 text-brand-ink-2 max-w-xs truncate">{r.notes || '—'}</td>
                 </tr>
               ))
             )}

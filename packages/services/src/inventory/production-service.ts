@@ -14,8 +14,8 @@ import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
-import { createJournal } from '../accounting/create-journal';
 import { resolveAccountIdsByCodes } from '../accounting/account-resolver';
+import { createJournal } from '../accounting/create-journal';
 import { getPostingAccountCodes } from '../accounting/posting-accounts';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
@@ -70,9 +70,7 @@ export async function createProductionBatch(
   });
   if (!permCheck.ok) return permCheck;
 
-  const productionDate = (
-    input.productionDate ? new Date(input.productionDate) : new Date()
-  )
+  const productionDate = (input.productionDate ? new Date(input.productionDate) : new Date())
     .toISOString()
     .slice(0, 10);
 
@@ -87,7 +85,11 @@ export async function createProductionBatch(
     .select()
     .from(boms)
     .where(
-      and(eq(boms.productId, input.productId), eq(boms.tenantId, ctx.tenantId), eq(boms.isActive, true)),
+      and(
+        eq(boms.productId, input.productId),
+        eq(boms.tenantId, ctx.tenantId),
+        eq(boms.isActive, true),
+      ),
     )
     .limit(1);
 
@@ -235,7 +237,9 @@ export async function createProductionBatch(
           ),
         )
         .limit(1)
-        .then((rows: Array<{ id: string; qtyOnHand: string; avgUnitCost: bigint | null }>) => rows[0]);
+        .then(
+          (rows: Array<{ id: string; qtyOnHand: string; avgUnitCost: bigint | null }>) => rows[0],
+        );
 
       if (existingFinishedStock) {
         const oldQty = Number.parseFloat(existingFinishedStock.qtyOnHand || '0');

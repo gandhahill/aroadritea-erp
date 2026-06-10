@@ -19,7 +19,7 @@ const translations = {
         selectAccount: 'Select Account...',
         cancel: 'Cancel',
         processing: 'Processing...',
-        payInvoice: 'Pay Invoice'
+        payInvoice: 'Pay Invoice',
       },
       print: {
         description: 'Description',
@@ -29,13 +29,13 @@ const translations = {
         printHint: 'Print this document for your records.',
         paymentTerms: 'Payment Terms',
         subtotal: 'Subtotal',
-        tax: 'Tax'
-      }
+        tax: 'Tax',
+      },
     },
     hr: {
       attendance: {
-        onTime: 'On Time'
-      }
+        onTime: 'On Time',
+      },
     },
     inventory: {
       opname: {
@@ -44,15 +44,15 @@ const translations = {
         noMatchFilter: 'No items match the filter.',
         saveAction: 'Save',
         columns: {
-          varianceValue: 'Variance Value'
-        }
+          varianceValue: 'Variance Value',
+        },
       },
       variance: {
         emptySessions: 'No opname sessions found.',
         emptyProducts: 'No products with variance found.',
         charts: {
           varianceDistribution: 'Variance Distribution',
-          topVarianceProducts: 'Top Products with Variance'
+          topVarianceProducts: 'Top Products with Variance',
         },
         columns: {
           lines: 'Lines',
@@ -62,9 +62,9 @@ const translations = {
           session: 'Session',
           netVariance: 'Net Variance',
           value: 'Value',
-          rate: 'Rate'
-        }
-      }
+          rate: 'Rate',
+        },
+      },
     },
     logistics: {
       outgoingShipment: {
@@ -84,8 +84,8 @@ const translations = {
         saving: 'Saving...',
         saveAction: 'Save',
         title: 'Outgoing Shipment',
-        createNew: 'Create New'
-      }
+        createNew: 'Create New',
+      },
     },
     purchasing: {
       statusDraft: 'Draft',
@@ -94,22 +94,22 @@ const translations = {
       statusPartial: 'Partial',
       statusReceived: 'Received',
       statusClosed: 'Closed',
-      statusCancelled: 'Cancelled'
+      statusCancelled: 'Cancelled',
     },
     reporting: {
       dailySummary: {
-        shiftSummary: 'Shift Summary'
-      }
+        shiftSummary: 'Shift Summary',
+      },
     },
     settings: {
       accounting: {
         errorSelectAccount: 'Please select an account.',
-        saving: 'Saving...'
+        saving: 'Saving...',
       },
       company: {
-        saving: 'Saving...'
-      }
-    }
+        saving: 'Saving...',
+      },
+    },
   },
   id: {
     accounting: {
@@ -125,7 +125,7 @@ const translations = {
         selectAccount: 'Pilih Akun...',
         cancel: 'Batal',
         processing: 'Memproses...',
-        payInvoice: 'Bayar Invoice'
+        payInvoice: 'Bayar Invoice',
       },
       print: {
         description: 'Keterangan',
@@ -135,13 +135,13 @@ const translations = {
         printHint: 'Cetak dokumen ini untuk arsip Anda.',
         paymentTerms: 'Termin',
         subtotal: 'Subtotal',
-        tax: 'Pajak'
-      }
+        tax: 'Pajak',
+      },
     },
     hr: {
       attendance: {
-        onTime: 'Tepat Waktu'
-      }
+        onTime: 'Tepat Waktu',
+      },
     },
     inventory: {
       opname: {
@@ -150,15 +150,15 @@ const translations = {
         noMatchFilter: 'Data tidak ditemukan.',
         saveAction: 'Simpan',
         columns: {
-          varianceValue: 'Nilai Selisih'
-        }
+          varianceValue: 'Nilai Selisih',
+        },
       },
       variance: {
         emptySessions: 'Tidak ada sesi opname.',
         emptyProducts: 'Tidak ada produk dengan selisih.',
         charts: {
           varianceDistribution: 'Distribusi Selisih',
-          topVarianceProducts: 'Produk Teratas (Selisih)'
+          topVarianceProducts: 'Produk Teratas (Selisih)',
         },
         columns: {
           lines: 'Baris',
@@ -168,9 +168,9 @@ const translations = {
           session: 'Sesi',
           netVariance: 'Selisih Bersih',
           value: 'Nilai',
-          rate: 'Tingkat'
-        }
-      }
+          rate: 'Tingkat',
+        },
+      },
     },
     logistics: {
       outgoingShipment: {
@@ -190,8 +190,8 @@ const translations = {
         saving: 'Menyimpan...',
         saveAction: 'Simpan',
         title: 'Pengiriman Keluar',
-        createNew: 'Buat Baru'
-      }
+        createNew: 'Buat Baru',
+      },
     },
     purchasing: {
       statusDraft: 'Draf',
@@ -200,22 +200,22 @@ const translations = {
       statusPartial: 'Sebagian',
       statusReceived: 'Diterima',
       statusClosed: 'Selesai',
-      statusCancelled: 'Dibatalkan'
+      statusCancelled: 'Dibatalkan',
     },
     reporting: {
       dailySummary: {
-        shiftSummary: 'Ringkasan Shift'
-      }
+        shiftSummary: 'Ringkasan Shift',
+      },
     },
     settings: {
       accounting: {
         errorSelectAccount: 'Harap pilih akun.',
-        saving: 'Menyimpan...'
+        saving: 'Menyimpan...',
       },
       company: {
-        saving: 'Menyimpan...'
-      }
-    }
+        saving: 'Menyimpan...',
+      },
+    },
   },
   zh: {
     accounting: {
@@ -231,7 +231,7 @@ const translations = {
         selectAccount: '选择账户...',
         cancel: '取消',
         processing: '处理中...',
-        payInvoice: '支付发票'
+        payInvoice: '支付发票',
       },
       print: {
         description: '描述',
@@ -241,13 +241,13 @@ const translations = {
         printHint: '打印此文件以供存档。',
         paymentTerms: '付款条件',
         subtotal: '小计',
-        tax: '税金'
-      }
+        tax: '税金',
+      },
     },
     hr: {
       attendance: {
-        onTime: '准时'
-      }
+        onTime: '准时',
+      },
     },
     inventory: {
       opname: {
@@ -256,15 +256,15 @@ const translations = {
         noMatchFilter: '没有符合过滤条件的数据。',
         saveAction: '保存',
         columns: {
-          varianceValue: '差异金额'
-        }
+          varianceValue: '差异金额',
+        },
       },
       variance: {
         emptySessions: '未找到盘点。',
         emptyProducts: '未找到有差异的产品。',
         charts: {
           varianceDistribution: '差异分布',
-          topVarianceProducts: '顶级差异产品'
+          topVarianceProducts: '顶级差异产品',
         },
         columns: {
           lines: '行',
@@ -274,9 +274,9 @@ const translations = {
           session: '盘点',
           netVariance: '净差异',
           value: '金额',
-          rate: '费率'
-        }
-      }
+          rate: '费率',
+        },
+      },
     },
     logistics: {
       outgoingShipment: {
@@ -296,8 +296,8 @@ const translations = {
         saving: '保存中...',
         saveAction: '保存',
         title: '发出货物',
-        createNew: '创建新的'
-      }
+        createNew: '创建新的',
+      },
     },
     purchasing: {
       statusDraft: '草稿',
@@ -306,23 +306,23 @@ const translations = {
       statusPartial: '部分',
       statusReceived: '已接收',
       statusClosed: '已关闭',
-      statusCancelled: '已取消'
+      statusCancelled: '已取消',
     },
     reporting: {
       dailySummary: {
-        shiftSummary: '班次摘要'
-      }
+        shiftSummary: '班次摘要',
+      },
     },
     settings: {
       accounting: {
         errorSelectAccount: '请选择账户。',
-        saving: '保存中...'
+        saving: '保存中...',
       },
       company: {
-        saving: '保存中...'
-      }
-    }
-  }
+        saving: '保存中...',
+      },
+    },
+  },
 };
 
 function deepMerge(target, source) {
@@ -342,9 +342,9 @@ for (const lang of locales) {
   if (fs.existsSync(filePath)) {
     data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   }
-  
+
   deepMerge(data, translations[lang]);
-  
+
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2) + '\n');
   console.log(`Updated ${lang}.json`);
 }

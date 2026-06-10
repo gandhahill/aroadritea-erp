@@ -1,15 +1,15 @@
 import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import {
+  type LocationOption,
   getActiveLocationOptions,
   resolveDefaultLocationId,
-  type LocationOption,
 } from '@/lib/location-options';
 import {
-  getFinancialCloseCenter,
   type FinancialCloseCenterResult,
   type FinancialCloseChecklistItem,
   type FinancialCloseStatus,
+  getFinancialCloseCenter,
 } from '@erp/services/accounting';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
@@ -46,14 +46,8 @@ export default async function FinancialCloseCenterPage({
   );
 
   const result = locationId
-    ? await getFinancialCloseCenter(
-        { periodCode, locationId },
-        { tenantId, userId, locationId },
-      )
-    : await getFinancialCloseCenter(
-        { periodCode },
-        { tenantId, userId, locationId: '' },
-      );
+    ? await getFinancialCloseCenter({ periodCode, locationId }, { tenantId, userId, locationId })
+    : await getFinancialCloseCenter({ periodCode }, { tenantId, userId, locationId: '' });
 
   if (!result.ok && result.error.code === 'FORBIDDEN') redirect('/dashboard');
 
@@ -110,9 +104,7 @@ export default async function FinancialCloseCenterPage({
           <h2 className="font-display text-lg font-semibold text-brand-ink">
             {t('errors.unavailableTitle')}
           </h2>
-          <p className="mt-2 text-sm leading-6 text-brand-muted">
-            {t('errors.unavailableBody')}
-          </p>
+          <p className="mt-2 text-sm leading-6 text-brand-muted">{t('errors.unavailableBody')}</p>
         </div>
       )}
     </div>
@@ -250,7 +242,8 @@ function CloseCenterDashboard({
           <div className="grid gap-2 text-sm text-brand-muted md:text-right">
             <p>
               <span className="font-semibold text-brand-ink">{labels.periodRange}</span>{' '}
-              {formatDate(data.period.startDate, locale)} - {formatDate(data.period.endDate, locale)}
+              {formatDate(data.period.startDate, locale)} -{' '}
+              {formatDate(data.period.endDate, locale)}
             </p>
             <p>
               <span className="font-semibold text-brand-ink">{labels.selectedLocation}</span>{' '}
@@ -359,7 +352,9 @@ function ChecklistCard({
 
 function StatusPill({ status, label }: { status: FinancialCloseStatus; label: string }) {
   return (
-    <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${statusPillClass(status)}`}>
+    <span
+      className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${statusPillClass(status)}`}
+    >
       {label}
     </span>
   );

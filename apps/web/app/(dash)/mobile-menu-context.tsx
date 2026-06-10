@@ -1,7 +1,7 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 interface MobileMenuCtx {
   isOpen: boolean;
@@ -28,7 +28,9 @@ export function MobileMenuProvider({ children }: { children: React.ReactNode }) 
     } else {
       document.body.style.overflow = '';
     }
-    return () => { document.body.style.overflow = ''; };
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [isOpen]);
 
   return <Ctx.Provider value={{ isOpen, toggle, close }}>{children}</Ctx.Provider>;

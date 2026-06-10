@@ -335,9 +335,7 @@ export function COAEditor({ tree }: Props) {
                   ))}
               </Select>
             </label>
-            <p className="max-w-xl text-xs leading-5 text-brand-ink-3">
-              {t('deleteInfo')}
-            </p>
+            <p className="max-w-xl text-xs leading-5 text-brand-ink-3">{t('deleteInfo')}</p>
             <Button
               type="button"
               onClick={remove}

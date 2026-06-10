@@ -1,10 +1,10 @@
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { PageHeader } from '@/components/page-header';
-import { CompanySettingsForm } from './client';
+import { redirect } from 'next/navigation';
 import { fetchCompanySettings } from './actions';
+import { CompanySettingsForm } from './client';
 
 export const metadata: Metadata = { title: 'Company Settings' };
 

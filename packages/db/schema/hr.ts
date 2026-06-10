@@ -170,15 +170,37 @@ export const shiftDefinitions = pgTable(
     isActive: boolean('is_active').notNull().default(true),
 
     // T-xxxx: Shift timing overrides for specific days or dates
-    overrides: jsonb('overrides').$type<{
-      dayOfWeek?: Record<number, { startTime: string; endTime: string; breakStart?: string | null; breakEnd?: string | null }>;
-      date?: Record<string, { startTime: string; endTime: string; breakStart?: string | null; breakEnd?: string | null }>;
-    }>().default({}),
+    overrides: jsonb('overrides')
+      .$type<{
+        dayOfWeek?: Record<
+          number,
+          {
+            startTime: string;
+            endTime: string;
+            breakStart?: string | null;
+            breakEnd?: string | null;
+          }
+        >;
+        date?: Record<
+          string,
+          {
+            startTime: string;
+            endTime: string;
+            breakStart?: string | null;
+            breakEnd?: string | null;
+          }
+        >;
+      }>()
+      .default({}),
 
     ...auditCols,
   },
   (table) => [
-    uniqueIndex('shift_definitions_tenant_loc_code_idx').on(table.tenantId, table.locationId, table.code),
+    uniqueIndex('shift_definitions_tenant_loc_code_idx').on(
+      table.tenantId,
+      table.locationId,
+      table.code,
+    ),
     index('shift_definitions_tenant_active_idx').on(table.isActive),
   ],
 );
@@ -402,10 +424,7 @@ export const employeeFaceTemplates = pgTable(
     ...auditCols,
   },
   (table) => [
-    uniqueIndex('employee_face_templates_tenant_employee_idx').on(
-      table.tenantId,
-      table.employeeId,
-    ),
+    uniqueIndex('employee_face_templates_tenant_employee_idx').on(table.tenantId, table.employeeId),
     index('employee_face_templates_tenant_status_idx').on(table.tenantId, table.status),
     index('employee_face_templates_employee_idx').on(table.employeeId),
   ],
@@ -654,7 +673,7 @@ export const cashAdvances = pgTable(
     reason: text('reason').notNull(),
 
     status: text('status').notNull().default('pending'), // 'pending' | 'approved' | 'rejected' | 'deducted'
-    
+
     // Limits applied: Kasbon max 30% of base salary.
     approvedBy: text('approved_by'),
     approvedAt: timestamp('approved_at', { withTimezone: true }),
@@ -667,7 +686,7 @@ export const cashAdvances = pgTable(
   (t) => [
     index('cash_advances_employee_idx').on(t.employeeId),
     index('cash_advances_status_idx').on(t.status),
-  ]
+  ],
 );
 
 // ─── Absence Dispensations ────────────────────────────────────────────────────
@@ -734,15 +753,15 @@ export const whistleblowers = pgTable(
 
     category: text('category').notNull(), // 'fraud' | 'harassment' | 'safety' | 'other'
     severity: text('severity').notNull(), // 'low' | 'medium' | 'high' | 'critical'
-    
+
     title: text('title').notNull(),
     description: text('description').notNull(),
-    
+
     isAnonymous: boolean('is_anonymous').notNull().default(true),
     reportedBy: text('reported_by'), // FK users (nullable if anonymous)
-    
+
     status: text('status').notNull().default('new'), // 'new' | 'investigating' | 'resolved' | 'dismissed'
-    
+
     resolvedBy: text('resolved_by'), // FK users
     resolvedAt: timestamp('resolved_at', { withTimezone: true }),
     resolutionNotes: text('resolution_notes'),
@@ -753,5 +772,5 @@ export const whistleblowers = pgTable(
     index('whistleblowers_location_idx').on(table.locationId),
     index('whistleblowers_status_idx').on(table.status),
     index('whistleblowers_severity_idx').on(table.severity),
-  ]
+  ],
 );

@@ -1,13 +1,13 @@
 import { db } from '@erp/db';
-import { scheduledJobs } from '@erp/db/schema/scheduled-jobs';
 import { auditLog } from '@erp/db/schema/audit';
+import { scheduledJobs } from '@erp/db/schema/scheduled-jobs';
 import { AppError } from '@erp/shared/errors';
+import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { eq, and } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { requirePermission } from '../iam/require-permission';
-import { generateId } from '@erp/shared/id';
 
 export const RunJobInputSchema = z.object({
   jobId: z.string().min(1),
@@ -15,7 +15,10 @@ export const RunJobInputSchema = z.object({
 
 export type RunJobInput = z.infer<typeof RunJobInputSchema>;
 
-export async function runScheduledJob(input: RunJobInput, ctx: AuditContext): Promise<Result<{ historyId: string }>> {
+export async function runScheduledJob(
+  input: RunJobInput,
+  ctx: AuditContext,
+): Promise<Result<{ historyId: string }>> {
   const parsed = RunJobInputSchema.safeParse(input);
   if (!parsed.success) return err(AppError.validation(parsed.error.message));
 
@@ -33,7 +36,6 @@ export async function runScheduledJob(input: RunJobInput, ctx: AuditContext): Pr
 
   const historyId = generateId();
 
-
   // T-0253: Write audit log
   await db.insert(auditLog).values({
     id: generateId(),
@@ -47,9 +49,9 @@ export async function runScheduledJob(input: RunJobInput, ctx: AuditContext): Pr
 
   // Simulated execution logic would go here.
   // For the service we just mark it complete
-  
 
-  await db.update(scheduledJobs)
+  await db
+    .update(scheduledJobs)
     .set({
       lastRunAt: new Date(),
       lastRunStatus: 'success',

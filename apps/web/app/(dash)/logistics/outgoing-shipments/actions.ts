@@ -2,7 +2,7 @@
 
 import { getSession } from '@/lib/auth';
 import { authorizedLocationIdsForTenant } from '@/lib/authz';
-import { db, desc, eq, inArray, and, isNull } from '@erp/db';
+import { and, db, desc, eq, inArray, isNull } from '@erp/db';
 import { outgoingShipments } from '@erp/db/schema/logistics';
 import {
   createOutgoingShipment,
@@ -92,7 +92,9 @@ export async function fetchOutgoingShipmentById(id: string) {
   };
 }
 
-export type OutgoingShipmentDetail = NonNullable<Awaited<ReturnType<typeof fetchOutgoingShipmentById>>>;
+export type OutgoingShipmentDetail = NonNullable<
+  Awaited<ReturnType<typeof fetchOutgoingShipmentById>>
+>;
 
 export async function syncTrackingAction(shipmentId: string, courierCode: string, awb: string) {
   const session = await getSession();
@@ -107,11 +109,14 @@ export async function syncTrackingAction(shipmentId: string, courierCode: string
     ipAddress: '127.0.0.1',
   };
 
-  const res = await trackOutgoingShipment({
-    shipmentId,
-    courierCode,
-    awb,
-  }, ctx);
+  const res = await trackOutgoingShipment(
+    {
+      shipmentId,
+      courierCode,
+      awb,
+    },
+    ctx,
+  );
 
   if (res.ok) {
     revalidatePath('/logistics/outgoing-shipments');

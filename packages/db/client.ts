@@ -3,8 +3,8 @@
  * SD §5: Neon managed DB, Drizzle ORM (lightweight, fast cold start).
  */
 
-import postgres from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
 import * as accountingSchema from './schema/accounting';
 import * as auditSchema from './schema/audit';
 import * as authSchema from './schema/auth';
@@ -32,7 +32,10 @@ if (!DATABASE_URL && isProductionRuntime) {
   throw new Error('DATABASE_URL is required for production database access.');
 }
 
-const sql = postgres(DATABASE_URL ?? 'postgresql://missing:missing@127.0.0.1:5432/missing_database', { max: 5 });
+const sql = postgres(
+  DATABASE_URL ?? 'postgresql://missing:missing@127.0.0.1:5432/missing_database',
+  { max: 5 },
+);
 
 export const db = drizzle(sql, {
   schema: {

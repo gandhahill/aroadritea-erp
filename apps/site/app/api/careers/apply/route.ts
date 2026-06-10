@@ -46,10 +46,7 @@ const ERROR_CODES = {
 export async function POST(request: NextRequest) {
   const ip = clientIpFromHeaders(request.headers);
   if (rateLimited(ip)) {
-    return NextResponse.json(
-      { ok: false, error: ERROR_CODES.RATE_LIMITED },
-      { status: 429 },
-    );
+    return NextResponse.json({ ok: false, error: ERROR_CODES.RATE_LIMITED }, { status: 429 });
   }
 
   let body: {
@@ -62,10 +59,7 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json(
-      { ok: false, error: ERROR_CODES.INVALID_JSON },
-      { status: 400 },
-    );
+    return NextResponse.json({ ok: false, error: ERROR_CODES.INVALID_JSON }, { status: 400 });
   }
 
   const openingId = String(body.openingId ?? '').trim();
@@ -75,16 +69,10 @@ export async function POST(request: NextRequest) {
   const notes = String(body.notes ?? '').trim();
 
   if (!openingId || !name) {
-    return NextResponse.json(
-      { ok: false, error: ERROR_CODES.NAME_REQUIRED },
-      { status: 400 },
-    );
+    return NextResponse.json({ ok: false, error: ERROR_CODES.NAME_REQUIRED }, { status: 400 });
   }
   if (name.length > 128 || notes.length > 2000) {
-    return NextResponse.json(
-      { ok: false, error: ERROR_CODES.FIELD_TOO_LONG },
-      { status: 400 },
-    );
+    return NextResponse.json({ ok: false, error: ERROR_CODES.FIELD_TOO_LONG }, { status: 400 });
   }
 
   const [opening] = await db
@@ -99,16 +87,10 @@ export async function POST(request: NextRequest) {
     )
     .limit(1);
   if (!opening) {
-    return NextResponse.json(
-      { ok: false, error: ERROR_CODES.OPENING_NOT_FOUND },
-      { status: 404 },
-    );
+    return NextResponse.json({ ok: false, error: ERROR_CODES.OPENING_NOT_FOUND }, { status: 404 });
   }
   if (opening.status !== 'open') {
-    return NextResponse.json(
-      { ok: false, error: ERROR_CODES.OPENING_CLOSED },
-      { status: 409 },
-    );
+    return NextResponse.json({ ok: false, error: ERROR_CODES.OPENING_CLOSED }, { status: 409 });
   }
 
   const id = generateId();

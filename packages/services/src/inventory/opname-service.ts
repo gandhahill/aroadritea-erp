@@ -712,7 +712,11 @@ export async function approveOpname(
   const adjustExpenseCode = acctCodes['adjustment.expense'];
   const adjustIncomeCode = acctCodes['adjustment.income'];
 
-  const codeMap = await resolveAccountIdsByCodes(ctx.tenantId, [inventoryCode, adjustExpenseCode, adjustIncomeCode]);
+  const codeMap = await resolveAccountIdsByCodes(ctx.tenantId, [
+    inventoryCode,
+    adjustExpenseCode,
+    adjustIncomeCode,
+  ]);
   const inventoryAccountId = codeMap.get(inventoryCode);
   const adjustExpenseAccountId = codeMap.get(adjustExpenseCode);
   const adjustIncomeAccountId = codeMap.get(adjustIncomeCode);

@@ -1,7 +1,7 @@
 'use client';
 
-import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useActionState, useState } from 'react';
 import { deleteJournalAction, postJournalAction, reverseJournalAction } from '../actions';
 
 export function JournalActionsUI({
@@ -34,9 +34,12 @@ export function JournalActionsUI({
               {isPosting ? t('posting') : t('postJournal')}
             </button>
           </form>
-          <form action={deleteAction} onSubmit={(e) => {
-            if (!confirm(t('confirmDelete'))) e.preventDefault();
-          }}>
+          <form
+            action={deleteAction}
+            onSubmit={(e) => {
+              if (!confirm(t('confirmDelete'))) e.preventDefault();
+            }}
+          >
             <input type="hidden" name="journalId" value={journalId} />
             <button
               type="submit"
@@ -58,17 +61,19 @@ export function JournalActionsUI({
           >
             {t('reverseJournal')}
           </button>
-          
+
           {showReverse && (
             <div className="absolute right-0 top-full z-10 mt-2 w-64 rounded-md border border-brand-cream-2 bg-card p-4 shadow-pop">
               <form action={reverseAction}>
                 <input type="hidden" name="journalId" value={journalId} />
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs font-medium text-brand-ink-2">{t('reversalDate')}</label>
-                    <input 
-                      type="date" 
-                      name="postingDate" 
+                    <label className="block text-xs font-medium text-brand-ink-2">
+                      {t('reversalDate')}
+                    </label>
+                    <input
+                      type="date"
+                      name="postingDate"
                       defaultValue={defaultDate}
                       required
                       className="mt-1 block w-full rounded-md border border-brand-cream-3 px-3 py-1.5 text-sm"

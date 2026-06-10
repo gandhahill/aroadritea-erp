@@ -1,7 +1,7 @@
-import { describe, expect, it, vi } from 'vitest';
 import { AppError } from '@erp/shared/errors';
 import { err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { describe, expect, it, vi } from 'vitest';
 import { runApprovalGate } from '../src/workflow';
 
 const ctx: AuditContext = {

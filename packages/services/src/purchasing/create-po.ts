@@ -209,89 +209,92 @@ export async function createPO(rawInput: unknown, ctx: AuditContext): Promise<Re
   const grandTotal = subtotal + taxTotal;
 
   // 8. Insert PO in a transaction
-  return await tryCatch(async () => {
-    return await db.transaction(async (tx) => {
-      const poId = generateId();
-      await tx.insert(purchaseOrders).values({
-        id: poId,
-        tenantId: ctx.tenantId,
-        locationId: input.locationId,
-        number: poNumber,
-        supplierId: input.supplierId,
-        orderDate: input.orderDate,
-        expectedDate: input.expectedDate ?? null,
-        status: 'draft',
-        subtotal,
-        taxTotal,
-        grandTotal,
-        notes: input.notes ?? null,
-        createdBy: ctx.userId,
-        updatedBy: ctx.userId,
-      });
-
-      // 9. Insert PO lines
-      const lineValues = computedLines.map((l) => ({
-        id: l.id,
-        purchaseOrderId: poId,
-        lineNo: l.lineNo,
-        productId: l.productId,
-        variantId: l.variantId,
-        qtyOrdered: l.qtyOrdered,
-        qtyReceived: '0',
-        uom: l.uom,
-        unitPrice: l._unitPrice,
-        lineSubtotal: l._lineSubtotal,
-        lineTax: l._lineTax,
-        lineTotal: l._lineSubtotal + l._lineTax,
-        taxCode: l.taxCode,
-        createdBy: ctx.userId,
-        updatedBy: ctx.userId,
-      }));
-
-      await tx.insert(purchaseOrderLines).values(lineValues);
-
-      // 10. Audit
-      await auditRecord({
-        action: 'create',
-        entityType: 'purchase_order',
-        entityId: poId,
-        before: null,
-        after: {
+  return await tryCatch(
+    async () => {
+      return await db.transaction(async (tx) => {
+        const poId = generateId();
+        await tx.insert(purchaseOrders).values({
           id: poId,
+          tenantId: ctx.tenantId,
+          locationId: input.locationId,
           number: poNumber,
           supplierId: input.supplierId,
+          orderDate: input.orderDate,
+          expectedDate: input.expectedDate ?? null,
           status: 'draft',
-          subtotal: subtotal.toString(),
-          grandTotal: grandTotal.toString(),
-          lineCount: computedLines.length,
-        },
-        ctx,
-      });
+          subtotal,
+          taxTotal,
+          grandTotal,
+          notes: input.notes ?? null,
+          createdBy: ctx.userId,
+          updatedBy: ctx.userId,
+        });
 
-      return {
-        id: poId,
-        number: poNumber,
-        supplierId: input.supplierId,
-        orderDate: input.orderDate,
-        expectedDate: input.expectedDate ?? null,
-        status: 'draft',
-        subtotal: subtotal.toString(),
-        taxTotal: taxTotal.toString(),
-        grandTotal: grandTotal.toString(),
-        lines: computedLines.map((l) => ({
+        // 9. Insert PO lines
+        const lineValues = computedLines.map((l) => ({
           id: l.id,
+          purchaseOrderId: poId,
           lineNo: l.lineNo,
           productId: l.productId,
           variantId: l.variantId,
           qtyOrdered: l.qtyOrdered,
+          qtyReceived: '0',
           uom: l.uom,
-          unitPrice: l.unitPrice,
-          lineSubtotal: l.lineSubtotal,
-          lineTax: l.lineTax,
-          lineTotal: l.lineTotal,
+          unitPrice: l._unitPrice,
+          lineSubtotal: l._lineSubtotal,
+          lineTax: l._lineTax,
+          lineTotal: l._lineSubtotal + l._lineTax,
           taxCode: l.taxCode,
-        })),
-      };
-    });
-  }, (e) => AppError.internal('purchasing.errors.po_create_failed', e));
+          createdBy: ctx.userId,
+          updatedBy: ctx.userId,
+        }));
+
+        await tx.insert(purchaseOrderLines).values(lineValues);
+
+        // 10. Audit
+        await auditRecord({
+          action: 'create',
+          entityType: 'purchase_order',
+          entityId: poId,
+          before: null,
+          after: {
+            id: poId,
+            number: poNumber,
+            supplierId: input.supplierId,
+            status: 'draft',
+            subtotal: subtotal.toString(),
+            grandTotal: grandTotal.toString(),
+            lineCount: computedLines.length,
+          },
+          ctx,
+        });
+
+        return {
+          id: poId,
+          number: poNumber,
+          supplierId: input.supplierId,
+          orderDate: input.orderDate,
+          expectedDate: input.expectedDate ?? null,
+          status: 'draft',
+          subtotal: subtotal.toString(),
+          taxTotal: taxTotal.toString(),
+          grandTotal: grandTotal.toString(),
+          lines: computedLines.map((l) => ({
+            id: l.id,
+            lineNo: l.lineNo,
+            productId: l.productId,
+            variantId: l.variantId,
+            qtyOrdered: l.qtyOrdered,
+            uom: l.uom,
+            unitPrice: l.unitPrice,
+            lineSubtotal: l.lineSubtotal,
+            lineTax: l.lineTax,
+            lineTotal: l.lineTotal,
+            taxCode: l.taxCode,
+          })),
+        };
+      });
+    },
+    (e) => AppError.internal('purchasing.errors.po_create_failed', e),
+  );
 }

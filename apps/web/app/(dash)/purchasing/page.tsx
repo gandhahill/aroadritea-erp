@@ -68,14 +68,14 @@ export default async function PurchasingPage() {
           </div>
         </div>
 
-          <div className="space-y-6">
-            <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
-              <div className="border-b border-brand-cream-3 px-5 py-4">
-                <h2 className="text-base font-semibold text-brand-ink">{t('purchaseOrder')}</h2>
-              </div>
-              <PoFilterTable purchaseOrders={data.purchaseOrders} />
+        <div className="space-y-6">
+          <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
+            <div className="border-b border-brand-cream-3 px-5 py-4">
+              <h2 className="text-base font-semibold text-brand-ink">{t('purchaseOrder')}</h2>
             </div>
+            <PoFilterTable purchaseOrders={data.purchaseOrders} />
           </div>
+        </div>
 
         {/* Supplier Management Section */}
         <SupplierManagement suppliers={data.suppliers} />

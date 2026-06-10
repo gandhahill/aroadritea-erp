@@ -1,9 +1,9 @@
 import { getSession } from '@/lib/auth';
 import { requirePermission } from '@erp/services/iam';
-import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import SptMasaClient from './client';
+import { redirect } from 'next/navigation';
 import { fetchPeriodsAction } from './actions';
+import SptMasaClient from './client';
 
 export const metadata = {
   title: 'SPT Masa PPN',
@@ -12,7 +12,7 @@ export const metadata = {
 export default async function SptMasaPage() {
   const session = await getSession();
   if (!session?.user) redirect('/login');
-  
+
   const user = session.user as Record<string, unknown>;
   const userId = String(user.id ?? '');
 

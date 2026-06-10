@@ -1,12 +1,12 @@
+import { PageHeader } from '@/components/page-header';
+import { Pagination } from '@/components/pagination';
 import { getSession } from '@/lib/auth';
 import { authorizedLocationIdsForTenant } from '@/lib/authz';
-import { Pagination } from '@/components/pagination';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { fetchInvoicesAction } from './actions';
-import { PageHeader } from '@/components/page-header';
 
 export const metadata: Metadata = {
   title: 'Invoices',
@@ -29,12 +29,14 @@ export default async function InvoicesPage({
 
   const params = await searchParams;
   const page = Math.max(1, Number(params.page) || 1);
-  const pageSize = [10, 20, 50, 100].includes(Number(params.pageSize)) ? Number(params.pageSize) : 20;
+  const pageSize = [10, 20, 50, 100].includes(Number(params.pageSize))
+    ? Number(params.pageSize)
+    : 20;
 
   const [{ items: invoicesList, total }, t, tc] = await Promise.all([
     fetchInvoicesAction({ limit: pageSize, offset: (page - 1) * pageSize }),
     getTranslations('accounting.invoice'),
-    getTranslations('common')
+    getTranslations('common'),
   ]);
 
   return (
@@ -77,42 +79,73 @@ export default async function InvoicesPage({
               <tr key={inv.id} className="transition-colors hover:bg-brand-cream-1/50">
                 <td className="px-6 py-4 font-medium text-brand-ink">{inv.number}</td>
                 <td className="px-6 py-4 text-brand-ink-2">{inv.date}</td>
-                <td className="px-6 py-4 capitalize text-brand-ink-2">{inv.type === 'sales' ? t('sales') : t('purchase')}</td>
+                <td className="px-6 py-4 capitalize text-brand-ink-2">
+                  {inv.type === 'sales' ? t('sales') : t('purchase')}
+                </td>
                 <td className="px-6 py-4 text-brand-ink-2">{inv.partnerName}</td>
                 <td className="px-6 py-4">
-                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                    inv.status === 'posted' ? 'bg-brand-cream-2 text-brand-ink-2' : 
-                    inv.status === 'paid' ? 'bg-brand-jade-light text-brand-jade' :
-                    inv.status === 'partial' ? 'bg-brand-ember-light text-brand-ember' :
-                    inv.status === 'draft' ? 'bg-brand-cream-3 text-brand-ink-2' : 
-                    'bg-brand-red-light text-brand-red'
-                  }`}>
+                  <span
+                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                      inv.status === 'posted'
+                        ? 'bg-brand-cream-2 text-brand-ink-2'
+                        : inv.status === 'paid'
+                          ? 'bg-brand-jade-light text-brand-jade'
+                          : inv.status === 'partial'
+                            ? 'bg-brand-ember-light text-brand-ember'
+                            : inv.status === 'draft'
+                              ? 'bg-brand-cream-3 text-brand-ink-2'
+                              : 'bg-brand-red-light text-brand-red'
+                    }`}
+                  >
                     {inv.status === 'partial' ? t('partial') : tc(`status.${inv.status}` as any)}
                   </span>
                 </td>
-                <td className="px-6 py-4 font-mono text-brand-ink">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(inv.total))}</td>
+                <td className="px-6 py-4 font-mono text-brand-ink">
+                  {new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    maximumFractionDigits: 0,
+                  }).format(Number(inv.total))}
+                </td>
                 <td className="px-6 py-4 text-brand-ink-2 flex gap-4">
                   {inv.status === 'draft' && (
-                    <Link href={`/accounting/invoices/${inv.id}/post`} className="text-brand-jade hover:underline">
+                    <Link
+                      href={`/accounting/invoices/${inv.id}/post`}
+                      className="text-brand-jade hover:underline"
+                    >
                       {t('post')}
                     </Link>
                   )}
                   {(inv.status === 'posted' || inv.status === 'partial') && (
-                    <Link href={`/accounting/invoices/${inv.id}/pay`} className="text-brand-jade hover:underline font-semibold">
+                    <Link
+                      href={`/accounting/invoices/${inv.id}/pay`}
+                      className="text-brand-jade hover:underline font-semibold"
+                    >
                       {t('payAction')}
                     </Link>
                   )}
                   {inv.status === 'paid' && (
-                    <Link href={`/accounting/invoices/${inv.id}/print?type=receipt`} target="_blank" className="text-brand-red hover:underline font-semibold">
+                    <Link
+                      href={`/accounting/invoices/${inv.id}/print?type=receipt`}
+                      target="_blank"
+                      className="text-brand-red hover:underline font-semibold"
+                    >
                       {t('printKuitansi')}
                     </Link>
                   )}
                   {inv.journalId && (
                     <div className="flex flex-col gap-1 mt-1">
-                      <Link href={`/accounting/invoices/${inv.id}/print`} target="_blank" className="text-brand-red hover:underline font-semibold">
+                      <Link
+                        href={`/accounting/invoices/${inv.id}/print`}
+                        target="_blank"
+                        className="text-brand-red hover:underline font-semibold"
+                      >
                         {t('printInvoice')}
                       </Link>
-                      <Link href={`/accounting/journals/${inv.journalId}`} className="text-brand-ink-3 hover:underline text-xs">
+                      <Link
+                        href={`/accounting/journals/${inv.journalId}`}
+                        className="text-brand-ink-3 hover:underline text-xs"
+                      >
                         {t('viewJournal')}
                       </Link>
                     </div>

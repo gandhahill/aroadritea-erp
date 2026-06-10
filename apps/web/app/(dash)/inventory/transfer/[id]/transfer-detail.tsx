@@ -1,12 +1,21 @@
 'use client';
 
-import { PageHeader } from '@/components/page-header';
 import { ConfirmDialog, InlineAlert } from '@/components/confirm-dialog';
-import { Button, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@erp/ui';
+import { PageHeader } from '@/components/page-header';
+import {
+  Button,
+  Input,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTransition, useState } from 'react';
+import { useState, useTransition } from 'react';
 import {
   cancelTransferAction,
   deleteTransferAction,
@@ -25,10 +34,12 @@ export function TransferDetail({ data, currentUserId }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [receiveData, setReceiveData] = useState<Record<string, number>>(
-    Object.fromEntries(data.lines.map((l: any) => [l.id, Number(l.qtySent)]))
+    Object.fromEntries(data.lines.map((l: any) => [l.id, Number(l.qtySent)])),
   );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [confirmAction, setConfirmAction] = useState<'ship' | 'receive' | 'cancel' | 'delete' | null>(null);
+  const [confirmAction, setConfirmAction] = useState<
+    'ship' | 'receive' | 'cancel' | 'delete' | null
+  >(null);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -116,10 +127,18 @@ export function TransferDetail({ data, currentUserId }: Props) {
           <div className="flex items-center gap-3">
             {data.status === 'draft' && (
               <>
-                <Button variant="danger" onClick={() => setConfirmAction('delete')} disabled={isPending}>
+                <Button
+                  variant="danger"
+                  onClick={() => setConfirmAction('delete')}
+                  disabled={isPending}
+                >
                   {tCommon('actions.delete')}
                 </Button>
-                <Button variant="danger" onClick={() => setConfirmAction('cancel')} disabled={isPending}>
+                <Button
+                  variant="danger"
+                  onClick={() => setConfirmAction('cancel')}
+                  disabled={isPending}
+                >
                   {t('actionCancel')}
                 </Button>
                 <Link
@@ -134,7 +153,11 @@ export function TransferDetail({ data, currentUserId }: Props) {
               </>
             )}
             {data.status === 'in_transit' && (
-              <Button variant="primary" onClick={() => setConfirmAction('receive')} disabled={isPending}>
+              <Button
+                variant="primary"
+                onClick={() => setConfirmAction('receive')}
+                disabled={isPending}
+              >
                 {t('actionReceive')}
               </Button>
             )}
@@ -208,7 +231,9 @@ export function TransferDetail({ data, currentUserId }: Props) {
             <div>
               <span className="block text-sm font-medium text-brand-ink-3">{t('status')}</span>
               <div className="mt-1">
-                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${getStatusColor(data.status)}`}>
+                <span
+                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${getStatusColor(data.status)}`}
+                >
                   {getStatusLabel(data.status)}
                 </span>
               </div>
@@ -218,7 +243,9 @@ export function TransferDetail({ data, currentUserId }: Props) {
               <p className="mt-1 font-medium text-brand-ink">{data.transferDate}</p>
             </div>
             <div>
-              <span className="block text-sm font-medium text-brand-ink-3">{t('fromLocation')}</span>
+              <span className="block text-sm font-medium text-brand-ink-3">
+                {t('fromLocation')}
+              </span>
               <p className="mt-1 font-medium text-brand-ink">{data.fromLocationName}</p>
             </div>
             <div>

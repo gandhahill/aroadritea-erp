@@ -374,7 +374,10 @@ export async function awardCompensation(
     let jeId: string | undefined;
     if (input.kind === 'refund_cash' && input.value > 0) {
       const acctCodes = await getPostingAccountCodes(ctx.tenantId);
-      const expenseAccount = await resolveAccountIdByCode(ctx.tenantId, acctCodes['refund.expense']);
+      const expenseAccount = await resolveAccountIdByCode(
+        ctx.tenantId,
+        acctCodes['refund.expense'],
+      );
       if (!expenseAccount.ok) return expenseAccount;
       const cashAccount = await resolveAccountIdByCode(ctx.tenantId, acctCodes.bank);
       if (!cashAccount.ok) return cashAccount;
@@ -403,7 +406,8 @@ export async function awardCompensation(
             },
           ],
         },
-        scopedCtx, { skipPermissionCheck: true }
+        scopedCtx,
+        { skipPermissionCheck: true },
       );
       if (jeResult.ok) jeId = jeResult.value.id;
     }

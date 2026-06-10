@@ -11,12 +11,7 @@
  */
 
 import { db } from '@erp/db';
-import {
-  employees,
-  payrollLines,
-  payrolls,
-  salaryComponents,
-} from '@erp/db/schema/hr';
+import { employees, payrollLines, payrolls, salaryComponents } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
@@ -60,7 +55,9 @@ export async function generateBankTransferFile(
 ): Promise<Result<BankTransferResult>> {
   const parsed = GenerateBankTransferInputSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('hr.bankTransfer.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('hr.bankTransfer.validationFailed', { issues: parsed.error.issues }),
+    );
   }
   const data = parsed.data;
 
@@ -72,7 +69,9 @@ export async function generateBankTransferFile(
       .limit(1);
 
     if (!payroll) {
-      return err(AppError.notFound('hr.bankTransfer.payrollNotFound', { payrollId: data.payrollId }));
+      return err(
+        AppError.notFound('hr.bankTransfer.payrollNotFound', { payrollId: data.payrollId }),
+      );
     }
 
     const permCheck = await requirePermission(ctx.userId, 'hr.payroll.read', {
@@ -81,7 +80,9 @@ export async function generateBankTransferFile(
     if (!permCheck.ok) return permCheck;
 
     if (payroll.status !== 'approved' && payroll.status !== 'paid') {
-      return err(AppError.conflict('hr.bankTransfer.payrollNotApproved', { status: payroll.status }));
+      return err(
+        AppError.conflict('hr.bankTransfer.payrollNotApproved', { status: payroll.status }),
+      );
     }
 
     // Fetch payroll lines to get net per employee
@@ -200,11 +201,7 @@ export async function generateBankTransferFile(
   }
 }
 
-function generateCsvContent(
-  rows: BankTransferRow[],
-  format: string,
-  periodCode: string,
-): string {
+function generateCsvContent(rows: BankTransferRow[], format: string, periodCode: string): string {
   if (format === 'bca') {
     // BCA batch format: AccountNo,AccountHolder,Amount,Remark
     const header = 'AccountNo,AccountHolder,Amount,Remark';
@@ -233,9 +230,11 @@ function generateCsvContent(
   }
 
   // Generic CSV
-  const header = 'EmployeeId,EmployeeName,BankName,AccountNumber,AccountHolder,NetAmount,PeriodCode';
+  const header =
+    'EmployeeId,EmployeeName,BankName,AccountNumber,AccountHolder,NetAmount,PeriodCode';
   const dataRows = rows.map(
-    (r) => `${r.employeeId},${r.employeeName},${r.bankName},${r.accountNumber},${r.accountHolder},${r.netAmount},${r.periodCode}`,
+    (r) =>
+      `${r.employeeId},${r.employeeName},${r.bankName},${r.accountNumber},${r.accountHolder},${r.netAmount},${r.periodCode}`,
   );
   return [header, ...dataRows].join('\n');
 }

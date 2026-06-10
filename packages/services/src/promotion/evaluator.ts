@@ -1,4 +1,8 @@
-import type { PromotionBenefitConfig, PromotionConditionConfig, PromotionKind } from '@erp/db/schema/promotion';
+import type {
+  PromotionBenefitConfig,
+  PromotionConditionConfig,
+  PromotionKind,
+} from '@erp/db/schema/promotion';
 import { type Money, rupiah } from '@erp/shared/money';
 
 export interface PromotionItem {
@@ -39,7 +43,10 @@ export interface EvaluationResult {
   totalDiscount: Money;
 }
 
-export function evaluatePromotions(cart: Cart, activePromotions: PromotionItem[]): EvaluationResult {
+export function evaluatePromotions(
+  cart: Cart,
+  activePromotions: PromotionItem[],
+): EvaluationResult {
   const result: EvaluationResult = {
     appliedPromotions: [],
     totalDiscount: rupiah(0),
@@ -51,15 +58,22 @@ export function evaluatePromotions(cart: Cart, activePromotions: PromotionItem[]
   let remainingCartSubtotal = cart.subtotal;
   let hasNonStackable = false;
   const now = new Date();
-  const wibDate = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+  const wibDate = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
   const wibDay = wibDate.getDay();
-  const wibTimeStr = wibDate.getHours().toString().padStart(2, '0') + ':' + wibDate.getMinutes().toString().padStart(2, '0');
+  const wibTimeStr =
+    wibDate.getHours().toString().padStart(2, '0') +
+    ':' +
+    wibDate.getMinutes().toString().padStart(2, '0');
 
   for (const promo of sorted) {
     if (hasNonStackable) break;
 
     // Check usage limits
-    if (promo.usageLimit !== null && promo.usageLimit !== undefined && promo.usageCount >= promo.usageLimit) {
+    if (
+      promo.usageLimit !== null &&
+      promo.usageLimit !== undefined &&
+      promo.usageCount >= promo.usageLimit
+    ) {
       continue;
     }
 
@@ -72,17 +86,24 @@ export function evaluatePromotions(cart: Cart, activePromotions: PromotionItem[]
 
     if (promo.conditions.startTime && wibTimeStr < promo.conditions.startTime) continue;
     if (promo.conditions.endTime && wibTimeStr > promo.conditions.endTime) continue;
-    if (promo.conditions.minSubtotal && remainingCartSubtotal < rupiah(promo.conditions.minSubtotal)) {
+    if (
+      promo.conditions.minSubtotal &&
+      remainingCartSubtotal < rupiah(promo.conditions.minSubtotal)
+    ) {
       continue;
     }
 
     if (promo.conditions.requiredProductIds && promo.conditions.requiredProductIds.length > 0) {
-      const hasProduct = cart.lines.some(l => promo.conditions.requiredProductIds?.includes(l.productId));
+      const hasProduct = cart.lines.some((l) =>
+        promo.conditions.requiredProductIds?.includes(l.productId),
+      );
       if (!hasProduct) continue;
     }
-    
+
     if (promo.conditions.requiredCategoryIds && promo.conditions.requiredCategoryIds.length > 0) {
-      const hasCategory = cart.lines.some(l => l.categoryId && promo.conditions.requiredCategoryIds?.includes(l.categoryId));
+      const hasCategory = cart.lines.some(
+        (l) => l.categoryId && promo.conditions.requiredCategoryIds?.includes(l.categoryId),
+      );
       if (!hasCategory) continue;
     }
 
@@ -96,7 +117,7 @@ export function evaluatePromotions(cart: Cart, activePromotions: PromotionItem[]
     if (promo.kind === 'percent_discount') {
       const percentBps = promo.benefits.percentBps ?? 0;
       let calculatedDiscount = (remainingCartSubtotal * BigInt(percentBps)) / BigInt(10000);
-      
+
       if (promo.benefits.maxDiscountAmount) {
         const maxDisc = rupiah(promo.benefits.maxDiscountAmount);
         if (calculatedDiscount > maxDisc) {

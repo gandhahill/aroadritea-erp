@@ -1,20 +1,20 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { db, desc, eq, inArray, and, isNull } from '@erp/db';
+import { authorizedLocationIdsForTenant } from '@/lib/authz';
+import { and, db, desc, eq, inArray, isNull } from '@erp/db';
 import {
   accounts,
+  bankAccounts,
   invoiceLines,
   invoices,
   partners,
-  bankAccounts,
 } from '@erp/db/schema/accounting';
-import { cmsSettings } from '@erp/db/schema/cms';
 import { locations } from '@erp/db/schema/auth';
+import { cmsSettings } from '@erp/db/schema/cms';
 import { createInvoice, postInvoice } from '@erp/services/accounting';
 import type { AuditContext } from '@erp/shared/types';
 import { revalidatePath } from 'next/cache';
-import { authorizedLocationIdsForTenant } from '@/lib/authz';
 
 export async function fetchInvoicesAction(input?: { limit?: number; offset?: number }) {
   const session = await getSession();
@@ -92,7 +92,12 @@ export async function postInvoiceAction(invoiceId: string, accountId: string) {
   return { success: true, journalId: res.value.journalId };
 }
 
-export async function payInvoiceAction(invoiceId: string, paymentAccountId: string, amount: string, date: string) {
+export async function payInvoiceAction(
+  invoiceId: string,
+  paymentAccountId: string,
+  amount: string,
+  date: string,
+) {
   const session = await getSession();
   if (!session) throw new Error('Unauthorized');
   const user = session.user as any;
@@ -177,7 +182,13 @@ export async function fetchPrintInvoiceData(invoiceId: string) {
       accountHolder: bankAccounts.accountHolder,
     })
     .from(bankAccounts)
-    .where(and(eq(bankAccounts.tenantId, tenantId), eq(bankAccounts.isActive, true), isNull(bankAccounts.deletedAt)));
+    .where(
+      and(
+        eq(bankAccounts.tenantId, tenantId),
+        eq(bankAccounts.isActive, true),
+        isNull(bankAccounts.deletedAt),
+      ),
+    );
 
   const companyInfo = {
     name: (map.get('company.name') as string) || 'PT. Gandha Hill Catering Management Indonesia',

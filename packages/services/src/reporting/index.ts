@@ -46,6 +46,14 @@ export {
 } from './cash-flow';
 
 export {
+  financialStatementNotes,
+  type FinancialStatementChecklistItem,
+  type FinancialStatementNotesInput,
+  type FinancialStatementNotesResult,
+  type FinancialStatementNotesSection,
+} from './financial-statement-notes';
+
+export {
   getDailySummary,
   type DailySummaryParams,
   type DailySummaryResult,

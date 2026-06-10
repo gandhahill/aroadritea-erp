@@ -1,13 +1,13 @@
 import { db } from '@erp/db';
 import { employees, overtimes } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
+import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { generateId } from '@erp/shared/id';
 import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
-import { requirePermission } from '../iam';
 import { auditRecord } from '../audit';
+import { requirePermission } from '../iam';
 
 export const RecordOvertimeInputSchema = z.object({
   employeeId: z.string().min(1),
@@ -33,9 +33,14 @@ export async function recordOvertime(
   ctx: AuditContext,
 ): Promise<Result<{ id: string }>> {
   const parsed = RecordOvertimeInputSchema.safeParse(input);
-  if (!parsed.success) return err(AppError.validation('common.errors.validationFailed', { issues: parsed.error.issues }));
+  if (!parsed.success)
+    return err(
+      AppError.validation('common.errors.validationFailed', { issues: parsed.error.issues }),
+    );
 
-  const permCheck = await requirePermission(ctx.userId, 'hr.manage_attendance', { locationId: ctx.locationId });
+  const permCheck = await requirePermission(ctx.userId, 'hr.manage_attendance', {
+    locationId: ctx.locationId,
+  });
   if (!permCheck.ok) return permCheck;
 
   const id = generateId();
@@ -57,7 +62,11 @@ export async function recordOvertime(
     entityType: 'overtime',
     entityId: id,
     before: null,
-    after: { employeeId: parsed.data.employeeId, workDate: parsed.data.workDate, hours: parsed.data.hours },
+    after: {
+      employeeId: parsed.data.employeeId,
+      workDate: parsed.data.workDate,
+      hours: parsed.data.hours,
+    },
     metadata: {},
     ctx,
   });
@@ -76,7 +85,10 @@ export async function recordOvertime(
   return ok({ id });
 }
 
-export async function approveOvertime(id: string, ctx: AuditContext): Promise<Result<{ id: string }>> {
+export async function approveOvertime(
+  id: string,
+  ctx: AuditContext,
+): Promise<Result<{ id: string }>> {
   const [ot] = await db
     .select()
     .from(overtimes)
@@ -85,12 +97,19 @@ export async function approveOvertime(id: string, ctx: AuditContext): Promise<Re
   if (!ot) return err(AppError.notFound('hr.overtime.not_found'));
   if (ot.status !== 'pending') return err(AppError.businessRule('hr.overtime.not_pending'));
 
-  const permCheck = await requirePermission(ctx.userId, 'hr.payroll.write', { locationId: ot.locationId });
+  const permCheck = await requirePermission(ctx.userId, 'hr.payroll.write', {
+    locationId: ot.locationId,
+  });
   if (!permCheck.ok) return permCheck;
 
   await db
     .update(overtimes)
-    .set({ status: 'approved', approvedBy: ctx.userId, approvedAt: new Date(), updatedBy: ctx.userId })
+    .set({
+      status: 'approved',
+      approvedBy: ctx.userId,
+      approvedAt: new Date(),
+      updatedBy: ctx.userId,
+    })
     .where(eq(overtimes.id, id));
 
   await auditRecord({
@@ -106,7 +125,11 @@ export async function approveOvertime(id: string, ctx: AuditContext): Promise<Re
   return ok({ id: ot.id });
 }
 
-export async function rejectOvertime(id: string, reason: string, ctx: AuditContext): Promise<Result<{ id: string }>> {
+export async function rejectOvertime(
+  id: string,
+  reason: string,
+  ctx: AuditContext,
+): Promise<Result<{ id: string }>> {
   const [ot] = await db
     .select()
     .from(overtimes)
@@ -115,7 +138,9 @@ export async function rejectOvertime(id: string, reason: string, ctx: AuditConte
   if (!ot) return err(AppError.notFound('hr.overtime.not_found'));
   if (ot.status !== 'pending') return err(AppError.businessRule('hr.overtime.not_pending'));
 
-  const permCheck = await requirePermission(ctx.userId, 'hr.payroll.write', { locationId: ot.locationId });
+  const permCheck = await requirePermission(ctx.userId, 'hr.payroll.write', {
+    locationId: ot.locationId,
+  });
   if (!permCheck.ok) return permCheck;
 
   await db
@@ -137,7 +162,16 @@ export async function rejectOvertime(id: string, reason: string, ctx: AuditConte
 }
 
 export async function listOvertimes(
-  input: { status?: string; employeeId?: string; locationId?: string; locationIds?: string[]; dateFrom?: string; dateTo?: string; page?: number; pageSize?: number },
+  input: {
+    status?: string;
+    employeeId?: string;
+    locationId?: string;
+    locationIds?: string[];
+    dateFrom?: string;
+    dateTo?: string;
+    page?: number;
+    pageSize?: number;
+  },
   ctx: AuditContext,
 ): Promise<Result<{ items: OvertimeListItem[]; total: number }>> {
   const page = Math.max(1, input.page ?? 1);
@@ -148,7 +182,8 @@ export async function listOvertimes(
   if (input.status) conds.push(eq(overtimes.status, input.status));
   if (input.employeeId) conds.push(eq(overtimes.employeeId, input.employeeId));
   if (input.locationId) conds.push(eq(overtimes.locationId, input.locationId));
-  else if (input.locationIds && input.locationIds.length > 0) conds.push(inArray(overtimes.locationId, input.locationIds));
+  else if (input.locationIds && input.locationIds.length > 0)
+    conds.push(inArray(overtimes.locationId, input.locationIds));
   if (input.dateFrom) conds.push(sql`${overtimes.workDate} >= ${input.dateFrom}`);
   if (input.dateTo) conds.push(sql`${overtimes.workDate} <= ${input.dateTo}`);
 

@@ -169,11 +169,11 @@ export async function createAdjustmentDraft(
   // 3. Validate product IDs exist and are active
   const productIds = [...new Set(data.lines.map((l) => l.productId))];
   const foundProducts = await db
-    .select({ 
-      id: products.id, 
+    .select({
+      id: products.id,
       isActive: products.isActive,
       trackBatch: products.trackBatch,
-      trackExpiry: products.trackExpiry
+      trackExpiry: products.trackExpiry,
     })
     .from(products)
     .where(and(eq(products.tenantId, ctx.tenantId), inArray(products.id, productIds)));
@@ -593,7 +593,8 @@ export async function approveAdjustment(
           referenceId: adj.id,
           lines: journalLines,
         },
-        ctx, { skipPermissionCheck: true }
+        ctx,
+        { skipPermissionCheck: true },
       );
       if (!jeResult.ok) {
         // Roll the status claim back so the adjustment can be retried.

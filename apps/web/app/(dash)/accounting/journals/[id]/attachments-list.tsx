@@ -6,8 +6,8 @@
 
 'use client';
 
-import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
+import { useState, useTransition } from 'react';
 import { deleteAttachmentAction, uploadAttachmentAction } from '../attachments/actions';
 
 function formatBytes(bytes: number): string {

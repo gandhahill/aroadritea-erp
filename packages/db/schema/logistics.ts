@@ -2,7 +2,16 @@
  * Logistics schema — handling outgoing shipments and related tracking.
  */
 
-import { boolean, index, integer, jsonb, numeric, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  index,
+  integer,
+  jsonb,
+  numeric,
+  pgTable,
+  text,
+  timestamp,
+} from 'drizzle-orm/pg-core';
 import { auditCols, locationCol, pk, tenantCol, versionCol } from './common';
 
 export const outgoingShipments = pgTable(
@@ -13,9 +22,9 @@ export const outgoingShipments = pgTable(
     ...locationCol,
 
     number: text('number').notNull(), // OSH-2026-05-0001
-    
+
     // Details of what is being shipped
-    subject: text('subject').notNull(), 
+    subject: text('subject').notNull(),
     notes: text('notes'),
 
     // Recipient Info
@@ -30,7 +39,7 @@ export const outgoingShipments = pgTable(
     shippingCourierCode: text('shipping_courier_code'),
     shippingAwb: text('shipping_awb'),
     shippingPhoneLast5: text('shipping_phone_last5'),
-    
+
     shippingTrackingStatus: text('shipping_tracking_status'),
     shippingTrackingSummary: jsonb('shipping_tracking_summary'),
     shippingTrackingHistory: jsonb('shipping_tracking_history'),
@@ -52,7 +61,7 @@ export const outgoingShipmentLines = pgTable(
   {
     ...pk,
     ...tenantCol,
-    
+
     shipmentId: text('shipment_id').notNull(),
     lineNo: integer('line_no').notNull(),
     productId: text('product_id').notNull(),
@@ -60,12 +69,10 @@ export const outgoingShipmentLines = pgTable(
     qty: numeric('qty', { precision: 14, scale: 3 }).notNull(),
     uom: text('uom').notNull(),
     notes: text('notes'),
-    
+
     ...auditCols,
   },
-  (t) => [
-    index('outgoing_shipment_lines_shipment_idx').on(t.shipmentId),
-  ],
+  (t) => [index('outgoing_shipment_lines_shipment_idx').on(t.shipmentId)],
 );
 
 export const outgoingShipmentTrackingRequests = pgTable(
@@ -73,18 +80,18 @@ export const outgoingShipmentTrackingRequests = pgTable(
   {
     ...pk,
     ...tenantCol,
-    
+
     shipmentId: text('shipment_id').notNull(),
     courierCode: text('courier_code').notNull(),
     awb: text('awb').notNull(),
     phoneLast5: text('phone_last5'),
-    
+
     requestedAt: timestamp('requested_at', { withTimezone: true }).notNull().defaultNow(),
     success: boolean('success').notNull().default(false),
     httpStatus: integer('http_status'),
     responseJson: jsonb('response_json'),
     errorMessage: text('error_message'),
-    
+
     ...auditCols,
   },
   (t) => [

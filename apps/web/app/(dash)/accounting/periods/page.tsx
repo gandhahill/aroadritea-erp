@@ -10,10 +10,6 @@ export const metadata: Metadata = {
   title: 'Accounting Periods',
 };
 
-
-
-
-
 function toIntlLocale(locale: string) {
   if (locale === 'zh') return 'zh-CN';
   if (locale === 'en') return 'en-GB';
@@ -56,7 +52,7 @@ export default async function AccountingPeriodsPage() {
     draft: t('draft'),
     posted: t('posted'),
     reversed: t('reversed'),
-    periodAction: t.raw('periodAction')
+    periodAction: t.raw('periodAction'),
   };
   const rows = await fetchAccountingPeriods();
   const openCount = rows.filter((row) => row.status === 'open').length;
@@ -66,9 +62,9 @@ export default async function AccountingPeriodsPage() {
   return (
     <div className="space-y-6">
       <section className="flex flex-col gap-6">
-        <PageHeader 
-          title={<>{copy.title}</>} 
-          description={<>{copy.subtitle}</>} 
+        <PageHeader
+          title={<>{copy.title}</>}
+          description={<>{copy.subtitle}</>}
           actions={<OpenPeriodButton copy={{ period: copy.periodAction }} />}
         />
 

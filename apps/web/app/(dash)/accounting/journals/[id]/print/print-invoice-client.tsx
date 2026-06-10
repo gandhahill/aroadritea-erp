@@ -1,8 +1,8 @@
 'use client';
 
-import type { PrintJournalData, BankAccountDetail, CompanyInfo } from '../../actions';
-import { useEffect } from 'react';
 import Image from 'next/image';
+import { useEffect } from 'react';
+import type { BankAccountDetail, CompanyInfo, PrintJournalData } from '../../actions';
 
 interface PrintJournalClientProps {
   data: PrintJournalData;
@@ -153,9 +153,7 @@ export function PrintInvoiceClient({ data, labels }: PrintJournalClientProps) {
                       <span className="font-mono text-xs text-brand-ink-3">{line.accountCode}</span>
                       <span className="ml-2 text-brand-ink">{accountName}</span>
                     </td>
-                    <td className="py-3 text-brand-ink-2 text-xs">
-                      {line.description || '—'}
-                    </td>
+                    <td className="py-3 text-brand-ink-2 text-xs">{line.description || '—'}</td>
                     <td className="py-3 text-brand-ink-2 text-xs">
                       {line.partnerName || '—'}
                       {line.dueDate && (
@@ -176,7 +174,10 @@ export function PrintInvoiceClient({ data, labels }: PrintJournalClientProps) {
             </tbody>
             <tfoot>
               <tr className="border-t-2 border-brand-ink">
-                <td colSpan={3} className="pt-4 text-right font-semibold text-brand-ink uppercase text-xs tracking-wider">
+                <td
+                  colSpan={3}
+                  className="pt-4 text-right font-semibold text-brand-ink uppercase text-xs tracking-wider"
+                >
                   {labels.total}
                 </td>
                 <td className="pt-4 text-right font-mono font-bold text-brand-ink">

@@ -69,19 +69,21 @@ export async function openShift(input: unknown, ctx: AuditContext): Promise<Resu
   try {
     const shiftId = generateId();
 
-    const insertedRows = await db.insert(shifts).values({
-      id: shiftId,
-      tenantId: ctx.tenantId,
-      locationId: data.locationId,
-      openedBy: ctx.userId,
-      openedAt: new Date(),
-      openingCash: BigInt(data.openingCash),
-      status: 'open',
-      createdBy: ctx.userId,
-      updatedBy: ctx.userId,
-    })
-    .onConflictDoNothing()
-    .returning({ id: shifts.id });
+    const insertedRows = await db
+      .insert(shifts)
+      .values({
+        id: shiftId,
+        tenantId: ctx.tenantId,
+        locationId: data.locationId,
+        openedBy: ctx.userId,
+        openedAt: new Date(),
+        openingCash: BigInt(data.openingCash),
+        status: 'open',
+        createdBy: ctx.userId,
+        updatedBy: ctx.userId,
+      })
+      .onConflictDoNothing()
+      .returning({ id: shifts.id });
 
     if (insertedRows.length === 0) {
       return err(AppError.businessRule('pos.shift.alreadyOpen', { locationId: data.locationId }));
@@ -210,7 +212,8 @@ export async function closeShift(input: unknown, ctx: AuditContext): Promise<Res
     const expenseTotal = expenses.reduce((sum, e) => sum + e.amount, BigInt(0));
 
     // Expected cash = opening + sales - refunds - expenses
-    const expectedCash = shift.openingCash + cashTotal + manualSalesCashTotal - cashRefundTotal - expenseTotal;
+    const expectedCash =
+      shift.openingCash + cashTotal + manualSalesCashTotal - cashRefundTotal - expenseTotal;
     const actualCash = BigInt(data.actualCash);
     const variance = actualCash - expectedCash;
 
@@ -338,7 +341,8 @@ export async function getOpenShift(
       .where(and(eq(shiftExpenses.tenantId, ctx.tenantId), eq(shiftExpenses.shiftId, shift.id)));
     const expenseTotal = expenses.reduce((sum, e) => sum + e.amount, BigInt(0));
 
-    const expectedCash = shift.openingCash + cashTotal + manualSalesCashTotal - cashRefundTotal - expenseTotal;
+    const expectedCash =
+      shift.openingCash + cashTotal + manualSalesCashTotal - cashRefundTotal - expenseTotal;
 
     return ok({
       id: shift.id,

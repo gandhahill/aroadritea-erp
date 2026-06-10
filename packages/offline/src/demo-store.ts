@@ -82,7 +82,10 @@ export interface DemoOrder {
 
 // ─── Derived totals ───────────────────────────────────────────────────────────
 
-export function calcDemoTotals(state: DemoCartState, pb1RateBps: number = 1000): {
+export function calcDemoTotals(
+  state: DemoCartState,
+  pb1RateBps = 1000,
+): {
   subtotal: bigint;
   taxTotal: bigint;
   totalDiscount: bigint;

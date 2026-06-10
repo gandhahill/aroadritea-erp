@@ -23,9 +23,16 @@ export default async function FixedAssetsPage({
     ? (params.status as 'active' | 'fully_depreciated' | 'disposed')
     : undefined;
   const page = Math.max(1, Number(params.page) || 1);
-  const pageSize = [10, 20, 50, 100].includes(Number(params.pageSize)) ? Number(params.pageSize) : 20;
+  const pageSize = [10, 20, 50, 100].includes(Number(params.pageSize))
+    ? Number(params.pageSize)
+    : 20;
   const [data, t] = await Promise.all([
-    fetchAssetPageData({ locationId: params.locationId, status, limit: pageSize, offset: (page - 1) * pageSize }),
+    fetchAssetPageData({
+      locationId: params.locationId,
+      status,
+      limit: pageSize,
+      offset: (page - 1) * pageSize,
+    }),
     getTranslations('accounting.assets'),
   ]);
   const today = new Date().toISOString().slice(0, 10);

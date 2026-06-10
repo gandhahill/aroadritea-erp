@@ -1,5 +1,5 @@
 import { db } from '@erp/db';
-import { landedCosts, grnLines, purchaseInvoices } from '@erp/db/schema/purchasing';
+import { grnLines, landedCosts, purchaseInvoices } from '@erp/db/schema/purchasing';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
@@ -32,7 +32,7 @@ export async function allocateLandedCost(
 
   // Wait, I will just implement a basic insert. No complex allocation logic for now.
   // We can expand it later.
-  
+
   const id = generateId();
 
   await db.insert(landedCosts).values({

@@ -73,7 +73,10 @@ export default async function AccountingSettingsPage() {
       .select({ value: cmsSettings.value })
       .from(cmsSettings)
       .where(
-        and(eq(cmsSettings.tenantId, tenantId), eq(cmsSettings.key, 'accounting.payables.accountIds')),
+        and(
+          eq(cmsSettings.tenantId, tenantId),
+          eq(cmsSettings.key, 'accounting.payables.accountIds'),
+        ),
       )
       .limit(1);
     const legacyId =

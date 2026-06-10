@@ -1,25 +1,33 @@
 /**
  * hr.hardDeleteEmployee — SD §9.6, §21.8
  *
- * Permanently deletes an employee and their corresponding user account IF AND ONLY IF 
+ * Permanently deletes an employee and their corresponding user account IF AND ONLY IF
  * they have no transactional history (payrolls, attendances, etc).
  * Permission: hr.employee.write (global or scoped to employee's location)
  */
 
 import { db } from '@erp/db';
-import { authAccounts, userRoles, users, sessions, apiTokens, mcpTokens, twoFactor } from '@erp/db/schema/auth';
-import { 
-  employees, 
-  employmentContracts, 
-  attendance, 
-  payrollLines, 
-  leaveRequests, 
-  disciplinaryActions, 
-  cashAdvances, 
-  shiftAssignments,
-  leaveBalances,
+import {
+  apiTokens,
+  authAccounts,
+  mcpTokens,
+  sessions,
+  twoFactor,
+  userRoles,
+  users,
+} from '@erp/db/schema/auth';
+import {
+  attendance,
+  cashAdvances,
+  disciplinaryActions,
+  employees,
+  employmentContracts,
   jobApplicants,
-  scheduleOverrides
+  leaveBalances,
+  leaveRequests,
+  payrollLines,
+  scheduleOverrides,
+  shiftAssignments,
 } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, tryCatch } from '@erp/shared/result';
@@ -49,22 +57,48 @@ export async function hardDeleteEmployee(
 
       // 2. Scoped location check
       if (emp.locationId) {
-        const locPermCheck = await requirePermission(ctx.userId, 'hr.employee.write', { locationId: emp.locationId });
+        const locPermCheck = await requirePermission(ctx.userId, 'hr.employee.write', {
+          locationId: emp.locationId,
+        });
         if (!locPermCheck.ok) throw locPermCheck.error;
       }
 
       // 3. Validation: Prevent hard delete if ANY transactional records exist
       const queries = await Promise.all([
-        db.select({ id: attendance.id }).from(attendance).where(eq(attendance.employeeId, employeeId)).limit(1),
-        db.select({ id: payrollLines.id }).from(payrollLines).where(eq(payrollLines.employeeId, employeeId)).limit(1),
-        db.select({ id: leaveRequests.id }).from(leaveRequests).where(eq(leaveRequests.employeeId, employeeId)).limit(1),
-        db.select({ id: disciplinaryActions.id }).from(disciplinaryActions).where(eq(disciplinaryActions.employeeId, employeeId)).limit(1),
-        db.select({ id: cashAdvances.id }).from(cashAdvances).where(eq(cashAdvances.employeeId, employeeId)).limit(1),
-        db.select({ id: shiftAssignments.id }).from(shiftAssignments).where(eq(shiftAssignments.employeeId, employeeId)).limit(1),
+        db
+          .select({ id: attendance.id })
+          .from(attendance)
+          .where(eq(attendance.employeeId, employeeId))
+          .limit(1),
+        db
+          .select({ id: payrollLines.id })
+          .from(payrollLines)
+          .where(eq(payrollLines.employeeId, employeeId))
+          .limit(1),
+        db
+          .select({ id: leaveRequests.id })
+          .from(leaveRequests)
+          .where(eq(leaveRequests.employeeId, employeeId))
+          .limit(1),
+        db
+          .select({ id: disciplinaryActions.id })
+          .from(disciplinaryActions)
+          .where(eq(disciplinaryActions.employeeId, employeeId))
+          .limit(1),
+        db
+          .select({ id: cashAdvances.id })
+          .from(cashAdvances)
+          .where(eq(cashAdvances.employeeId, employeeId))
+          .limit(1),
+        db
+          .select({ id: shiftAssignments.id })
+          .from(shiftAssignments)
+          .where(eq(shiftAssignments.employeeId, employeeId))
+          .limit(1),
       ]);
 
-      const hasHistory = queries.some(result => result.length > 0);
-      
+      const hasHistory = queries.some((result) => result.length > 0);
+
       if (hasHistory) {
         throw AppError.validation('hr.employee.hardDeleteBlocked');
       }
@@ -74,9 +108,16 @@ export async function hardDeleteEmployee(
       // 4. Perform Hard Delete in transaction
       await db.transaction(async (tx) => {
         // Detach from optional tables first
-        await tx.update(jobApplicants).set({ hiredEmployeeId: null }).where(eq(jobApplicants.hiredEmployeeId, employeeId));
-        await tx.delete(scheduleOverrides).where(eq(scheduleOverrides.originalEmployeeId, employeeId));
-        await tx.delete(scheduleOverrides).where(eq(scheduleOverrides.substituteEmployeeId, employeeId));
+        await tx
+          .update(jobApplicants)
+          .set({ hiredEmployeeId: null })
+          .where(eq(jobApplicants.hiredEmployeeId, employeeId));
+        await tx
+          .delete(scheduleOverrides)
+          .where(eq(scheduleOverrides.originalEmployeeId, employeeId));
+        await tx
+          .delete(scheduleOverrides)
+          .where(eq(scheduleOverrides.substituteEmployeeId, employeeId));
 
         // Delete hr dependencies
         await tx.delete(leaveBalances).where(eq(leaveBalances.employeeId, employeeId));

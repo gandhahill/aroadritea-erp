@@ -17,7 +17,7 @@
  */
 import { db } from '@erp/db';
 import { cmsSettings } from '@erp/db/schema/cms';
-import { type Result } from '@erp/shared/result';
+import type { Result } from '@erp/shared/result';
 import { and, eq } from 'drizzle-orm';
 import { requireAccountIdByCode } from './account-resolver';
 
@@ -70,9 +70,7 @@ export const POSTING_ACCOUNT_PURPOSES = Object.keys(
 
 export type PostingAccountCodes = Record<PostingAccountPurpose, string>;
 
-function sanitizeOverrides(
-  raw: unknown,
-): Partial<Record<PostingAccountPurpose, string>> {
+function sanitizeOverrides(raw: unknown): Partial<Record<PostingAccountPurpose, string>> {
   const out: Partial<Record<PostingAccountPurpose, string>> = {};
   if (!raw || typeof raw !== 'object') return out;
   const map = raw as Record<string, unknown>;

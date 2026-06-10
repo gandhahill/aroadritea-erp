@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
 import { toast } from '@erp/ui';
-import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
-import { postInvoiceAction } from '../../actions';
 import { Button } from '@erp/ui';
+import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { postInvoiceAction } from '../../actions';
 
-export function PostInvoiceForm({ invoice, accounts }: { invoice: any, accounts: any[] }) {
+export function PostInvoiceForm({ invoice, accounts }: { invoice: any; accounts: any[] }) {
   const router = useRouter();
   const t = useTranslations('accounting.invoice');
   const tCommon = useTranslations('common.actions');
@@ -33,21 +33,33 @@ export function PostInvoiceForm({ invoice, accounts }: { invoice: any, accounts:
   };
 
   const isSales = invoice.type === 'sales';
-  
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 rounded-xl border border-brand-cream-3 bg-card p-6 shadow-soft">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-6 rounded-xl border border-brand-cream-3 bg-card p-6 shadow-soft"
+    >
       {error && (
-        <div className="rounded-lg bg-brand-red-light p-4 text-sm text-brand-red">
-          {error}
-        </div>
+        <div className="rounded-lg bg-brand-red-light p-4 text-sm text-brand-red">{error}</div>
       )}
 
       <div className="mb-6 p-4 bg-brand-cream-1 rounded-lg border border-brand-cream-3 space-y-2">
         <h3 className="font-semibold text-brand-ink">{t('postAction.details')}</h3>
-        <p className="text-sm text-brand-ink-2">{t('number')}: {invoice.number}</p>
-        <p className="text-sm text-brand-ink-2">{t('type')}: <span className="capitalize">{invoice.type === 'sales' ? t('sales') : t('purchase')}</span></p>
-        <p className="text-sm text-brand-ink-2">{t('partner')}: {invoice.partnerName}</p>
-        <p className="text-sm text-brand-ink-2 font-mono">{t('total')}: {invoice.total.toString()}</p>
+        <p className="text-sm text-brand-ink-2">
+          {t('number')}: {invoice.number}
+        </p>
+        <p className="text-sm text-brand-ink-2">
+          {t('type')}:{' '}
+          <span className="capitalize">
+            {invoice.type === 'sales' ? t('sales') : t('purchase')}
+          </span>
+        </p>
+        <p className="text-sm text-brand-ink-2">
+          {t('partner')}: {invoice.partnerName}
+        </p>
+        <p className="text-sm text-brand-ink-2 font-mono">
+          {t('total')}: {invoice.total.toString()}
+        </p>
       </div>
 
       <div className="space-y-4">
@@ -62,11 +74,13 @@ export function PostInvoiceForm({ invoice, accounts }: { invoice: any, accounts:
             required
             className="w-full rounded-lg border border-brand-cream-3 px-4 py-2"
             value={accountId}
-            onChange={e => setAccountId(e.target.value)}
+            onChange={(e) => setAccountId(e.target.value)}
           >
             <option value="">{t('new.selectAccount')}</option>
-            {accounts.map(acc => (
-              <option key={acc.id} value={acc.id}>{acc.code} - {acc.name?.id ?? acc.name?.en ?? acc.nameId ?? acc.nameEn}</option>
+            {accounts.map((acc) => (
+              <option key={acc.id} value={acc.id}>
+                {acc.code} - {acc.name?.id ?? acc.name?.en ?? acc.nameId ?? acc.nameEn}
+              </option>
             ))}
           </select>
         </div>
@@ -76,7 +90,11 @@ export function PostInvoiceForm({ invoice, accounts }: { invoice: any, accounts:
         <Button type="button" onClick={() => router.back()} variant="secondary" className="mr-3">
           {t('postAction.cancel')}
         </Button>
-        <Button type="submit" disabled={loading || !accountId} className="bg-brand-jade hover:bg-brand-jade-dark text-white">
+        <Button
+          type="submit"
+          disabled={loading || !accountId}
+          className="bg-brand-jade hover:bg-brand-jade-dark text-white"
+        >
           {loading ? t('postAction.posting') : t('postAction.postCreate')}
         </Button>
       </div>

@@ -95,9 +95,9 @@ export type PermissionCode =
   | 'hr.recruitment.read'
   | 'hr.recruitment.manage'
   | 'crm.view'
-    | 'crm.manage'
-    | 'inventory.write'
-    | 'sales.view'
+  | 'crm.manage'
+  | 'inventory.write'
+  | 'sales.view'
   | 'crm.manage_members'
   | 'crm.logComplaint'
   | 'crm.listComplaints'
@@ -121,4 +121,8 @@ export type PermissionCode =
   | 'cms.view'
   | 'crm.view'
   | 'docs.view'
-  | 'docs.edit' | 'logistics.shipments.view' | 'logistics.shipments.create' | 'iam.user.update' | 'accounting.journal.view';
+  | 'docs.edit'
+  | 'logistics.shipments.view'
+  | 'logistics.shipments.create'
+  | 'iam.user.update'
+  | 'accounting.journal.view';

@@ -271,9 +271,7 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
         checks: [
           'Batas kuota BinderByte adalah 500 request per bulan; sinkron ulang hanya bila status memang harus dicek.',
         ],
-        links: [
-          { label: 'Pengiriman Keluar', href: '/logistics/outgoing-shipments' },
-        ],
+        links: [{ label: 'Pengiriman Keluar', href: '/logistics/outgoing-shipments' }],
       },
       {
         id: 'hr',
@@ -699,9 +697,7 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
         checks: [
           'BinderByte quota is limited to 500 requests per month; only sync when you need the updated status.',
         ],
-        links: [
-          { label: 'Outgoing Shipments', href: '/logistics/outgoing-shipments' },
-        ],
+        links: [{ label: 'Outgoing Shipments', href: '/logistics/outgoing-shipments' }],
       },
       {
         id: 'hr',
@@ -1107,12 +1103,8 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
           '查看出库列表、运单号、快递公司和收件人。',
           '点击同步按钮，获取最新的物流状态（每次同步消耗API月度额度）。',
         ],
-        checks: [
-          'BinderByte 每月限额500次请求；仅在确实需要更新状态时才进行同步。',
-        ],
-        links: [
-          { label: '出库运输', href: '/logistics/outgoing-shipments' },
-        ],
+        checks: ['BinderByte 每月限额500次请求；仅在确实需要更新状态时才进行同步。'],
+        links: [{ label: '出库运输', href: '/logistics/outgoing-shipments' }],
       },
       {
         id: 'hr',

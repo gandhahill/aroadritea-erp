@@ -362,7 +362,10 @@ export async function runPayroll(
       // 5b. Auto-fetch approved overtime hours for the period
       const { getApprovedOvertimeForPeriod } = await import('../hr/overtime-service');
       const overtimeMap = await getApprovedOvertimeForPeriod(
-        ctx.tenantId, data.locationId, periodStartDate, periodEndDate,
+        ctx.tenantId,
+        data.locationId,
+        periodStartDate,
+        periodEndDate,
       );
 
       // 6. Calculate payroll for each employee

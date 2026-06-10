@@ -28,11 +28,15 @@ export const CreateRFQInputSchema = z.object({
   locationId: z.string().min(1, 'Location is required'),
   rfqDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format YYYY-MM-DD'),
   deadlineDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format YYYY-MM-DD'),
-  lines: z.array(z.object({
-    productId: z.string().min(1),
-    variantId: z.string().optional().nullable(),
-    qty: z.string().min(1),
-    uom: z.string().min(1),
-  })).min(1),
+  lines: z
+    .array(
+      z.object({
+        productId: z.string().min(1),
+        variantId: z.string().optional().nullable(),
+        qty: z.string().min(1),
+        uom: z.string().min(1),
+      }),
+    )
+    .min(1),
   notes: z.string().optional(),
 });

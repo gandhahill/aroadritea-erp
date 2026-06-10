@@ -2,11 +2,11 @@ import { db } from '@erp/db';
 import { uomConversions } from '@erp/db/schema/inventory';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
-import { and, eq, or, isNull } from 'drizzle-orm';
+import { and, eq, isNull, or } from 'drizzle-orm';
 
 /**
  * Convert quantity from one UOM to another.
- * 
+ *
  * It will look for conversions defined specifically for the product,
  * or fallback to global conversions (where productId is null).
  */

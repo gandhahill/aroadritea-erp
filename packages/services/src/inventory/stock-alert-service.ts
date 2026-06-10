@@ -73,7 +73,7 @@ export async function getExpiringStock(
     sql`${stockLevels.expiryDate} <= ${thresholdDate}`,
     sql`${stockLevels.qtyAvailable} > 0`,
   ];
-  
+
   if (locationId) {
     conditions.push(eq(stockLevels.locationId, locationId));
   }
@@ -99,6 +99,6 @@ export async function getExpiringStock(
       ...r,
       // Drizzle returns date as string or Date depending on config, assume Date
       expiryDate: r.expiryDate ? new Date(r.expiryDate) : null,
-    }))
+    })),
   );
 }

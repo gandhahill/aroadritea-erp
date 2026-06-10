@@ -267,7 +267,7 @@ export default async function DashboardPage() {
     canViewAttendance,
     canViewPurchasing,
     canViewEmployees,
-    canViewAccounting
+    canViewAccounting,
   ] = await Promise.all([
     can(userId, 'reporting.view' as PermissionCode),
     can(userId, 'pos.view' as PermissionCode),
@@ -312,7 +312,7 @@ export default async function DashboardPage() {
             <Kpi title={t('kpis.monthGross')} value={rupiah(kpis.monthGross, locale)} />
           </>
         )}
-        
+
         {canViewPos && (
           <Kpi
             title={t('kpis.openShifts')}
@@ -320,7 +320,7 @@ export default async function DashboardPage() {
             subtitle={t('kpis.activePos')}
           />
         )}
-        
+
         {canViewAttendance && (
           <Kpi
             title={t('kpis.lateToday')}
@@ -328,15 +328,13 @@ export default async function DashboardPage() {
             subtitle={t('kpis.notForgiven')}
           />
         )}
-        
-        {canViewPurchasing && (
-          <Kpi title={t('kpis.openPo')} value={String(kpis.openPos)} />
-        )}
-        
+
+        {canViewPurchasing && <Kpi title={t('kpis.openPo')} value={String(kpis.openPos)} />}
+
         {canViewEmployees && (
           <Kpi title={t('kpis.activeEmployees')} value={String(kpis.activeEmployees)} />
         )}
-        
+
         {canViewAccounting && (
           <Kpi
             title={t('kpis.accountingPeriod')}

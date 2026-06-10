@@ -32,6 +32,7 @@
 import { db } from '@erp/db';
 import { partners } from '@erp/db/schema/accounting';
 import { auditLog } from '@erp/db/schema/audit';
+import { sequences } from '@erp/db/schema/common';
 import {
   bomLines,
   boms,
@@ -40,6 +41,7 @@ import {
   stockLevels,
   stockMovements,
 } from '@erp/db/schema/inventory';
+import { memberVouchers } from '@erp/db/schema/member';
 import {
   idempotencyRecords,
   payments,
@@ -48,30 +50,28 @@ import {
   shifts,
 } from '@erp/db/schema/pos';
 import { promotionApplications } from '@erp/db/schema/promotion';
-import { memberVouchers } from '@erp/db/schema/member';
-import { sequences } from '@erp/db/schema/common';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray, sql } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
+import { earnLoyaltyPoints } from '../crm';
+import { requirePermission } from '../iam';
+import { convertQty } from '../inventory/uom-service';
 import { generateQrPayload } from '../kitchen/generate-qr';
 import { queueOrderItems } from '../kitchen/kds-service';
-import { earnLoyaltyPoints } from '../crm';
-import { convertQty } from '../inventory/uom-service';
-import { requirePermission } from '../iam';
 import { notifyByPermission } from '../notification';
-import { evaluatePromotions, type Cart, listActivePromotionsForSale } from '../promotion';
+import { type Cart, evaluatePromotions, listActivePromotionsForSale } from '../promotion';
 import { claimIdempotency, releaseIdempotencyClaim, saveIdempotency } from '../shared/idempotency';
+import { type DonationResult, type RoundingOption, calculateDonation } from './donation';
 import {
+  type PosPostingConfig,
   autoPostJournalEntry,
   extractInclusiveTax,
   humanizeChannel,
   resolvePosPostingConfig,
-  type PosPostingConfig,
 } from './posting';
-import { type DonationResult, type RoundingOption, calculateDonation } from './donation';
 import {
   CreateSaleInputSchema,
   type PaymentInput,
@@ -430,7 +430,7 @@ export async function deductIngredients(
   }>,
   referenceId: string,
   ctx: AuditContext,
-  referenceType: string = 'sales_order',
+  referenceType = 'sales_order',
 ): Promise<Result<IngredientDeduction[]>> {
   const appliedDeductions: IngredientDeduction[] = [];
   try {
@@ -861,53 +861,76 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
     // Apply order-level promo discounts to grand total
     const autoDiscountTotal = promoResult.totalDiscount;
     if (autoDiscountTotal > totalGrand) {
-       totalDiscount += totalGrand;
-       totalGrand = BigInt(0);
+      totalDiscount += totalGrand;
+      totalGrand = BigInt(0);
     } else {
-       totalDiscount += autoDiscountTotal;
-       totalGrand -= autoDiscountTotal;
+      totalDiscount += autoDiscountTotal;
+      totalGrand -= autoDiscountTotal;
     }
 
     // Validate and apply voucher if provided
     let totalVoucherDiscount = BigInt(0);
-    let voucherToUpdate: { id: string, code: string } | null = null;
+    let voucherToUpdate: { id: string; code: string } | null = null;
     if (data.voucherCode) {
       if (!data.customerId) {
-         return err(AppError.businessRule('pos.createSale.voucherRequiresCustomer', { code: data.voucherCode }));
+        return err(
+          AppError.businessRule('pos.createSale.voucherRequiresCustomer', {
+            code: data.voucherCode,
+          }),
+        );
       }
-      const voucher = await db.select().from(memberVouchers).where(and(eq(memberVouchers.tenantId, ctx.tenantId), eq(memberVouchers.code, data.voucherCode))).then(r => r[0]);
+      const voucher = await db
+        .select()
+        .from(memberVouchers)
+        .where(
+          and(eq(memberVouchers.tenantId, ctx.tenantId), eq(memberVouchers.code, data.voucherCode)),
+        )
+        .then((r) => r[0]);
       if (!voucher) {
-         return err(AppError.notFound('pos.createSale.voucherNotFound', { code: data.voucherCode }));
+        return err(AppError.notFound('pos.createSale.voucherNotFound', { code: data.voucherCode }));
       }
       if (voucher.memberId !== data.customerId) {
-         return err(AppError.businessRule('pos.createSale.voucherOwnerMismatch', { code: data.voucherCode }));
+        return err(
+          AppError.businessRule('pos.createSale.voucherOwnerMismatch', { code: data.voucherCode }),
+        );
       }
       if (!voucher.isActive) {
-         return err(AppError.businessRule('pos.createSale.voucherInactive', { code: data.voucherCode }));
+        return err(
+          AppError.businessRule('pos.createSale.voucherInactive', { code: data.voucherCode }),
+        );
       }
       if (voucher.usedInOrderId) {
-         return err(AppError.businessRule('pos.createSale.voucherAlreadyUsed', { code: data.voucherCode }));
+        return err(
+          AppError.businessRule('pos.createSale.voucherAlreadyUsed', { code: data.voucherCode }),
+        );
       }
       const now = new Date();
       if (now < voucher.validFrom || now > voucher.validUntil) {
-         return err(AppError.businessRule('pos.createSale.voucherExpired', { code: data.voucherCode }));
+        return err(
+          AppError.businessRule('pos.createSale.voucherExpired', { code: data.voucherCode }),
+        );
       }
       if (totalGrand < BigInt(voucher.minOrderValue)) {
-         return err(AppError.businessRule('pos.createSale.voucherMinOrderNotMet', { code: data.voucherCode, minOrder: voucher.minOrderValue.toString() }));
+        return err(
+          AppError.businessRule('pos.createSale.voucherMinOrderNotMet', {
+            code: data.voucherCode,
+            minOrder: voucher.minOrderValue.toString(),
+          }),
+        );
       }
 
       if (voucher.kind === 'discount_fixed') {
-         totalVoucherDiscount = BigInt(voucher.value);
+        totalVoucherDiscount = BigInt(voucher.value);
       } else if (voucher.kind === 'discount_percent') {
-         let calculated = (totalGrand * BigInt(voucher.value)) / 100n;
-         if (voucher.maxDiscountValue && calculated > BigInt(voucher.maxDiscountValue)) {
-            calculated = BigInt(voucher.maxDiscountValue);
-         }
-         totalVoucherDiscount = calculated;
+        let calculated = (totalGrand * BigInt(voucher.value)) / 100n;
+        if (voucher.maxDiscountValue && calculated > BigInt(voucher.maxDiscountValue)) {
+          calculated = BigInt(voucher.maxDiscountValue);
+        }
+        totalVoucherDiscount = calculated;
       }
-      
+
       if (totalVoucherDiscount > totalGrand) {
-         totalVoucherDiscount = totalGrand;
+        totalVoucherDiscount = totalGrand;
       }
       totalGrand -= totalVoucherDiscount;
       voucherToUpdate = { id: voucher.id, code: voucher.code };
@@ -965,11 +988,13 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
 
       // Deduct product directly if no BOM (e.g. merchandise, pre-packaged)
       if (ingredients.length === 0) {
-        ingredients = [{
-          ingredientId: line.productId,
-          qty: line.qty.toString(),
-          uom: p.uom,
-        }];
+        ingredients = [
+          {
+            ingredientId: line.productId,
+            qty: line.qty.toString(),
+            uom: p.uom,
+          },
+        ];
       }
 
       const deductResult = await deductIngredients(
@@ -1016,23 +1041,26 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
     });
 
     if (voucherToUpdate) {
-       await db.update(memberVouchers).set({
-         usedAt: new Date(),
-         usedInOrderId: saleId,
-         isActive: false,
-         updatedBy: ctx.userId,
-       }).where(eq(memberVouchers.id, voucherToUpdate.id));
+      await db
+        .update(memberVouchers)
+        .set({
+          usedAt: new Date(),
+          usedInOrderId: saleId,
+          isActive: false,
+          updatedBy: ctx.userId,
+        })
+        .where(eq(memberVouchers.id, voucherToUpdate.id));
 
-       await db.insert(auditLog).values({
-         id: generateId(),
-         tenantId: ctx.tenantId,
-         userId: ctx.userId,
-         action: 'redeem',
-         entityType: 'member_voucher',
-         entityId: voucherToUpdate.id,
-         before: { isActive: true, usedInOrderId: null },
-         after: { isActive: false, usedInOrderId: saleId },
-       });
+      await db.insert(auditLog).values({
+        id: generateId(),
+        tenantId: ctx.tenantId,
+        userId: ctx.userId,
+        action: 'redeem',
+        entityType: 'member_voucher',
+        entityId: voucherToUpdate.id,
+        before: { isActive: true, usedInOrderId: null },
+        after: { isActive: false, usedInOrderId: saleId },
+      });
     }
 
     // 11. Insert order lines
@@ -1041,14 +1069,18 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
       const lr = lineResults[idx]!;
       let kdsQrToken: string | null = null;
       let kdsQrPayload: string | null = null;
-      
-      const qrRes = await generateQrPayload({
-        locationId: data.locationId,
-        productId: lr.productId,
-        variantId: lr.variantId,
-        orderNumber: saleNumber,
-        modifiers: normalizeNaixerModifiers(lr.modifierJson),
-      }, ctx, { skipPermissionCheck: true });
+
+      const qrRes = await generateQrPayload(
+        {
+          locationId: data.locationId,
+          productId: lr.productId,
+          variantId: lr.variantId,
+          orderNumber: saleNumber,
+          modifiers: normalizeNaixerModifiers(lr.modifierJson),
+        },
+        ctx,
+        { skipPermissionCheck: true },
+      );
 
       if (qrRes.ok) {
         if (qrRes.value.missingCodes.length > 0) {
@@ -1237,22 +1269,22 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
       });
     }
 
-      // Insert auto-promotions into promotionApplications
-      if (promoResult.appliedPromotions.length > 0) {
-        await db.insert(promotionApplications).values(
-          promoResult.appliedPromotions.map((p) => ({
-            id: generateId(),
-            tenantId: ctx.tenantId,
-            promotionId: p.promotionId,
-            salesOrderId: saleId,
-            lineId: p.lineId ?? null,
-            benefitType: 'discount',
-            discountAmount: p.discountAmount.toString(),
-            createdBy: ctx.userId,
-            updatedBy: ctx.userId,
-          }))
-        );
-      }
+    // Insert auto-promotions into promotionApplications
+    if (promoResult.appliedPromotions.length > 0) {
+      await db.insert(promotionApplications).values(
+        promoResult.appliedPromotions.map((p) => ({
+          id: generateId(),
+          tenantId: ctx.tenantId,
+          promotionId: p.promotionId,
+          salesOrderId: saleId,
+          lineId: p.lineId ?? null,
+          benefitType: 'discount',
+          discountAmount: p.discountAmount.toString(),
+          createdBy: ctx.userId,
+          updatedBy: ctx.userId,
+        })),
+      );
+    }
 
     const jeResult = await createJournal(
       {
@@ -1263,7 +1295,8 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
         referenceId: saleId,
         lines: jeLines,
       },
-      ctx, { skipPermissionCheck: true }
+      ctx,
+      { skipPermissionCheck: true },
     );
 
     let journalEntryId: string | null = null;

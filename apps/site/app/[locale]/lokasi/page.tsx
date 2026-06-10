@@ -28,9 +28,18 @@ const PUBLIC_STORE_FALLBACKS = [
     type: 'store',
     address:
       'Malioboro Mall, Jl. Mataram No. 31, Suryatmajan, Danurejan, Kota Yogyakarta, Daerah Istimewa Yogyakarta 55213',
-    openingHours: { monday: '10:00 - 22:00', tuesday: '10:00 - 22:00', wednesday: '10:00 - 22:00', thursday: '10:00 - 22:00', friday: '10:00 - 22:00', saturday: '10:00 - 22:00', sunday: '10:00 - 22:00' },
+    openingHours: {
+      monday: '10:00 - 22:00',
+      tuesday: '10:00 - 22:00',
+      wednesday: '10:00 - 22:00',
+      thursday: '10:00 - 22:00',
+      friday: '10:00 - 22:00',
+      saturday: '10:00 - 22:00',
+      sunday: '10:00 - 22:00',
+    },
     deliveryLink: 'https://gofood.co.id/yogyakarta/restaurant/aroadri-tea-malioboro-mall',
-    mapEmbedUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3953.0312015091724!2d110.36440537494412!3d-7.791783992226279!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7a574218dc65b5%3A0x6b44ab50fcdab44!2sMalioboro%20Mall!5e0!3m2!1sen!2sid!4v1700000000000!5m2!1sen!2sid',
+    mapEmbedUrl:
+      'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3953.0312015091724!2d110.36440537494412!3d-7.791783992226279!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7a574218dc65b5%3A0x6b44ab50fcdab44!2sMalioboro%20Mall!5e0!3m2!1sen!2sid!4v1700000000000!5m2!1sen!2sid',
   },
   {
     id: 'fallback-plz',
@@ -43,9 +52,18 @@ const PUBLIC_STORE_FALLBACKS = [
     type: 'store',
     address:
       'Plaza Malioboro, Jl. Malioboro No. 52-58, Suryatmajan, Danurejan, Kota Yogyakarta, Daerah Istimewa Yogyakarta 55213',
-    openingHours: { monday: '10:00 - 22:00', tuesday: '10:00 - 22:00', wednesday: '10:00 - 22:00', thursday: '10:00 - 22:00', friday: '10:00 - 22:00', saturday: '10:00 - 22:00', sunday: '10:00 - 22:00' },
+    openingHours: {
+      monday: '10:00 - 22:00',
+      tuesday: '10:00 - 22:00',
+      wednesday: '10:00 - 22:00',
+      thursday: '10:00 - 22:00',
+      friday: '10:00 - 22:00',
+      saturday: '10:00 - 22:00',
+      sunday: '10:00 - 22:00',
+    },
     deliveryLink: 'https://gofood.co.id/yogyakarta/restaurant/aroadri-tea-plaza-malioboro',
-    mapEmbedUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3953.0312015091724!2d110.36440537494412!3d-7.791783992226279!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7a574218dc65b5%3A0x6b44ab50fcdab44!2sMalioboro%20Mall!5e0!3m2!1sen!2sid!4v1700000000000!5m2!1sen!2sid',
+    mapEmbedUrl:
+      'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3953.0312015091724!2d110.36440537494412!3d-7.791783992226279!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7a574218dc65b5%3A0x6b44ab50fcdab44!2sMalioboro%20Mall!5e0!3m2!1sen!2sid!4v1700000000000!5m2!1sen!2sid',
   },
 ] as const;
 
@@ -88,12 +106,14 @@ export default async function LocationsPage({ params }: Props) {
                 <p className="mt-4 text-sm font-bold text-brand-ink">{t('defaultHours')}</p>
                 {Boolean(location.openingHours) && (
                   <ul className="mt-2 text-sm text-brand-ink-2 space-y-1">
-                    {Object.entries(location.openingHours as Record<string, string>).map(([day, hours]) => (
-                      <li key={day} className="flex justify-between">
-                        <span className="capitalize">{day}</span>
-                        <span>{hours}</span>
-                      </li>
-                    ))}
+                    {Object.entries(location.openingHours as Record<string, string>).map(
+                      ([day, hours]) => (
+                        <li key={day} className="flex justify-between">
+                          <span className="capitalize">{day}</span>
+                          <span>{hours}</span>
+                        </li>
+                      ),
+                    )}
                   </ul>
                 )}
                 <div className="mt-5 flex flex-wrap gap-3 text-sm font-bold">
@@ -104,7 +124,7 @@ export default async function LocationsPage({ params }: Props) {
                       rel="noreferrer"
                       className="rounded-full bg-brand-gold px-4 py-2 text-brand-ink transition-brand hover:bg-brand-gold/80"
                     >
-                      {t('orderDelivery') || 'Order Delivery'}
+                      {t('orderDelivery')}
                     </a>
                   )}
                   {location.mapUrl && !location.mapEmbedUrl && (
@@ -121,6 +141,7 @@ export default async function LocationsPage({ params }: Props) {
                 {location.mapEmbedUrl && (
                   <div className="mt-6 aspect-video w-full overflow-hidden rounded-lg">
                     <iframe
+                      title={t('mapEmbedTitle', { name: location.name })}
                       src={location.mapEmbedUrl}
                       width="100%"
                       height="100%"

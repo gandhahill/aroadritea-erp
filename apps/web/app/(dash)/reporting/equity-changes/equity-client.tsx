@@ -61,7 +61,11 @@ export function EquityChangesClient(props: Props) {
     rows.push(['', '', '']);
     rows.push([t('beginningBalance'), '', fmt(props.data.totalBeginningEquity)]);
     rows.push(['  ' + t('beginningCapital'), '', fmt(props.data.beginningCapital)]);
-    rows.push(['  ' + t('beginningRetainedEarnings'), '', fmt(props.data.beginningRetainedEarnings)]);
+    rows.push([
+      '  ' + t('beginningRetainedEarnings'),
+      '',
+      fmt(props.data.beginningRetainedEarnings),
+    ]);
     rows.push(['', '', '']);
     rows.push([t('netIncome'), '', fmt(props.data.netIncome)]);
     rows.push([t('additionalCapital'), '', fmt(props.data.additionalCapital)]);
@@ -71,7 +75,9 @@ export function EquityChangesClient(props: Props) {
     rows.push(['  ' + t('endingCapital'), '', fmt(props.data.endingCapital)]);
     rows.push(['  ' + t('endingRetainedEarnings'), '', fmt(props.data.endingRetainedEarnings)]);
 
-    const csv = rows.map((r) => r.map((c) => `"${(c ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+    const csv = rows
+      .map((r) => r.map((c) => `"${(c ?? '').replace(/"/g, '""')}"`).join(','))
+      .join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -132,10 +138,11 @@ export function EquityChangesClient(props: Props) {
         <div className="mx-auto max-w-4xl overflow-hidden rounded-xl border border-brand-cream-3 bg-card text-sm">
           <div className="border-b border-brand-cream-3 bg-brand-cream-1 p-6 text-center">
             <h2 className="text-lg font-bold text-brand-ink">{t('title')}</h2>
-            <p className="text-brand-ink-2 mt-1">{t('periodRange', { from: props.from, to: props.to })}</p>
+            <p className="text-brand-ink-2 mt-1">
+              {t('periodRange', { from: props.from, to: props.to })}
+            </p>
           </div>
           <div className="p-6 space-y-6">
-            
             {/* Saldo Awal */}
             <div>
               <div className="flex justify-between font-bold border-b border-brand-cream-3 pb-2 text-base">
@@ -156,7 +163,9 @@ export function EquityChangesClient(props: Props) {
             <div>
               <div className="flex justify-between py-2 font-medium">
                 <span>{t('netIncome')}</span>
-                <span className={props.data.netIncome >= 0n ? 'text-brand-jade' : 'text-brand-red'}>{fmt(props.data.netIncome)}</span>
+                <span className={props.data.netIncome >= 0n ? 'text-brand-jade' : 'text-brand-red'}>
+                  {fmt(props.data.netIncome)}
+                </span>
               </div>
               <div className="flex justify-between py-2 font-medium">
                 <span>{t('additionalCapital')}</span>
@@ -183,7 +192,6 @@ export function EquityChangesClient(props: Props) {
                 <span>{fmt(props.data.endingRetainedEarnings)}</span>
               </div>
             </div>
-
           </div>
         </div>
       ) : null}

@@ -73,7 +73,7 @@ export async function changePasswordAction(input: {
       locationId: '',
       ipAddress: headersList.get('x-forwarded-for') ?? undefined,
       userAgent: headersList.get('user-agent') ?? undefined,
-    }
+    },
   });
 
   // 4. Delete every auth-related cookie from the browser so the next

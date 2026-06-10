@@ -26,9 +26,9 @@
 
 import { db } from '@erp/db';
 import { accountingPeriods, journalEntries, journalLines } from '@erp/db/schema/accounting';
+import { sequences } from '@erp/db/schema/common';
 import { bomLines, boms, stockLevels, stockMovements } from '@erp/db/schema/inventory';
 import { refundLines, refunds, salesOrderLines, salesOrders } from '@erp/db/schema/pos';
-import { sequences } from '@erp/db/schema/common';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
@@ -118,10 +118,7 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
     const refundedQtyByLine = new Map<string, number>();
     let previousRefundTotal = 0n;
     for (const row of previousRefundRows) {
-      refundedQtyByLine.set(
-        row.lineId,
-        (refundedQtyByLine.get(row.lineId) ?? 0) + Number(row.qty),
-      );
+      refundedQtyByLine.set(row.lineId, (refundedQtyByLine.get(row.lineId) ?? 0) + Number(row.qty));
       previousRefundTotal += BigInt(row.amount.toString());
     }
 
@@ -199,7 +196,8 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
             journalId: sale.journalEntryId,
             postingDate: new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10),
           },
-          ctx, { skipPermissionCheck: true }
+          ctx,
+          { skipPermissionCheck: true },
         );
         if (!reversalResult.ok) {
           // Roll the claim back so the order can be refunded again
@@ -413,17 +411,21 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
         const pointsEarned = BigInt(Math.round(Number(earnTx[0].points)));
         const originalGrandTotal = BigInt(sale.grandTotal.toString());
         // Use BigInt arithmetic to avoid Number precision loss on large amounts.
-        const pointsToRevert = originalGrandTotal > 0n
-          ? Number((pointsEarned * refundTotal) / originalGrandTotal)
-          : Number(pointsEarned);
-        
+        const pointsToRevert =
+          originalGrandTotal > 0n
+            ? Number((pointsEarned * refundTotal) / originalGrandTotal)
+            : Number(pointsEarned);
+
         if (pointsToRevert > 0) {
           const { adjustMemberPoints } = await import('../crm/member-service');
-          await adjustMemberPoints({
-            memberId: sale.customerId,
-            delta: -pointsToRevert,
-            reason: `Refund for order ${sale.number}`,
-          }, ctx);
+          await adjustMemberPoints(
+            {
+              memberId: sale.customerId,
+              delta: -pointsToRevert,
+              reason: `Refund for order ${sale.number}`,
+            },
+            ctx,
+          );
         }
       }
     }

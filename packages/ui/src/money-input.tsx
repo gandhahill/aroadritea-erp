@@ -45,7 +45,10 @@ function stripDots(formatted: string): string {
  * (defaultValue + name for FormData) patterns.
  */
 export const MoneyInput = forwardRef<HTMLInputElement, MoneyInputProps>(
-  ({ className, value, defaultValue, onValueChange, onChange, prefix = 'Rp', name, ...props }, ref) => {
+  (
+    { className, value, defaultValue, onValueChange, onChange, prefix = 'Rp', name, ...props },
+    ref,
+  ) => {
     const [internalValue, setInternalValue] = useState(() =>
       formatWithDots(String(defaultValue ?? '')),
     );
@@ -97,7 +100,12 @@ export const MoneyInput = forwardRef<HTMLInputElement, MoneyInputProps>(
           ref={ref}
           type="text"
           inputMode="numeric"
-          className={cn(baseInputStyles, prefix ? 'pl-9' : '', 'text-right tabular-nums', className)}
+          className={cn(
+            baseInputStyles,
+            prefix ? 'pl-9' : '',
+            'text-right tabular-nums',
+            className,
+          )}
           value={displayValue}
           onChange={handleChange}
           autoComplete="off"

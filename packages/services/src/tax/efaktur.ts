@@ -1,6 +1,6 @@
 import { db } from '@erp/db';
 import { nsfpBlocks, taxInvoices } from '@erp/db/schema/accounting';
-import { invoices, invoiceLines } from '@erp/db/schema/accounting';
+import { invoiceLines, invoices } from '@erp/db/schema/accounting';
 import { partners } from '@erp/db/schema/accounting';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
@@ -34,7 +34,9 @@ export async function registerNsfpBlock(
 ): Promise<Result<{ id: string }>> {
   const parsed = RegisterNsfpBlockSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('tax.efaktur.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('tax.efaktur.validationFailed', { issues: parsed.error.issues }),
+    );
   }
   const data = parsed.data;
 
@@ -45,7 +47,7 @@ export async function registerNsfpBlock(
   if (startNum.length !== endNum.length || startNum.length < 13) {
     return err(AppError.businessRule('tax.efaktur.invalidLength', { length: startNum.length }));
   }
-  
+
   if (BigInt(startNum) > BigInt(endNum)) {
     return err(AppError.businessRule('tax.efaktur.startGreaterThanEnd'));
   }
@@ -67,7 +69,7 @@ export async function registerNsfpBlock(
       for (const block of existingBlocks) {
         const bStart = BigInt(block.startNsfp.replace(/\D/g, ''));
         const bEnd = BigInt(block.endNsfp.replace(/\D/g, ''));
-        
+
         if (newStart <= bEnd && newEnd >= bStart) {
           throw AppError.conflict('tax.efaktur.overlap', {
             existingStart: block.startNsfp,
@@ -94,9 +96,9 @@ export async function registerNsfpBlock(
         entityId: id,
         before: null,
         after: {
-           startNsfp: startNum,
-           endNsfp: endNum,
-           issueDate: data.issueDate
+          startNsfp: startNum,
+          endNsfp: endNum,
+          issueDate: data.issueDate,
         },
         ctx,
       });
@@ -141,7 +143,7 @@ export async function generateTaxInvoice(
         .from(taxInvoices)
         .where(eq(taxInvoices.invoiceId, invoiceId))
         .limit(1);
-        
+
       if (existing) {
         return { nsfp: existing.nsfp, id: existing.id };
       }
@@ -172,7 +174,8 @@ export async function generateTaxInvoice(
           break;
         } else {
           // Block exhausted
-          await db.update(nsfpBlocks)
+          await db
+            .update(nsfpBlocks)
             .set({ isActive: false, updatedBy: ctx.userId })
             .where(eq(nsfpBlocks.id, block.id));
         }
@@ -186,15 +189,17 @@ export async function generateTaxInvoice(
       const claimResult = await db
         .update(nsfpBlocks)
         .set({
-           lastUsedNsfp: selectedNsfp,
-           updatedBy: ctx.userId,
-           updatedAt: new Date()
+          lastUsedNsfp: selectedNsfp,
+          updatedBy: ctx.userId,
+          updatedAt: new Date(),
         })
-        .where(and(
-          eq(nsfpBlocks.id, selectedBlockId),
-          // ensure no one else took it if it was null
-          sql`${nsfpBlocks.lastUsedNsfp} IS NOT DISTINCT FROM ${blocks.find(b => b.id === selectedBlockId)?.lastUsedNsfp ?? null}`
-        ))
+        .where(
+          and(
+            eq(nsfpBlocks.id, selectedBlockId),
+            // ensure no one else took it if it was null
+            sql`${nsfpBlocks.lastUsedNsfp} IS NOT DISTINCT FROM ${blocks.find((b) => b.id === selectedBlockId)?.lastUsedNsfp ?? null}`,
+          ),
+        )
         .returning({ id: nsfpBlocks.id });
 
       if (claimResult.length === 0) {
@@ -238,7 +243,7 @@ export async function generateTaxInvoice(
     (e) => {
       if (e instanceof AppError) return e;
       return AppError.internal('tax.efaktur.generateFailed', e);
-    }
+    },
   );
 }
 
@@ -256,64 +261,66 @@ export async function exportEFakturCsv(
       // 1. Fetch Tax Invoices for Period
       const rows = await db
         .select({
-           nsfp: taxInvoices.nsfp,
-           customerName: taxInvoices.customerName,
-           customerNpwp: taxInvoices.customerNpwp,
-           dpp: taxInvoices.dpp,
-           ppn: taxInvoices.ppn,
-           issueDate: taxInvoices.issueDate,
-           invoiceId: taxInvoices.invoiceId,
-           status: taxInvoices.status,
+          nsfp: taxInvoices.nsfp,
+          customerName: taxInvoices.customerName,
+          customerNpwp: taxInvoices.customerNpwp,
+          dpp: taxInvoices.dpp,
+          ppn: taxInvoices.ppn,
+          issueDate: taxInvoices.issueDate,
+          invoiceId: taxInvoices.invoiceId,
+          status: taxInvoices.status,
         })
         .from(taxInvoices)
         .where(
           and(
             eq(taxInvoices.tenantId, ctx.tenantId),
             eq(taxInvoices.taxPeriod, period),
-            // Only export posted invoices, cancelled might need separate treatment 
+            // Only export posted invoices, cancelled might need separate treatment
             // but for standard e-Faktur CSV, usually all are included and marked.
-          )
+          ),
         )
         .orderBy(asc(taxInvoices.nsfp));
 
       // 2. Fetch lines
-      const invoiceIds = rows.map(r => r.invoiceId);
-      let linesMap: Record<string, any[]> = {};
-      
+      const invoiceIds = rows.map((r) => r.invoiceId);
+      const linesMap: Record<string, any[]> = {};
+
       if (invoiceIds.length > 0) {
-         const lines = await db
-           .select()
-           .from(invoiceLines)
-           .where(inArray(invoiceLines.invoiceId, invoiceIds));
-           
-         for (const line of lines) {
-           const arr = linesMap[line.invoiceId] ?? [];
-           arr.push(line);
-           linesMap[line.invoiceId] = arr;
-         }
+        const lines = await db
+          .select()
+          .from(invoiceLines)
+          .where(inArray(invoiceLines.invoiceId, invoiceIds));
+
+        for (const line of lines) {
+          const arr = linesMap[line.invoiceId] ?? [];
+          arr.push(line);
+          linesMap[line.invoiceId] = arr;
+        }
       }
 
       // 3. Format CSV (Standard e-Faktur Pajak Keluaran format)
-      // Format: 
+      // Format:
       // FK,KD_JENIS_TRANSAKSI,FG_PENGGANTI,NOMOR_FAKTUR,MASA_PAJAK,TAHUN_PAJAK,TANGGAL_FAKTUR,NPWP,NAMA,ALAMAT_LENGKAP,JUMLAH_DPP,JUMLAH_PPN,JUMLAH_PPNBM,ID_KETERANGAN_TAMBAHAN,FG_UANG_MUKA,UANG_MUKA_DPP,UANG_MUKA_PPN,UANG_MUKA_PPNBM,REFERENSI
       // OF,KODE_OBJEK,NAMA,HARGA_SATUAN,JUMLAH_BARANG,HARGA_TOTAL,DISKON,DPP,PPN,TARIF_PPNBM,PPNBM
 
-      let csv = 'FK,KD_JENIS_TRANSAKSI,FG_PENGGANTI,NOMOR_FAKTUR,MASA_PAJAK,TAHUN_PAJAK,TANGGAL_FAKTUR,NPWP,NAMA,ALAMAT_LENGKAP,JUMLAH_DPP,JUMLAH_PPN,JUMLAH_PPNBM,ID_KETERANGAN_TAMBAHAN,FG_UANG_MUKA,UANG_MUKA_DPP,UANG_MUKA_PPN,UANG_MUKA_PPNBM,REFERENSI\n';
-      csv += 'OF,KODE_OBJEK,NAMA,HARGA_SATUAN,JUMLAH_BARANG,HARGA_TOTAL,DISKON,DPP,PPN,TARIF_PPNBM,PPNBM\n';
+      let csv =
+        'FK,KD_JENIS_TRANSAKSI,FG_PENGGANTI,NOMOR_FAKTUR,MASA_PAJAK,TAHUN_PAJAK,TANGGAL_FAKTUR,NPWP,NAMA,ALAMAT_LENGKAP,JUMLAH_DPP,JUMLAH_PPN,JUMLAH_PPNBM,ID_KETERANGAN_TAMBAHAN,FG_UANG_MUKA,UANG_MUKA_DPP,UANG_MUKA_PPN,UANG_MUKA_PPNBM,REFERENSI\n';
+      csv +=
+        'OF,KODE_OBJEK,NAMA,HARGA_SATUAN,JUMLAH_BARANG,HARGA_TOTAL,DISKON,DPP,PPN,TARIF_PPNBM,PPNBM\n';
 
       for (const row of rows) {
         // e-Faktur requires specific NSFP format string.
         // Assuming KD_JENIS_TRANSAKSI = '01', FG_PENGGANTI = '0' for normal.
         const masa = period.substring(5, 7);
         const tahun = period.substring(0, 4);
-        
+
         // Format Date to DD/MM/YYYY
         const dateObj = new Date(row.issueDate);
         const dateStr = `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()}`;
-        
+
         // Clean NPWP
         const npwp = row.customerNpwp ? row.customerNpwp.replace(/\D/g, '') : '000000000000000';
-        
+
         // Output FK row
         csv += `"FK","01","0","${row.nsfp}","${masa}","${tahun}","${dateStr}","${npwp}","${row.customerName}","Alamat","${row.dpp.toString()}","${row.ppn.toString()}","0","","0","0","0","0",""\n`;
 
@@ -326,6 +333,6 @@ export async function exportEFakturCsv(
 
       return csv;
     },
-    (e) => AppError.internal('tax.efaktur.exportFailed', e)
+    (e) => AppError.internal('tax.efaktur.exportFailed', e),
   );
 }

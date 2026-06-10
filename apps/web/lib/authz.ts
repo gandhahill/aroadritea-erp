@@ -1,6 +1,6 @@
-import type { PermissionCode } from '@erp/shared/types';
 import { and, db, eq, inArray, locations } from '@erp/db';
 import { can, canGlobally, getAuthorizedLocations } from '@erp/services/iam';
+import type { PermissionCode } from '@erp/shared/types';
 
 export async function hasPermissionAtLocation(
   userId: string,
@@ -19,7 +19,10 @@ export async function requirePermissionAtLocation(
   return hasPermissionAtLocation(userId, permission, locationId);
 }
 
-export async function hasGlobalPermission(userId: string, permission: PermissionCode): Promise<boolean> {
+export async function hasGlobalPermission(
+  userId: string,
+  permission: PermissionCode,
+): Promise<boolean> {
   if (!userId) return false;
   return canGlobally(userId, permission);
 }

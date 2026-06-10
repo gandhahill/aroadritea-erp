@@ -24,7 +24,7 @@ export default async function NewInvoicePage() {
 
   const [data, t] = await Promise.all([
     fetchJournalFormData(),
-    getTranslations('accounting.invoice.new')
+    getTranslations('accounting.invoice.new'),
   ]);
 
   return (

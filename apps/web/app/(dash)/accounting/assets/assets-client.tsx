@@ -7,7 +7,12 @@ import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useActionState, useEffect, useMemo, useState } from 'react';
-import { createAssetAction, runDepreciationAction, updateAssetCategoryAction, disposeAssetAction } from './actions';
+import {
+  createAssetAction,
+  disposeAssetAction,
+  runDepreciationAction,
+  updateAssetCategoryAction,
+} from './actions';
 import type { AssetPageData } from './actions';
 
 const METHOD_VALUES = [
@@ -84,9 +89,12 @@ export function AssetsClient({
     router.refresh();
   }, [disposeState, router]);
 
-  const activeAssets = useMemo(() => assets.filter(a => a.status !== 'disposed'), [assets]);
-  const disposeAsset = useMemo(() => activeAssets.find(a => a.id === disposeAssetId) ?? activeAssets[0], [activeAssets, disposeAssetId]);
-  
+  const activeAssets = useMemo(() => assets.filter((a) => a.status !== 'disposed'), [assets]);
+  const disposeAsset = useMemo(
+    () => activeAssets.find((a) => a.id === disposeAssetId) ?? activeAssets[0],
+    [activeAssets, disposeAssetId],
+  );
+
   // Set default dispose asset id when data loads
   useEffect(() => {
     if (activeAssets.length > 0 && !disposeAssetId) {
@@ -209,7 +217,11 @@ export function AssetsClient({
               </tbody>
             </table>
           </div>
-          {total > 0 && <div className="mt-4"><Pagination currentPage={page} totalItems={total} pageSize={pageSize} /></div>}
+          {total > 0 && (
+            <div className="mt-4">
+              <Pagination currentPage={page} totalItems={total} pageSize={pageSize} />
+            </div>
+          )}
         </section>
 
         <aside className="space-y-4">
@@ -288,7 +300,12 @@ export function AssetsClient({
             <div className="mt-4 space-y-3">
               <label className="space-y-1.5">
                 <span className="text-sm font-medium text-brand-ink">{t('assetToDispose')}</span>
-                <Select name="assetId" value={disposeAsset?.id ?? ''} onChange={(e) => setDisposeAssetId(e.target.value)} required>
+                <Select
+                  name="assetId"
+                  value={disposeAsset?.id ?? ''}
+                  onChange={(e) => setDisposeAssetId(e.target.value)}
+                  required
+                >
                   {activeAssets.map((asset) => (
                     <option key={asset.id} value={asset.id}>
                       {asset.code} - {asset.name}
@@ -304,17 +321,12 @@ export function AssetsClient({
                 defaultValue={today}
                 required
               />
-              <Field
-                label={t('salePrice')}
-                name="salePrice"
-                inputMode="numeric"
-                defaultValue="0"
-              />
+              <Field label={t('salePrice')} name="salePrice" inputMode="numeric" defaultValue="0" />
               <SelectAccount
                 label={t('saleAccount')}
                 name="saleAccountId"
-                accounts={accountOptions.filter(a => a.type === 'asset')}
-                defaultValue={accountOptions.find(a => a.code.startsWith('1-11'))?.id ?? ''}
+                accounts={accountOptions.filter((a) => a.type === 'asset')}
+                defaultValue={accountOptions.find((a) => a.code.startsWith('1-11'))?.id ?? ''}
                 pickName={pickName}
               />
               <label className="block space-y-1.5">

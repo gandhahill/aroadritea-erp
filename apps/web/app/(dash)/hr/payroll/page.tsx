@@ -47,9 +47,7 @@ export default async function PayrollPage() {
           and(
             eq(locations.tenantId, tenantId),
             isNull(locations.deletedAt),
-            ...(locationScope.global
-              ? []
-              : [inArray(locations.id, locationScope.locationIds)]),
+            ...(locationScope.global ? [] : [inArray(locations.id, locationScope.locationIds)]),
           ),
         )
     : [];

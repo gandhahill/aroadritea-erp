@@ -1,5 +1,5 @@
 import type { PermissionCode } from '@erp/shared/types';
-'use server';
+('use server');
 
 import { getSession } from '@/lib/auth';
 import { and, asc, auditLog, cmsSettings, db, desc, eq, inArray, isNull } from '@erp/db';

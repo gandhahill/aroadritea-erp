@@ -9,7 +9,10 @@ import { z } from 'zod';
 export const POLineInputSchema = z.object({
   productId: z.string().min(1, 'product is required'),
   variantId: z.string().optional(),
-  qtyOrdered: z.string().regex(/^\d+(\.\d{1,3})?$/, 'qty must be positive decimal').refine((v) => Number.parseFloat(v) > 0, { message: 'qty must be > 0' }),
+  qtyOrdered: z
+    .string()
+    .regex(/^\d+(\.\d{1,3})?$/, 'qty must be positive decimal')
+    .refine((v) => Number.parseFloat(v) > 0, { message: 'qty must be > 0' }),
   uom: z.string().min(1, 'uom is required'),
   // Price may be 0 at order time when it is not yet known; the actual price is
   // captured at receiving (GRN).

@@ -1,14 +1,14 @@
 'use client';
 
-import { useLocale, useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
-import { useMemo, useState, useTransition } from 'react';
 import {
   NAV_ACCESS,
   type NavAccessEntry,
   pagesForPermission,
   permissionsForGate,
 } from '@/lib/nav-access';
+import { useLocale, useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import { useMemo, useState, useTransition } from 'react';
 import {
   type PermissionMatrix,
   createRoleAction,
@@ -177,7 +177,9 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
                     const codes = permissionsForGate(entry.gate, allCodes);
                     return (
                       <tr key={entry.href} className="align-top">
-                        <td className="w-1/3 py-1.5 pr-4 text-brand-ink">{tn(entry.labelKey as never)}</td>
+                        <td className="w-1/3 py-1.5 pr-4 text-brand-ink">
+                          {tn(entry.labelKey as never)}
+                        </td>
                         <td className="py-1.5">
                           <div className="flex flex-wrap gap-1">
                             {codes.length === 0 ? (

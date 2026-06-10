@@ -1,5 +1,11 @@
 import { db } from '@erp/db';
-import { absenceDispensations, attendance, employees, shiftAssignments, shiftDefinitions } from '@erp/db/schema/hr';
+import {
+  absenceDispensations,
+  attendance,
+  employees,
+  shiftAssignments,
+  shiftDefinitions,
+} from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';

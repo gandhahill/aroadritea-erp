@@ -1,12 +1,12 @@
 'use server';
 
+import { randomUUID } from 'node:crypto';
 import { getSession } from '@/lib/auth';
 import { and, asc, db, eq, isNull } from '@erp/db';
 import { partners } from '@erp/db/schema/accounting';
 import { auditLog } from '@erp/db/schema/audit';
 import { requirePermission } from '@erp/services/iam';
 import { revalidatePath } from 'next/cache';
-import { randomUUID } from 'node:crypto';
 
 async function getContext() {
   const session = await getSession();
@@ -33,19 +33,14 @@ export interface PartnerRow {
   isActive: boolean;
 }
 
-export async function fetchPartnersAction(
-  kindFilter?: string,
-): Promise<PartnerRow[]> {
+export async function fetchPartnersAction(kindFilter?: string): Promise<PartnerRow[]> {
   const ctx = await getContext();
   if (!ctx) return [];
 
   const perm = await requirePermission(ctx.userId, 'accounting.view');
   if (!perm.ok) return [];
 
-  const conditions = [
-    eq(partners.tenantId, ctx.tenantId),
-    isNull(partners.deletedAt),
-  ];
+  const conditions = [eq(partners.tenantId, ctx.tenantId), isNull(partners.deletedAt)];
   if (kindFilter && kindFilter !== 'all') {
     conditions.push(eq(partners.kind, kindFilter));
   }
@@ -97,8 +92,7 @@ export async function savePartnerAction(
   const isPkp = formData.get('isPkp') === 'on';
   const paymentTermsDays =
     Number.parseInt(String(formData.get('paymentTermsDays') ?? '0'), 10) || 0;
-  const leadTimeDays =
-    Number.parseInt(String(formData.get('leadTimeDays') ?? '0'), 10) || 0;
+  const leadTimeDays = Number.parseInt(String(formData.get('leadTimeDays') ?? '0'), 10) || 0;
 
   if (!name.trim()) return { success: false, error: 'Name is required' };
 
@@ -168,9 +162,7 @@ export async function savePartnerAction(
   return { success: true };
 }
 
-export async function togglePartnerAction(
-  id: string,
-): Promise<ActionState> {
+export async function togglePartnerAction(id: string): Promise<ActionState> {
   const ctx = await getContext();
   if (!ctx) return { success: false, error: 'Unauthorized' };
 

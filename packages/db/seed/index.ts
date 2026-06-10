@@ -16,10 +16,10 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 import { generateId } from '@erp/shared/id';
-import postgres from 'postgres';
 import * as argon2 from 'argon2';
 import { and, eq, inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
 import type { Database } from '../client';
 import { accountingPeriods, accounts, taxRates, taxRules } from '../schema/accounting';
 import {
@@ -34,7 +34,6 @@ import {
 } from '../schema/auth';
 import { customFieldDefinitions, customFieldValues } from '../schema/customfield';
 import { leaveTypes, salaryComponents, shiftDefinitions } from '../schema/hr';
-import { SALARY_COMPONENTS_SEED } from './salary-components-seed';
 import { naixerQrFormatConfig } from '../schema/kitchen';
 import { posSettings } from '../schema/pos';
 import { scheduledJobs } from '../schema/scheduled-jobs';
@@ -55,6 +54,7 @@ import { seedMalioboroMayInventory } from './malioboro-may-inventory';
 import { seedMenu } from './menu';
 import { NAIXER_QR_FORMAT_DEFAULTS } from './naixer-seed';
 import { seedRecipes } from './recipes';
+import { SALARY_COMPONENTS_SEED } from './salary-components-seed';
 import { SCHEDULED_JOBS_SEED } from './scheduled-jobs-seed';
 import { SHIFT_DEFINITIONS_SEED } from './shift-definitions-seed';
 import { seedInitialStock } from './stock-initial';

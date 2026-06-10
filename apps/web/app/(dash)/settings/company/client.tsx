@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
 import { toast } from '@erp/ui';
-import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
-import { saveCompanySettingsAction, type CompanyInfo } from './actions';
 import { Button } from '@erp/ui';
+import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { type CompanyInfo, saveCompanySettingsAction } from './actions';
 
 export function CompanySettingsForm({ defaults }: { defaults: CompanyInfo }) {
   const router = useRouter();
@@ -44,9 +44,7 @@ export function CompanySettingsForm({ defaults }: { defaults: CompanyInfo }) {
         <div className="rounded-lg bg-brand-red-light p-4 text-sm text-brand-red">{error}</div>
       )}
       {success && (
-        <div className="rounded-lg bg-brand-jade/10 p-4 text-sm text-brand-jade">
-          {t('saved')}
-        </div>
+        <div className="rounded-lg bg-brand-jade/10 p-4 text-sm text-brand-jade">{t('saved')}</div>
       )}
 
       <div className="space-y-6">

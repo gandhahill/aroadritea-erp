@@ -20,8 +20,8 @@
 import { and, db, eq, inArray, isNull } from '@erp/db';
 import { journalEntries } from '@erp/db/schema/accounting';
 import { locations, users } from '@erp/db/schema/auth';
-import { employees, payrollLines, payrolls, salaryComponents } from '@erp/db/schema/hr';
 import { cmsSettings } from '@erp/db/schema/cms';
+import { employees, payrollLines, payrolls, salaryComponents } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
@@ -97,7 +97,13 @@ export async function getEmployeePayslip(
   const [employee] = await db
     .select()
     .from(employees)
-    .where(and(eq(employees.tenantId, ctx.tenantId), eq(employees.id, input.employeeId), isNull(employees.deletedAt)))
+    .where(
+      and(
+        eq(employees.tenantId, ctx.tenantId),
+        eq(employees.id, input.employeeId),
+        isNull(employees.deletedAt),
+      ),
+    )
     .limit(1);
 
   if (!employee) {
@@ -199,13 +205,17 @@ export async function getEmployeePayslip(
     .where(
       and(
         eq(cmsSettings.tenantId, ctx.tenantId),
-        inArray(cmsSettings.key, ['company.name', 'company.address'])
-      )
+        inArray(cmsSettings.key, ['company.name', 'company.address']),
+      ),
     );
 
   const companyMap = new Map(companySettingsRows.map((r) => [r.key, r.value]));
-  const companyName = String(companyMap.get('company.name') ?? 'PT Gandha Hill Catering Management Indonesia');
-  const companyAddress = companyMap.get('company.address') ? String(companyMap.get('company.address')) : null;
+  const companyName = String(
+    companyMap.get('company.name') ?? 'PT Gandha Hill Catering Management Indonesia',
+  );
+  const companyAddress = companyMap.get('company.address')
+    ? String(companyMap.get('company.address'))
+    : null;
 
   return ok({
     payrollId: payroll.payroll.id,

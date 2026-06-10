@@ -1,7 +1,7 @@
 'use client';
 
-import { Button, Input, Select, Table, TableBody, TableCell, TableHead } from '@erp/ui';
 import type { GeneralLedgerResult } from '@erp/services/reporting';
+import { Button, Input, Select, Table, TableBody, TableCell, TableHead } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
@@ -53,7 +53,14 @@ export function LedgerClient(props: Props) {
     rows.push(['', '', '', '', '', '']);
     rows.push([t('date'), t('journalNo'), t('description'), t('debit'), t('credit'), t('balance')]);
 
-    rows.push([props.from, '-', t('beginningBalance'), '', '', props.data.beginningBalance.toString()]);
+    rows.push([
+      props.from,
+      '-',
+      t('beginningBalance'),
+      '',
+      '',
+      props.data.beginningBalance.toString(),
+    ]);
     for (const m of props.data.lines) {
       rows.push([
         m.postingDate,
@@ -143,29 +150,37 @@ export function LedgerClient(props: Props) {
       {props.data ? (
         <div className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
-             <div className="rounded-xl border border-brand-cream-3 bg-card p-4">
-               <h3 className="text-sm font-semibold text-brand-ink mb-3 border-b border-brand-cream-3 pb-2">{t('currentPeriod')}</h3>
-               <div className="flex justify-between py-1 text-sm">
-                 <span className="text-brand-ink-3">{t('beginningBalance')}</span>
-                 <span className="font-semibold text-brand-ink">{fmt(props.data.beginningBalance)}</span>
-               </div>
-               <div className="flex justify-between py-1 text-sm font-semibold">
-                 <span className="text-brand-ink">{t('endingBalance')}</span>
-                 <span className="text-brand-ink">{fmt(props.data.endingBalance)}</span>
-               </div>
-             </div>
+            <div className="rounded-xl border border-brand-cream-3 bg-card p-4">
+              <h3 className="text-sm font-semibold text-brand-ink mb-3 border-b border-brand-cream-3 pb-2">
+                {t('currentPeriod')}
+              </h3>
+              <div className="flex justify-between py-1 text-sm">
+                <span className="text-brand-ink-3">{t('beginningBalance')}</span>
+                <span className="font-semibold text-brand-ink">
+                  {fmt(props.data.beginningBalance)}
+                </span>
+              </div>
+              <div className="flex justify-between py-1 text-sm font-semibold">
+                <span className="text-brand-ink">{t('endingBalance')}</span>
+                <span className="text-brand-ink">{fmt(props.data.endingBalance)}</span>
+              </div>
+            </div>
 
-             <div className="rounded-xl border border-brand-cream-3 bg-card p-4">
-               <h3 className="text-sm font-semibold text-brand-ink mb-3 border-b border-brand-cream-3 pb-2">{t('comparativePeriod')}</h3>
-               <div className="flex justify-between py-1 text-sm">
-                 <span className="text-brand-ink-3">{t('beginningBalance')}</span>
-                 <span className="font-semibold text-brand-ink">{fmt(props.data.comparativeBeginningBalance)}</span>
-               </div>
-               <div className="flex justify-between py-1 text-sm font-semibold">
-                 <span className="text-brand-ink">{t('endingBalance')}</span>
-                 <span className="text-brand-ink">{fmt(props.data.comparativeEndingBalance)}</span>
-               </div>
-             </div>
+            <div className="rounded-xl border border-brand-cream-3 bg-card p-4">
+              <h3 className="text-sm font-semibold text-brand-ink mb-3 border-b border-brand-cream-3 pb-2">
+                {t('comparativePeriod')}
+              </h3>
+              <div className="flex justify-between py-1 text-sm">
+                <span className="text-brand-ink-3">{t('beginningBalance')}</span>
+                <span className="font-semibold text-brand-ink">
+                  {fmt(props.data.comparativeBeginningBalance)}
+                </span>
+              </div>
+              <div className="flex justify-between py-1 text-sm font-semibold">
+                <span className="text-brand-ink">{t('endingBalance')}</span>
+                <span className="text-brand-ink">{fmt(props.data.comparativeEndingBalance)}</span>
+              </div>
+            </div>
           </div>
 
           <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card">
@@ -182,8 +197,12 @@ export function LedgerClient(props: Props) {
               </thead>
               <TableBody>
                 <tr className="border-t border-brand-cream-3 text-xs bg-brand-cream-1/30">
-                  <TableCell className="px-3 py-3 font-semibold text-brand-ink-2" colSpan={5}>{t('beginningBalance')}</TableCell>
-                  <TableCell className="px-3 py-3 text-right font-semibold text-brand-ink">{fmt(props.data.beginningBalance)}</TableCell>
+                  <TableCell className="px-3 py-3 font-semibold text-brand-ink-2" colSpan={5}>
+                    {t('beginningBalance')}
+                  </TableCell>
+                  <TableCell className="px-3 py-3 text-right font-semibold text-brand-ink">
+                    {fmt(props.data.beginningBalance)}
+                  </TableCell>
                 </tr>
                 {props.data.lines.map((m, idx) => (
                   <tr
@@ -192,11 +211,14 @@ export function LedgerClient(props: Props) {
                   >
                     <TableCell className="px-3 py-2 text-brand-ink-2">{m.postingDate}</TableCell>
                     <TableCell className="px-3 py-2 font-mono text-brand-ink-2">
-                      <a href={`/accounting/journals/${m.journalEntryId}`} className="hover:underline text-brand-red">{m.journalNumber}</a>
+                      <a
+                        href={`/accounting/journals/${m.journalEntryId}`}
+                        className="hover:underline text-brand-red"
+                      >
+                        {m.journalNumber}
+                      </a>
                     </TableCell>
-                    <TableCell className="px-3 py-2 text-brand-ink-2">
-                      {m.description}
-                    </TableCell>
+                    <TableCell className="px-3 py-2 text-brand-ink-2">{m.description}</TableCell>
                     <TableCell className="px-3 py-2 text-right font-mono text-brand-ink">
                       {m.debit > 0n ? fmt(m.debit) : '-'}
                     </TableCell>
@@ -210,12 +232,18 @@ export function LedgerClient(props: Props) {
                 ))}
                 {props.data.lines.length === 0 && (
                   <tr>
-                     <TableCell colSpan={6} className="px-3 py-8 text-center text-brand-ink-3">{t('noTransactions')}</TableCell>
+                    <TableCell colSpan={6} className="px-3 py-8 text-center text-brand-ink-3">
+                      {t('noTransactions')}
+                    </TableCell>
                   </tr>
                 )}
                 <tr className="border-t border-brand-cream-3 text-xs bg-brand-cream-1/30">
-                  <TableCell className="px-3 py-3 font-semibold text-brand-ink-2" colSpan={5}>{t('endingBalance')}</TableCell>
-                  <TableCell className="px-3 py-3 text-right font-semibold text-brand-ink">{fmt(props.data.endingBalance)}</TableCell>
+                  <TableCell className="px-3 py-3 font-semibold text-brand-ink-2" colSpan={5}>
+                    {t('endingBalance')}
+                  </TableCell>
+                  <TableCell className="px-3 py-3 text-right font-semibold text-brand-ink">
+                    {fmt(props.data.endingBalance)}
+                  </TableCell>
                 </tr>
               </TableBody>
             </Table>

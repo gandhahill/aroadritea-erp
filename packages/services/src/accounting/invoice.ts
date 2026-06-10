@@ -1,11 +1,11 @@
 /**
  * accounting.invoice
- * 
+ *
  * Handles creation, updating, and posting of Invoices, which syncs to Journals.
  */
 
 import { db } from '@erp/db';
-import { invoices, invoiceLines } from '@erp/db/schema/accounting';
+import { invoiceLines, invoices } from '@erp/db/schema/accounting';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
@@ -13,9 +13,9 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, eq } from 'drizzle-orm';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
+import { generateInvoiceNumber } from '../shared/number-generator';
 import { createJournal } from './create-journal';
 import { postJournal } from './post-journal';
-import { generateInvoiceNumber } from '../shared/number-generator';
 
 export interface CreateInvoiceInput {
   type: 'sales' | 'purchase';
@@ -50,7 +50,7 @@ export async function createInvoice(
   if (!permCheck.ok) return permCheck;
 
   const invoiceId = generateId();
-  
+
   // Generate sequential invoice number server-side
   const invoiceNumber = await generateInvoiceNumber(ctx.tenantId, input.date);
 
@@ -136,7 +136,7 @@ export async function createInvoice(
 
       return { id: invoiceId, number: invoiceNumber };
     },
-    (e) => AppError.internal('accounting.invoice.createFailed', e)
+    (e) => AppError.internal('accounting.invoice.createFailed', e),
   );
 
   return result;
@@ -148,10 +148,13 @@ export async function postInvoice(
   ctx: AuditContext,
 ): Promise<Result<{ success: boolean; journalId: string }>> {
   // Get Invoice
-  const invoiceRows = await db.select().from(invoices).where(and(eq(invoices.id, invoiceId), eq(invoices.tenantId, ctx.tenantId)));
+  const invoiceRows = await db
+    .select()
+    .from(invoices)
+    .where(and(eq(invoices.id, invoiceId), eq(invoices.tenantId, ctx.tenantId)));
   const invoice = invoiceRows[0];
   if (!invoice) return err(AppError.notFound('invoice.notFound'));
-  
+
   if (invoice.status !== 'draft') {
     return err(AppError.businessRule('invoice.notDraft'));
   }
@@ -203,7 +206,10 @@ export async function postInvoice(
   // Mark invoice as posted before attempting e-Faktur generation.
   // The journal is already posted above — update the invoice status to keep
   // the books consistent even if NSFP allocation fails later.
-  await db.update(invoices).set({ status: 'posted', journalId, updatedBy: ctx.userId }).where(eq(invoices.id, invoiceId));
+  await db
+    .update(invoices)
+    .set({ status: 'posted', journalId, updatedBy: ctx.userId })
+    .where(eq(invoices.id, invoiceId));
 
   if (invoice.type === 'sales' && invoice.taxAmount > 0n) {
     const { generateTaxInvoice } = await import('../tax/efaktur');
@@ -223,10 +229,13 @@ export async function payInvoice(
   date: string,
   ctx: AuditContext,
 ): Promise<Result<{ success: boolean; paymentJournalId: string }>> {
-  const invoiceRows = await db.select().from(invoices).where(and(eq(invoices.id, invoiceId), eq(invoices.tenantId, ctx.tenantId)));
+  const invoiceRows = await db
+    .select()
+    .from(invoices)
+    .where(and(eq(invoices.id, invoiceId), eq(invoices.tenantId, ctx.tenantId)));
   const invoice = invoiceRows[0];
   if (!invoice) return err(AppError.notFound('invoice.notFound'));
-  
+
   if (invoice.status !== 'posted' && invoice.status !== 'partial') {
     return err(AppError.businessRule('invoice.notPosted'));
   }
@@ -268,16 +277,19 @@ export async function payInvoice(
 
   // Wait, better to just query the original journal to find the AR account
   const { journalLines } = await import('@erp/db/schema/accounting');
-  const originalLines = await db.select().from(journalLines).where(eq(journalLines.journalEntryId, invoice.journalId!));
+  const originalLines = await db
+    .select()
+    .from(journalLines)
+    .where(eq(journalLines.journalEntryId, invoice.journalId!));
   // Sales invoice: AR line has a debit equal to invoice.total (full amount on the partner line).
   // Purchase invoice: AP line has a credit equal to invoice.total. We identify the partner
   // line by amount match rather than by account type to avoid ambiguity.
-  const partnerLine = originalLines.find(l =>
+  const partnerLine = originalLines.find((l) =>
     invoice.type === 'sales'
       ? l.debit === invoice.total && l.credit === 0n
       : l.credit === invoice.total && l.debit === 0n,
   );
-  
+
   if (!partnerLine) return err(AppError.internal('invoice.partnerLineNotFound'));
 
   journalInput.lines.push({
@@ -298,12 +310,15 @@ export async function payInvoice(
   const newAmountPaid = invoice.amountPaid + amountToPay;
   const newStatus = newAmountPaid >= invoice.total ? 'paid' : 'partial';
 
-  await db.update(invoices).set({ 
-    status: newStatus, 
-    amountPaid: newAmountPaid,
-    paymentJournalId, 
-    updatedBy: ctx.userId 
-  }).where(eq(invoices.id, invoiceId));
+  await db
+    .update(invoices)
+    .set({
+      status: newStatus,
+      amountPaid: newAmountPaid,
+      paymentJournalId,
+      updatedBy: ctx.userId,
+    })
+    .where(eq(invoices.id, invoiceId));
 
   await auditRecord({
     action: 'update',

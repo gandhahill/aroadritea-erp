@@ -44,7 +44,7 @@ export async function updateEmployee(
             eq(employees.id, employeeId),
             eq(employees.tenantId, ctx.tenantId),
             isNull(employees.deletedAt),
-          )
+          ),
         )
         .limit(1);
 
@@ -90,7 +90,7 @@ export async function updateEmployee(
                 eq(employees.tenantId, ctx.tenantId),
                 eq(employees.email, encryptedEmail),
                 isNull(employees.deletedAt),
-              )
+              ),
             )
             .limit(1);
           if (existingEmail[0] && existingEmail[0].id !== employeeId) {
@@ -115,10 +115,17 @@ export async function updateEmployee(
         setCols.bpjsTenagakerja = encryptPii(data.bpjsTenagakerja, 'employees.bpjsTenagakerja');
       if (data.bankName !== undefined) setCols.bankName = data.bankName;
       if (data.bankAccountNumber !== undefined)
-        setCols.bankAccountNumber = encryptPii(data.bankAccountNumber, 'employees.bankAccountNumber');
+        setCols.bankAccountNumber = encryptPii(
+          data.bankAccountNumber,
+          'employees.bankAccountNumber',
+        );
       if (data.bankAccountHolder !== undefined)
-        setCols.bankAccountHolder = encryptPii(data.bankAccountHolder, 'employees.bankAccountHolder');
-      if (data.vehiclePlateNumber !== undefined) setCols.vehiclePlateNumber = data.vehiclePlateNumber;
+        setCols.bankAccountHolder = encryptPii(
+          data.bankAccountHolder,
+          'employees.bankAccountHolder',
+        );
+      if (data.vehiclePlateNumber !== undefined)
+        setCols.vehiclePlateNumber = data.vehiclePlateNumber;
       if (data.emergencyContactName !== undefined)
         setCols.emergencyContactName = data.emergencyContactName;
       if (data.emergencyContactPhone !== undefined)
@@ -135,7 +142,7 @@ export async function updateEmployee(
           };
           if (data.baseSalary !== undefined) contractSetCols.baseSalary = BigInt(data.baseSalary);
           if (data.contractType !== undefined) contractSetCols.contractType = data.contractType;
-          
+
           await db
             .update(employmentContracts)
             .set(contractSetCols)
@@ -143,23 +150,23 @@ export async function updateEmployee(
               and(
                 eq(employmentContracts.id, existing.currentContractId),
                 eq(employmentContracts.tenantId, ctx.tenantId),
-              )
+              ),
             );
         } else if (data.baseSalary !== undefined) {
-           const contractId = generateId();
-           await db.insert(employmentContracts).values({
-             id: contractId,
-             tenantId: ctx.tenantId,
-             locationId: existing.locationId,
-             employeeId: existing.id,
-             contractType: data.contractType ?? 'pkwt',
-             startDate: new Date(),
-             isActive: true,
-             baseSalary: BigInt(data.baseSalary),
-             createdBy: ctx.userId,
-             updatedBy: ctx.userId,
-           });
-           setCols.currentContractId = contractId;
+          const contractId = generateId();
+          await db.insert(employmentContracts).values({
+            id: contractId,
+            tenantId: ctx.tenantId,
+            locationId: existing.locationId,
+            employeeId: existing.id,
+            contractType: data.contractType ?? 'pkwt',
+            startDate: new Date(),
+            isActive: true,
+            baseSalary: BigInt(data.baseSalary),
+            createdBy: ctx.userId,
+            updatedBy: ctx.userId,
+          });
+          setCols.currentContractId = contractId;
         }
       }
 
@@ -246,7 +253,13 @@ export async function deactivateEmployee(
           version: employees.version,
         })
         .from(employees)
-        .where(and(eq(employees.id, employeeId), eq(employees.tenantId, ctx.tenantId), isNull(employees.deletedAt)))
+        .where(
+          and(
+            eq(employees.id, employeeId),
+            eq(employees.tenantId, ctx.tenantId),
+            isNull(employees.deletedAt),
+          ),
+        )
         .limit(1);
 
       if (!existing) throw AppError.notFound('hr.employee.notFound');

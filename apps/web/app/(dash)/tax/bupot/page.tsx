@@ -1,7 +1,7 @@
 import { getSession } from '@/lib/auth';
 import { requirePermission } from '@erp/services/iam';
-import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { redirect } from 'next/navigation';
 import BupotClient from './client';
 
 export const metadata = {
@@ -11,7 +11,7 @@ export const metadata = {
 export default async function BuktiPotongPage() {
   const session = await getSession();
   if (!session?.user) redirect('/login');
-  
+
   const user = session.user as Record<string, unknown>;
   const userId = String(user.id ?? '');
 

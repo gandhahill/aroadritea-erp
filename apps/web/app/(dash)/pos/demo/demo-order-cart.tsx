@@ -74,9 +74,9 @@ function DemoLineItem({
     if (newQty === line.qty) return;
     const oldTotal = BigInt(line.unitPrice) * BigInt(line.qty);
     const oldDiscount = BigInt(line.lineDiscount ?? '0');
-    
+
     onQtyChange(newQty);
-    
+
     if (oldDiscount > BigInt(0)) {
       const pct = Number((oldDiscount * BigInt(100)) / oldTotal);
       if ([5, 10, 15, 20].includes(pct) && (oldTotal * BigInt(pct)) / BigInt(100) === oldDiscount) {

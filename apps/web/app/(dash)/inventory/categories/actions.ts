@@ -65,12 +65,12 @@ export async function fetchCategories(): Promise<CategoryWithCount[]> {
 
 export async function createCategoryAction(formData: FormData) {
   const ctx = await getAuditContext();
-  
+
   const code = String(formData.get('categoryCode') ?? '').trim();
   const nameId = String(formData.get('categoryNameId') ?? '').trim();
   const nameEn = String(formData.get('categoryNameEn') ?? '').trim();
   const nameZh = String(formData.get('categoryNameZh') ?? '').trim();
-  
+
   if (!code || !nameId) {
     return { ok: false, error: 'Code and Name ID are required' };
   }
@@ -114,11 +114,17 @@ export async function deleteCategoryAction(id: string): Promise<{ ok: boolean; e
     };
   }
 
-  const [cat] = await db.select({ version: productCategories.version }).from(productCategories)
-    .where(and(eq(productCategories.id, id), eq(productCategories.tenantId, ctx.tenantId))).limit(1);
+  const [cat] = await db
+    .select({ version: productCategories.version })
+    .from(productCategories)
+    .where(and(eq(productCategories.id, id), eq(productCategories.tenantId, ctx.tenantId)))
+    .limit(1);
   if (!cat) return { ok: false, error: 'Category not found.' };
 
-  const result = await updateCategory({ categoryId: id, isActive: false, version: cat.version }, ctx);
+  const result = await updateCategory(
+    { categoryId: id, isActive: false, version: cat.version },
+    ctx,
+  );
   if (!result.ok) return { ok: false, error: result.error.message };
 
   revalidatePath('/inventory/categories');
@@ -139,8 +145,11 @@ export async function updateCategoryAction(
   }
 
   const ctx = await getAuditContext();
-  const [cat] = await db.select({ version: productCategories.version }).from(productCategories)
-    .where(and(eq(productCategories.id, id), eq(productCategories.tenantId, ctx.tenantId))).limit(1);
+  const [cat] = await db
+    .select({ version: productCategories.version })
+    .from(productCategories)
+    .where(and(eq(productCategories.id, id), eq(productCategories.tenantId, ctx.tenantId)))
+    .limit(1);
   if (!cat) return { ok: false, error: 'Category not found.' };
 
   const result = await updateCategory(

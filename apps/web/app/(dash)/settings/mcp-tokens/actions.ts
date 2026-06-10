@@ -48,7 +48,10 @@ export async function revokeMcpTokenAction(
   const session = await getSession();
   if (!session?.user) return { ok: false, error: t('unauthorized') };
 
-  const res = await revokeApiToken(tokenId, auditCtx(session as { user?: Record<string, unknown> }));
+  const res = await revokeApiToken(
+    tokenId,
+    auditCtx(session as { user?: Record<string, unknown> }),
+  );
   if (!res.ok) return { ok: false, error: t('revokeFailed') };
 
   revalidatePath('/settings/mcp-tokens');

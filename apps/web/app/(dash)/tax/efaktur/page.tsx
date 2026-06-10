@@ -1,10 +1,10 @@
-import { db } from '@erp/db';
-import { nsfpBlocks, taxInvoices } from '@erp/db/schema/accounting';
-import { eq, desc } from '@erp/db';
 import { getSession } from '@/lib/auth';
+import { db } from '@erp/db';
+import { desc, eq } from '@erp/db';
+import { nsfpBlocks, taxInvoices } from '@erp/db/schema/accounting';
 import { requirePermission } from '@erp/services/iam';
-import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { redirect } from 'next/navigation';
 import EFakturClient from './client';
 
 export const metadata = {
@@ -14,7 +14,7 @@ export const metadata = {
 export default async function EFakturPage() {
   const session = await getSession();
   if (!session?.user) redirect('/login');
-  
+
   const user = session.user as Record<string, unknown>;
   const ctx = {
     userId: String(user.id ?? ''),

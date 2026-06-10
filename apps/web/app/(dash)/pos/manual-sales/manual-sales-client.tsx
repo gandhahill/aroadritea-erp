@@ -447,7 +447,8 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                           name: current.name,
                           qty,
                           price: current.price,
-                          total: qty === '' ? '0' : (BigInt(qty) * BigInt(current.price)).toString(),
+                          total:
+                            qty === '' ? '0' : (BigInt(qty) * BigInt(current.price)).toString(),
                         };
                         setLineItems(newItems);
                       }}
@@ -517,7 +518,11 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
             <input
               type="hidden"
               name="lineItemsJson"
-              value={JSON.stringify(lineItems.filter((i) => i.productId && i.qty).map(i => ({ ...i, qty: i.qty || 1 })))}
+              value={JSON.stringify(
+                lineItems
+                  .filter((i) => i.productId && i.qty)
+                  .map((i) => ({ ...i, qty: i.qty || 1 })),
+              )}
             />
             <div className="mt-4 flex items-center gap-2">
               <input
@@ -628,7 +633,9 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
               >
                 <option value="">{t('allLocations')}</option>
                 {data.locations.map((loc) => (
-                  <option key={loc.id} value={loc.id}>{loc.label}</option>
+                  <option key={loc.id} value={loc.id}>
+                    {loc.label}
+                  </option>
                 ))}
               </Select>
             </label>
@@ -675,90 +682,92 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                 const filtered = data.items.filter((item) => {
                   if (historyDateFrom && item.salesDate < historyDateFrom) return false;
                   if (historyDateTo && item.salesDate > historyDateTo) return false;
-                  if (historyLocationFilter && item.locationId !== historyLocationFilter) return false;
-                  if (historyPaymentFilter && item.paymentMethod !== historyPaymentFilter) return false;
+                  if (historyLocationFilter && item.locationId !== historyLocationFilter)
+                    return false;
+                  if (historyPaymentFilter && item.paymentMethod !== historyPaymentFilter)
+                    return false;
                   return true;
                 });
                 return filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={14} className="px-4 py-8 text-center text-brand-ink-3">
-                    {t('empty')}
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((item) => (
-                  <tr
-                    key={item.id}
-                    className="text-brand-ink cursor-pointer hover:bg-brand-cream/50"
-                    onClick={async () => {
-                      setDetailModalOpen(true);
-                      setDetailData(null);
-                      setLoadingDetail(true);
-                      const res = await fetchManualSaleDetailAction(item.id);
-                      if (res.ok) {
-                        setDetailData(res.value);
-                      }
-                      setLoadingDetail(false);
-                    }}
-                  >
-                    <Td>{item.number}</Td>
-                    <Td>{item.salesDate}</Td>
-                    <Td>{item.locationLabel || '-'}</Td>
-                    <Td>{item.channel}</Td>
-                    <Td>{item.paymentMethod}</Td>
-                    <Td align="right">{item.transactionCount}</Td>
-                    <Td align="right">{formatRupiah(item.grossSales)}</Td>
-                    <Td align="right">{formatRupiah(item.taxTotal)}</Td>
-                    <Td align="right">{formatRupiah(item.netRevenue)}</Td>
-                    <Td>{item.sourceReference || '-'}</Td>
-                    <Td>
-                      <span className="max-w-[200px] truncate block">{item.notes || '-'}</span>
-                    </Td>
-                    <Td>{item.journalEntryId ? t('synced') : t('notSynced')}</Td>
-                    <Td>
-                      {item.createdByName || '-'}
-                      {item.updatedByName && item.updatedByName !== item.createdByName && (
-                        <span className="block text-[11px] text-brand-ink-3 mt-0.5">
-                          {t('editedBy', {
-                            name: item.updatedByName,
-                            defaultValue: `(Edit: ${item.updatedByName})`,
-                          })}
-                        </span>
-                      )}
-                    </Td>
-                    <Td align="right">
-                      {item.status !== 'voided' ? (
-                        <div
-                          className="flex justify-end gap-2"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => startEdit(item.id)}
-                          >
-                            {t('edit', { defaultValue: 'Edit' })}
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="text-brand-red"
-                            onClick={() => confirmDelete(item.id)}
-                          >
-                            {t('delete', { defaultValue: 'Hapus' })}
-                          </Button>
-                        </div>
-                      ) : (
-                        <span className="text-xs text-brand-ink-3 italic">
-                          {t('voided', { defaultValue: 'Dibatalkan' })}
-                        </span>
-                      )}
-                    </Td>
+                  <tr>
+                    <td colSpan={14} className="px-4 py-8 text-center text-brand-ink-3">
+                      {t('empty')}
+                    </td>
                   </tr>
-                ))
-              );
+                ) : (
+                  filtered.map((item) => (
+                    <tr
+                      key={item.id}
+                      className="text-brand-ink cursor-pointer hover:bg-brand-cream/50"
+                      onClick={async () => {
+                        setDetailModalOpen(true);
+                        setDetailData(null);
+                        setLoadingDetail(true);
+                        const res = await fetchManualSaleDetailAction(item.id);
+                        if (res.ok) {
+                          setDetailData(res.value);
+                        }
+                        setLoadingDetail(false);
+                      }}
+                    >
+                      <Td>{item.number}</Td>
+                      <Td>{item.salesDate}</Td>
+                      <Td>{item.locationLabel || '-'}</Td>
+                      <Td>{item.channel}</Td>
+                      <Td>{item.paymentMethod}</Td>
+                      <Td align="right">{item.transactionCount}</Td>
+                      <Td align="right">{formatRupiah(item.grossSales)}</Td>
+                      <Td align="right">{formatRupiah(item.taxTotal)}</Td>
+                      <Td align="right">{formatRupiah(item.netRevenue)}</Td>
+                      <Td>{item.sourceReference || '-'}</Td>
+                      <Td>
+                        <span className="max-w-[200px] truncate block">{item.notes || '-'}</span>
+                      </Td>
+                      <Td>{item.journalEntryId ? t('synced') : t('notSynced')}</Td>
+                      <Td>
+                        {item.createdByName || '-'}
+                        {item.updatedByName && item.updatedByName !== item.createdByName && (
+                          <span className="block text-[11px] text-brand-ink-3 mt-0.5">
+                            {t('editedBy', {
+                              name: item.updatedByName,
+                              defaultValue: `(Edit: ${item.updatedByName})`,
+                            })}
+                          </span>
+                        )}
+                      </Td>
+                      <Td align="right">
+                        {item.status !== 'voided' ? (
+                          <div
+                            className="flex justify-end gap-2"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => startEdit(item.id)}
+                            >
+                              {t('edit', { defaultValue: 'Edit' })}
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="text-brand-red"
+                              onClick={() => confirmDelete(item.id)}
+                            >
+                              {t('delete', { defaultValue: 'Hapus' })}
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-brand-ink-3 italic">
+                            {t('voided', { defaultValue: 'Dibatalkan' })}
+                          </span>
+                        )}
+                      </Td>
+                    </tr>
+                  ))
+                );
               })()}
             </TableBody>
           </Table>

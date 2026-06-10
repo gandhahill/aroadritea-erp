@@ -1,19 +1,22 @@
 import { db } from '@erp/db';
 import { employees, employmentContracts } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
+import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { generateId } from '@erp/shared/id';
 import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
-import { requirePermission } from '../iam';
 import { auditRecord } from '../audit';
+import { requirePermission } from '../iam';
 
 export const CreateContractInputSchema = z.object({
   employeeId: z.string().min(1),
   contractType: z.enum(['pkwt', 'pkwtt']),
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  endDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
   baseSalary: z.number().positive(),
   notes: z.string().optional(),
 });
@@ -25,9 +28,14 @@ export async function createContract(
   ctx: AuditContext,
 ): Promise<Result<{ id: string }>> {
   const parsed = CreateContractInputSchema.safeParse(input);
-  if (!parsed.success) return err(AppError.validation('common.errors.validationFailed', { issues: parsed.error.issues }));
+  if (!parsed.success)
+    return err(
+      AppError.validation('common.errors.validationFailed', { issues: parsed.error.issues }),
+    );
 
-  const permCheck = await requirePermission(ctx.userId, 'hr.employee.write', { locationId: ctx.locationId });
+  const permCheck = await requirePermission(ctx.userId, 'hr.employee.write', {
+    locationId: ctx.locationId,
+  });
   if (!permCheck.ok) return permCheck;
 
   const data = parsed.data;
@@ -77,7 +85,11 @@ export async function createContract(
       entityType: 'employment_contract',
       entityId: newId,
       before: emp.currentContractId ? { previousContractId: emp.currentContractId } : null,
-      after: { contractType: data.contractType, startDate: data.startDate, baseSalary: data.baseSalary },
+      after: {
+        contractType: data.contractType,
+        startDate: data.startDate,
+        baseSalary: data.baseSalary,
+      },
       metadata: {},
       ctx,
       tx,
@@ -92,13 +104,17 @@ export async function endContract(
   endDate: string,
   ctx: AuditContext,
 ): Promise<Result<{ id: string }>> {
-  const permCheck = await requirePermission(ctx.userId, 'hr.employee.write', { locationId: ctx.locationId });
+  const permCheck = await requirePermission(ctx.userId, 'hr.employee.write', {
+    locationId: ctx.locationId,
+  });
   if (!permCheck.ok) return permCheck;
 
   const [contract] = await db
     .select()
     .from(employmentContracts)
-    .where(and(eq(employmentContracts.id, contractId), eq(employmentContracts.tenantId, ctx.tenantId)));
+    .where(
+      and(eq(employmentContracts.id, contractId), eq(employmentContracts.tenantId, ctx.tenantId)),
+    );
 
   if (!contract) return err(AppError.notFound('hr.contracts.notFound'));
   if (!contract.isActive) return err(AppError.businessRule('hr.contracts.alreadyEnded'));

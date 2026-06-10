@@ -75,12 +75,14 @@ export async function openPeriod(
             eq(accountingPeriods.tenantId, ctx.tenantId),
             lte(accountingPeriods.startDate, endDate),
             gte(accountingPeriods.endDate, startDate),
-          )
+          ),
         )
         .limit(1);
-        
+
       if (overlap.length > 0) {
-        throw AppError.conflict('accounting.period.invalidDates', { message: 'Period dates overlap with an existing period' });
+        throw AppError.conflict('accounting.period.invalidDates', {
+          message: 'Period dates overlap with an existing period',
+        });
       }
 
       // 5. Create period

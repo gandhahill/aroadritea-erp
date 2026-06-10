@@ -8,14 +8,14 @@
  */
 
 import { db } from '@erp/db';
+import { roles, userRoles } from '@erp/db/schema/auth';
 import { workflowDefinitions, workflowInstances, workflowSteps } from '@erp/db/schema/workflow';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, desc, eq, sql } from 'drizzle-orm';
-import { roles, userRoles } from '@erp/db/schema/auth';
-import { requirePermission } from '../iam';
 import { auditRecord } from '../audit';
+import { requirePermission } from '../iam';
 
 // ─── Condition evaluation ────────────────────────────────────────────────────
 
@@ -232,7 +232,10 @@ export async function runApprovalGate(
 
   const workflowEntityType = input.workflowEntityType ?? input.entityType;
   const findPending = deps.findPendingWorkflowInstance ?? findPendingWorkflowInstance;
-  const pending = await findPending({ entityType: workflowEntityType, entityId: input.entityId }, ctx);
+  const pending = await findPending(
+    { entityType: workflowEntityType, entityId: input.entityId },
+    ctx,
+  );
   if (!pending.ok) return pending;
 
   if (pending.value) {
@@ -491,13 +494,17 @@ async function resolveStep(
         and(
           eq(userRoles.userId, ctx.userId),
           eq(roles.code, currentStep.approverRole),
-          eq(roles.tenantId, ctx.tenantId)
-        )
+          eq(roles.tenantId, ctx.tenantId),
+        ),
       )
       .limit(1);
 
     if (userRoleCheck.length === 0) {
-      return err(AppError.forbidden('workflow.resolveStep.unauthorizedRole', { requiredRole: currentStep.approverRole }));
+      return err(
+        AppError.forbidden('workflow.resolveStep.unauthorizedRole', {
+          requiredRole: currentStep.approverRole,
+        }),
+      );
     }
 
     if (input.action === 'approve') {
@@ -547,7 +554,6 @@ async function resolveStep(
           },
           ctx,
         });
-
       }
 
       // All steps approved - mark instance approved

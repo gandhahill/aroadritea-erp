@@ -1,7 +1,7 @@
-import { db } from '../src/../index.ts'; // wait, db is at @erp/db
-import { users } from '@erp/db/schema/auth';
-import { getUserPermissions } from '../src/iam/permission-engine';
 import { db as realDb } from '@erp/db';
+import { users } from '@erp/db/schema/auth';
+import { db } from '../src/../index.ts'; // wait, db is at @erp/db
+import { getUserPermissions } from '../src/iam/permission-engine';
 
 async function main() {
   const allUsers = await realDb.select().from(users).limit(5);

@@ -1,7 +1,7 @@
 'use client';
 
-import { PageHeader } from '@/components/page-header';
 import { InlineAlert } from '@/components/confirm-dialog';
+import { PageHeader } from '@/components/page-header';
 import { Button, Input, IntegerInput, Select } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
@@ -26,7 +26,14 @@ export function EditTransferForm({ data, locations, products }: Props) {
   const [transferDate, setTransferDate] = useState(data.transferDate);
   const [notes, setNotes] = useState(data.notes || '');
   const [lines, setLines] = useState<
-    Array<{ productId: string; name: string; qty: number; uom: string; batchNo?: string; expiryDate?: string }>
+    Array<{
+      productId: string;
+      name: string;
+      qty: number;
+      uom: string;
+      batchNo?: string;
+      expiryDate?: string;
+    }>
   >(
     data.lines.map((l: any) => ({
       productId: l.productId,
@@ -74,7 +81,11 @@ export function EditTransferForm({ data, locations, products }: Props) {
   return (
     <div className="h-full w-full overflow-y-auto space-y-6 pb-24 px-4 pt-4">
       <PageHeader
-        title={<>{t('editTitle')} — {data.number}</>}
+        title={
+          <>
+            {t('editTitle')} — {data.number}
+          </>
+        }
         description={<>{t('subtitle')}</>}
       />
 
@@ -96,7 +107,9 @@ export function EditTransferForm({ data, locations, products }: Props) {
                 onChange={(e) => setFromLocationId(e.target.value)}
                 required
               >
-                <option value="" disabled>{tCommon('actions.select')} {t('fromLocation')}</option>
+                <option value="" disabled>
+                  {tCommon('actions.select')} {t('fromLocation')}
+                </option>
                 {locations.map((loc) => (
                   <option key={loc.id} value={loc.id}>
                     {loc.name} ({loc.code})
@@ -113,7 +126,9 @@ export function EditTransferForm({ data, locations, products }: Props) {
                 onChange={(e) => setToLocationId(e.target.value)}
                 required
               >
-                <option value="" disabled>{tCommon('actions.select')} {t('toLocation')}</option>
+                <option value="" disabled>
+                  {tCommon('actions.select')} {t('toLocation')}
+                </option>
                 {locations.map((loc) => (
                   <option key={loc.id} value={loc.id}>
                     {loc.name} ({loc.code})
@@ -174,7 +189,9 @@ export function EditTransferForm({ data, locations, products }: Props) {
                         setLines(newLines);
                       }}
                     >
-                      <option value="" disabled>{tCommon('actions.select')} {tCommon('labels.product')}</option>
+                      <option value="" disabled>
+                        {tCommon('actions.select')} {tCommon('labels.product')}
+                      </option>
                       {products.map((p) => (
                         <option key={p.id} value={p.id}>
                           {p.name}
@@ -183,9 +200,7 @@ export function EditTransferForm({ data, locations, products }: Props) {
                     </Select>
                   </div>
                   <div className="w-24">
-                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
-                      Qty
-                    </span>
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">Qty</span>
                     <IntegerInput
                       min="1"
                       value={line.qty}
@@ -198,9 +213,7 @@ export function EditTransferForm({ data, locations, products }: Props) {
                     />
                   </div>
                   <div className="w-24">
-                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
-                      UoM
-                    </span>
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">UoM</span>
                     <Input type="text" readOnly value={line.uom} className="bg-brand-cream/50" />
                   </div>
                   <div className="w-32">
@@ -257,10 +270,16 @@ export function EditTransferForm({ data, locations, products }: Props) {
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-brand-cream-3">
-            <Link href={`/inventory/transfer/${data.id}`} className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-red disabled:pointer-events-none disabled:opacity-50 border border-brand-cream-3 bg-card hover:bg-brand-cream-2 text-brand-ink h-9 px-4 py-2">
+            <Link
+              href={`/inventory/transfer/${data.id}`}
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-red disabled:pointer-events-none disabled:opacity-50 border border-brand-cream-3 bg-card hover:bg-brand-cream-2 text-brand-ink h-9 px-4 py-2"
+            >
               {tCommon('actions.cancel')}
             </Link>
-            <Button type="submit" disabled={isPending || lines.filter(l => l.productId).length === 0}>
+            <Button
+              type="submit"
+              disabled={isPending || lines.filter((l) => l.productId).length === 0}
+            >
               {isPending ? tCommon('actions.saving') : tCommon('actions.save')}
             </Button>
           </div>

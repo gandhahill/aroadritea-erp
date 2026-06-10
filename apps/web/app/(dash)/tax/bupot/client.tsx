@@ -1,20 +1,30 @@
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
-import { Button, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, toast } from '@erp/ui';
-import { useTranslations } from 'next-intl';
+import type { BupotSummaryRow } from '@erp/services/tax';
 import {
-  fetchBuktiPotongAction,
+  Button,
+  Input,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  toast,
+} from '@erp/ui';
+import { useTranslations } from 'next-intl';
+import { useEffect, useState, useTransition } from 'react';
+import {
   exportBuktiPotongCsvAction,
   exportBupot21XmlAction,
   exportBupotUnifikasiXmlAction,
+  fetchBuktiPotongAction,
 } from './actions';
-import type { BupotSummaryRow } from '@erp/services/tax';
 
 export default function BupotClient() {
   const t = useTranslations('tax.bupot');
   const [period, setPeriod] = useState<string>(
-    `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
+    `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`,
   );
   const [rows, setRows] = useState<BupotSummaryRow[]>([]);
   const [isPending, startTransition] = useTransition();
@@ -96,10 +106,18 @@ export default function BupotClient() {
           <Input type="month" value={period} onChange={(e: any) => setPeriod(e.target.value)} />
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button onClick={handleExport} disabled={isPending || rows.length === 0} variant="secondary">
+          <Button
+            onClick={handleExport}
+            disabled={isPending || rows.length === 0}
+            variant="secondary"
+          >
             {t('exportCsv')}
           </Button>
-          <Button onClick={handleExportBpu} disabled={isPending || rows.length === 0} variant="secondary">
+          <Button
+            onClick={handleExportBpu}
+            disabled={isPending || rows.length === 0}
+            variant="secondary"
+          >
             {t('exportBpuXml')}
           </Button>
           <Button onClick={handleExportBp21} disabled={isPending} variant="primary">
@@ -114,7 +132,9 @@ export default function BupotClient() {
         <p className="mt-0.5 text-xs text-brand-ink-3">{t('overrides.hint')}</p>
         <div className="mt-3 grid gap-3 sm:grid-cols-3">
           <div className="grid gap-1">
-            <label className="text-xs font-semibold text-brand-ink-2">{t('overrides.taxObjectCode')}</label>
+            <label className="text-xs font-semibold text-brand-ink-2">
+              {t('overrides.taxObjectCode')}
+            </label>
             <Input
               type="text"
               value={taxObjectCode}
@@ -123,7 +143,9 @@ export default function BupotClient() {
             />
           </div>
           <div className="grid gap-1">
-            <label className="text-xs font-semibold text-brand-ink-2">{t('overrides.document')}</label>
+            <label className="text-xs font-semibold text-brand-ink-2">
+              {t('overrides.document')}
+            </label>
             <Input
               type="text"
               value={documentType}
@@ -132,7 +154,9 @@ export default function BupotClient() {
             />
           </div>
           <div className="grid gap-1">
-            <label className="text-xs font-semibold text-brand-ink-2">{t('overrides.rateDecimals')}</label>
+            <label className="text-xs font-semibold text-brand-ink-2">
+              {t('overrides.rateDecimals')}
+            </label>
             <Input
               type="number"
               min={0}
@@ -178,12 +202,22 @@ export default function BupotClient() {
                 rows.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell className="font-mono text-xs">{row.bupotNumber}</TableCell>
-                    <TableCell>{new Date(row.issueDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</TableCell>
+                    <TableCell>
+                      {new Date(row.issueDate).toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </TableCell>
                     <TableCell>{row.vendorName}</TableCell>
                     <TableCell>{row.taxCode}</TableCell>
                     <TableCell>{row.incomeType}</TableCell>
-                    <TableCell className="text-right">{Number(row.dpp).toLocaleString('id-ID')}</TableCell>
-                    <TableCell className="text-right">{Number(row.taxAmount).toLocaleString('id-ID')}</TableCell>
+                    <TableCell className="text-right">
+                      {Number(row.dpp).toLocaleString('id-ID')}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {Number(row.taxAmount).toLocaleString('id-ID')}
+                    </TableCell>
                   </TableRow>
                 ))
               )}

@@ -20,8 +20,7 @@ export function PartnersClient({ initialData, initialKind }: Props) {
   const [editing, setEditing] = useState<PartnerRow | null>(null);
   const [showForm, setShowForm] = useState(false);
 
-  const filtered =
-    kind === 'all' ? initialData : initialData.filter((p) => p.kind === kind);
+  const filtered = kind === 'all' ? initialData : initialData.filter((p) => p.kind === kind);
 
   return (
     <div className="space-y-6">
@@ -84,27 +83,20 @@ export function PartnersClient({ initialData, initialKind }: Props) {
               <th className="px-4 py-3 text-left font-semibold text-brand-ink-2">
                 {t('col.contact')}
               </th>
-              <th className="px-4 py-3 text-left font-semibold text-brand-ink-2">
-                NPWP
-              </th>
+              <th className="px-4 py-3 text-left font-semibold text-brand-ink-2">NPWP</th>
               <th className="px-4 py-3 text-right font-semibold text-brand-ink-2">
                 {t('col.termsDays')}
               </th>
               <th className="px-4 py-3 text-center font-semibold text-brand-ink-2">
                 {t('col.status')}
               </th>
-              <th className="px-4 py-3 text-right font-semibold text-brand-ink-2">
-                {tc('edit')}
-              </th>
+              <th className="px-4 py-3 text-right font-semibold text-brand-ink-2">{tc('edit')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-brand-cream-2">
             {filtered.length === 0 ? (
               <tr>
-                <td
-                  colSpan={7}
-                  className="px-4 py-8 text-center text-brand-ink-3"
-                >
+                <td colSpan={7} className="px-4 py-8 text-center text-brand-ink-3">
                   {t('empty')}
                 </td>
               </tr>
@@ -147,18 +139,13 @@ function PartnerTableRow({
           </span>
         )}
       </td>
-      <td className="px-4 py-3 text-brand-ink-2 capitalize">
-        {t(`kind.${partner.kind}`)}
-      </td>
+      <td className="px-4 py-3 text-brand-ink-2 capitalize">{t(`kind.${partner.kind}`)}</td>
       <td className="px-4 py-3 text-brand-ink-2 text-xs">
         {[partner.email, partner.phone].filter(Boolean).join(' • ') || '—'}
       </td>
-      <td className="px-4 py-3 font-mono text-xs text-brand-ink-3">
-        {partner.npwp || '—'}
-      </td>
+      <td className="px-4 py-3 font-mono text-xs text-brand-ink-3">{partner.npwp || '—'}</td>
       <td className="px-4 py-3 text-right tabular-nums text-brand-ink">
-        {partner.paymentTermsDays ?? 0}{' '}
-        <span className="text-brand-ink-3">{t('days')}</span>
+        {partner.paymentTermsDays ?? 0} <span className="text-brand-ink-3">{t('days')}</span>
       </td>
       <td className="px-4 py-3 text-center">
         <button
@@ -171,9 +158,7 @@ function PartnerTableRow({
             })
           }
           className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium cursor-pointer ${
-            partner.isActive
-              ? 'bg-brand-jade/10 text-brand-jade'
-              : 'bg-rose-50 text-rose-600'
+            partner.isActive ? 'bg-brand-jade/10 text-brand-jade' : 'bg-rose-50 text-rose-600'
           }`}
         >
           {partner.isActive ? t('active') : t('inactive')}
@@ -243,14 +228,8 @@ function PartnerForm({
 
       <div className="grid gap-3 md:grid-cols-3">
         <label className="space-y-1.5">
-          <span className="text-sm font-medium text-brand-ink">
-            {t('col.kind')}
-          </span>
-          <Select
-            name="kind"
-            defaultValue={initial?.kind || defaultKind}
-            className="h-9 w-full"
-          >
+          <span className="text-sm font-medium text-brand-ink">{t('col.kind')}</span>
+          <Select name="kind" defaultValue={initial?.kind || defaultKind} className="h-9 w-full">
             <option value="customer">{t('kind.customer')}</option>
             <option value="supplier">{t('kind.supplier')}</option>
             <option value="employee">{t('kind.employee')}</option>
@@ -258,30 +237,18 @@ function PartnerForm({
           </Select>
         </label>
         <label className="space-y-1.5 md:col-span-2">
-          <span className="text-sm font-medium text-brand-ink">
-            {t('col.name')}
-          </span>
-          <Input
-            name="name"
-            required
-            defaultValue={initial?.name || ''}
-          />
+          <span className="text-sm font-medium text-brand-ink">{t('col.name')}</span>
+          <Input name="name" required defaultValue={initial?.name || ''} />
         </label>
       </div>
 
       <div className="grid gap-3 md:grid-cols-3">
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">Email</span>
-          <Input
-            name="email"
-            type="email"
-            defaultValue={initial?.email || ''}
-          />
+          <Input name="email" type="email" defaultValue={initial?.email || ''} />
         </label>
         <label className="space-y-1.5">
-          <span className="text-sm font-medium text-brand-ink">
-            {t('col.phone')}
-          </span>
+          <span className="text-sm font-medium text-brand-ink">{t('col.phone')}</span>
           <Input name="phone" defaultValue={initial?.phone || ''} />
         </label>
         <label className="space-y-1.5">
@@ -291,9 +258,7 @@ function PartnerForm({
       </div>
 
       <label className="block space-y-1.5">
-        <span className="text-sm font-medium text-brand-ink">
-          {t('col.address')}
-        </span>
+        <span className="text-sm font-medium text-brand-ink">{t('col.address')}</span>
         <textarea
           name="address"
           rows={2}
@@ -304,9 +269,7 @@ function PartnerForm({
 
       <div className="grid gap-3 md:grid-cols-3">
         <label className="space-y-1.5">
-          <span className="text-sm font-medium text-brand-ink">
-            {t('col.termsDays')}
-          </span>
+          <span className="text-sm font-medium text-brand-ink">{t('col.termsDays')}</span>
           <Input
             name="paymentTermsDays"
             type="number"
@@ -315,9 +278,7 @@ function PartnerForm({
           />
         </label>
         <label className="space-y-1.5">
-          <span className="text-sm font-medium text-brand-ink">
-            {t('col.leadTime')}
-          </span>
+          <span className="text-sm font-medium text-brand-ink">{t('col.leadTime')}</span>
           <Input
             name="leadTimeDays"
             type="number"
@@ -337,22 +298,10 @@ function PartnerForm({
       </div>
 
       <div className="flex items-center gap-3">
-        <Button
-          type="submit"
-          disabled={pending}
-          variant="primary"
-          size="md"
-          className="flex-1"
-        >
+        <Button type="submit" disabled={pending} variant="primary" size="md" className="flex-1">
           {pending ? tc('saving') : tc('save')}
         </Button>
-        <Button
-          type="button"
-          disabled={pending}
-          onClick={onDone}
-          variant="secondary"
-          size="md"
-        >
+        <Button type="button" disabled={pending} onClick={onDone} variant="secondary" size="md">
           {tc('cancel')}
         </Button>
       </div>

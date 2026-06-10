@@ -1,9 +1,9 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { db, and, eq, or, desc, ilike, asc, isNull, sql } from '@erp/db';
-import { shiftAssignments, shiftDefinitions } from '@erp/db/schema/hr';
+import { and, asc, db, desc, eq, ilike, isNull, or, sql } from '@erp/db';
 import { locations } from '@erp/db/schema/auth';
+import { shiftAssignments, shiftDefinitions } from '@erp/db/schema/hr';
 import { can } from '@erp/services/iam';
 import { generateId } from '@erp/shared/id';
 import { revalidatePath } from 'next/cache';
@@ -19,8 +19,14 @@ export interface ShiftDefinitionData {
   isActive: boolean;
   locationId: string;
   overrides?: {
-    dayOfWeek?: Record<number, { startTime: string; endTime: string; breakStart?: string | null; breakEnd?: string | null }>;
-    date?: Record<string, { startTime: string; endTime: string; breakStart?: string | null; breakEnd?: string | null }>;
+    dayOfWeek?: Record<
+      number,
+      { startTime: string; endTime: string; breakStart?: string | null; breakEnd?: string | null }
+    >;
+    date?: Record<
+      string,
+      { startTime: string; endTime: string; breakStart?: string | null; breakEnd?: string | null }
+    >;
   } | null;
 }
 
@@ -59,7 +65,9 @@ export async function fetchShiftDefinitions(locationId: string) {
   return shifts;
 }
 
-export async function upsertShiftDefinition(data: Omit<ShiftDefinitionData, 'id'> & { id?: string }) {
+export async function upsertShiftDefinition(
+  data: Omit<ShiftDefinitionData, 'id'> & { id?: string },
+) {
   const session = await getSession();
   if (!session) return { ok: false, error: 'Unauthorized' };
   const tenantId = String(session.user.tenantId ?? 'default');
@@ -87,12 +95,7 @@ export async function upsertShiftDefinition(data: Omit<ShiftDefinitionData, 'id'
           updatedAt: new Date(),
           updatedBy: userId,
         })
-        .where(
-          and(
-            eq(shiftDefinitions.id, data.id),
-            eq(shiftDefinitions.tenantId, tenantId),
-          ),
-        );
+        .where(and(eq(shiftDefinitions.id, data.id), eq(shiftDefinitions.tenantId, tenantId)));
     } else {
       await db.insert(shiftDefinitions).values({
         id: generateId(),

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useTransition, useActionState, useEffect } from 'react';
 import { Button, Input, toast } from '@erp/ui';
-import { createSupplierAction, updateSupplierAction, deleteSupplierAction } from './actions';
 import { useTranslations } from 'next-intl';
+import { useActionState, useEffect, useState, useTransition } from 'react';
+import { createSupplierAction, deleteSupplierAction, updateSupplierAction } from './actions';
 
 export function SupplierManagement({ suppliers }: { suppliers: any[] }) {
   const t = useTranslations('purchasing');
@@ -19,20 +19,14 @@ export function SupplierManagement({ suppliers }: { suppliers: any[] }) {
         </div>
         <div className="divide-y divide-brand-cream-3">
           {suppliers.length === 0 ? (
-            <p className="px-5 py-8 text-center text-sm text-brand-ink-3">
-              {t('noSupplier')}
-            </p>
+            <p className="px-5 py-8 text-center text-sm text-brand-ink-3">{t('noSupplier')}</p>
           ) : (
             suppliers.map((supplier) => (
-              <div
-                key={supplier.id}
-                className="flex items-center justify-between gap-4 px-5 py-3"
-              >
+              <div key={supplier.id} className="flex items-center justify-between gap-4 px-5 py-3">
                 <div>
                   <p className="font-semibold text-brand-ink">{supplier.name}</p>
                   <p className="mt-0.5 text-xs text-brand-ink-3">
-                    {[supplier.phone, supplier.email].filter(Boolean).join(' - ') ||
-                      t('noContact')}
+                    {[supplier.phone, supplier.email].filter(Boolean).join(' - ') || t('noContact')}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -93,18 +87,22 @@ export function SupplierManagement({ suppliers }: { suppliers: any[] }) {
       </div>
 
       <div className="space-y-6">
-        <SupplierForm 
-          key={editingSupplier?.id || 'new'} 
-          initialData={editingSupplier} 
-          onCancel={() => setEditingSupplier(null)} 
-          t={t} 
+        <SupplierForm
+          key={editingSupplier?.id || 'new'}
+          initialData={editingSupplier}
+          onCancel={() => setEditingSupplier(null)}
+          t={t}
         />
       </div>
     </div>
   );
 }
 
-function SupplierForm({ initialData, onCancel, t }: { initialData: any, onCancel: () => void, t: any }) {
+function SupplierForm({
+  initialData,
+  onCancel,
+  t,
+}: { initialData: any; onCancel: () => void; t: any }) {
   const isEditing = !!initialData;
   const actionToUse = isEditing ? updateSupplierAction : createSupplierAction;
   const [state, action, pending] = useActionState(actionToUse, { success: false });
@@ -159,17 +157,22 @@ function SupplierForm({ initialData, onCancel, t }: { initialData: any, onCancel
         </label>
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{t('paymentTermsDays')}</span>
-          <Input name="paymentTermsDays" type="number" min="0" defaultValue={initialData?.paymentTermsDays || '0'} />
+          <Input
+            name="paymentTermsDays"
+            type="number"
+            min="0"
+            defaultValue={initialData?.paymentTermsDays || '0'}
+          />
         </label>
       </div>
 
       <label className="space-y-1.5">
         <span className="text-sm font-medium text-brand-ink">{t('address')}</span>
-        <textarea 
-          name="supplierAddress" 
-          rows={3} 
+        <textarea
+          name="supplierAddress"
+          rows={3}
           className="w-full rounded-lg border border-brand-cream-3 px-3 py-2"
-          defaultValue={initialData?.address || ''} 
+          defaultValue={initialData?.address || ''}
         />
       </label>
 
@@ -184,11 +187,24 @@ function SupplierForm({ initialData, onCancel, t }: { initialData: any, onCancel
       </label>
 
       <div className="flex items-center gap-3">
-        <Button type="submit" disabled={pending} className="rounded-lg flex-1" variant="primary" size="lg">
-          {pending ? t('saving') : (isEditing ? t('saveChanges') : t('saveSupplier'))}
+        <Button
+          type="submit"
+          disabled={pending}
+          className="rounded-lg flex-1"
+          variant="primary"
+          size="lg"
+        >
+          {pending ? t('saving') : isEditing ? t('saveChanges') : t('saveSupplier')}
         </Button>
         {isEditing && (
-          <Button type="button" disabled={pending} onClick={onCancel} className="rounded-lg flex-1" variant="secondary" size="lg">
+          <Button
+            type="button"
+            disabled={pending}
+            onClick={onCancel}
+            className="rounded-lg flex-1"
+            variant="secondary"
+            size="lg"
+          >
             {t('cancel')}
           </Button>
         )}

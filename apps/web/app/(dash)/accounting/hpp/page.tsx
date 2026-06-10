@@ -24,10 +24,7 @@ export default async function HppPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={t('title')}
-        description={t('description')}
-      />
+      <PageHeader title={t('title')} description={t('description')} />
       <HppClient locations={locations.map((l) => ({ value: l.id, label: l.label }))} />
     </div>
   );

@@ -6,10 +6,10 @@
 
 'use client';
 
+import type { PermissionCode } from '@erp/shared/types';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import type { PermissionCode } from '@erp/shared/types';
 import { useEffect, useRef, useState } from 'react';
 import { useMobileMenu } from './mobile-menu-context';
 
@@ -153,25 +153,90 @@ export function Sidebar({
         </svg>
       ),
       children: [
-        { label: t('coa'), href: '/accounting/coa', icon: <></>, permission: 'accounting.coa.manage' },
-        { label: t('journals'), href: '/accounting/journals', icon: <></>, permission: 'accounting.journal.create' },
-        { label: t('invoices'), href: '/accounting/invoices', icon: <></>, permission: 'accounting.view' },
-        { label: t('partners'), href: '/accounting/partners', icon: <></>, permission: 'accounting.view' },
+        {
+          label: t('coa'),
+          href: '/accounting/coa',
+          icon: <></>,
+          permission: 'accounting.coa.manage',
+        },
+        {
+          label: t('journals'),
+          href: '/accounting/journals',
+          icon: <></>,
+          permission: 'accounting.journal.create',
+        },
+        {
+          label: t('invoices'),
+          href: '/accounting/invoices',
+          icon: <></>,
+          permission: 'accounting.view',
+        },
+        {
+          label: t('partners'),
+          href: '/accounting/partners',
+          icon: <></>,
+          permission: 'accounting.view',
+        },
         {
           label: t('accountingEvidence'),
           href: '/correspondence?classification=finance&direction=internal',
           icon: <></>,
           permission: 'correspondence.view',
         },
-        { label: t('fixedAssets'), href: '/accounting/assets', icon: <></>, permission: 'accounting.fixed_asset.view' },
-        { label: t('payables'), href: '/accounting/payables', icon: <></>, permission: 'accounting.view' },
-        { label: t('receivables'), href: '/accounting/receivables', icon: <></>, permission: 'accounting.view' },
-        { label: t('periods'), href: '/accounting/periods', icon: <></>, permission: 'accounting.period.open' },
-        { label: t('financialClose'), href: '/accounting/close-center', icon: <></>, permission: 'accounting.view' },
-        { label: t('hppAdjustment'), href: '/accounting/hpp', icon: <></>, permission: 'accounting.hpp.view' },
-        { label: t('pettyCash'), href: '/accounting/petty-cash', icon: <></>, permission: 'accounting.petty_cash.view' },
-        { label: t('reimbursement'), href: '/accounting/reimbursement', icon: <></>, permission: 'accounting.reimbursement.view' },
-        { label: t('bankReconciliation'), href: '/accounting/bank-recon', icon: <></>, permission: 'accounting.bank_recon.view' },
+        {
+          label: t('fixedAssets'),
+          href: '/accounting/assets',
+          icon: <></>,
+          permission: 'accounting.fixed_asset.view',
+        },
+        {
+          label: t('payables'),
+          href: '/accounting/payables',
+          icon: <></>,
+          permission: 'accounting.view',
+        },
+        {
+          label: t('receivables'),
+          href: '/accounting/receivables',
+          icon: <></>,
+          permission: 'accounting.view',
+        },
+        {
+          label: t('periods'),
+          href: '/accounting/periods',
+          icon: <></>,
+          permission: 'accounting.period.open',
+        },
+        {
+          label: t('financialClose'),
+          href: '/accounting/close-center',
+          icon: <></>,
+          permission: 'accounting.view',
+        },
+        {
+          label: t('hppAdjustment'),
+          href: '/accounting/hpp',
+          icon: <></>,
+          permission: 'accounting.hpp.view',
+        },
+        {
+          label: t('pettyCash'),
+          href: '/accounting/petty-cash',
+          icon: <></>,
+          permission: 'accounting.petty_cash.view',
+        },
+        {
+          label: t('reimbursement'),
+          href: '/accounting/reimbursement',
+          icon: <></>,
+          permission: 'accounting.reimbursement.view',
+        },
+        {
+          label: t('bankReconciliation'),
+          href: '/accounting/bank-recon',
+          icon: <></>,
+          permission: 'accounting.bank_recon.view',
+        },
       ],
     },
     {
@@ -517,10 +582,10 @@ export function Sidebar({
     '/cms/docs': 'cms',
     '/cms/pages': 'cms',
     '/cms/posts': 'cms',
-    
+
     // Correspondence
     '/correspondence?classification=finance&direction=internal': 'correspondence.view',
-    
+
     // Reporting
     '/reporting/business-intelligence': 'reporting.view',
     '/reporting/trial-balance': 'accounting.reports',
@@ -633,7 +698,7 @@ export function Sidebar({
     '/hr/my-leave',
     '/settings',
     '/settings/access-security',
-    '/whistleblower'
+    '/whistleblower',
   ];
 
   const filteredNavItems = NAV_ITEMS.map((item) => {
@@ -642,9 +707,12 @@ export function Sidebar({
     if (children) {
       children = children.filter((child) => {
         if (ALWAYS_VISIBLE.includes(child.href)) return true;
-        
+
         const childMods = child.permissionsAny ?? [
-          child.permission || PATH_TO_MODULE[child.href] || child.href.substring(1).split('/')[0] || '',
+          child.permission ||
+            PATH_TO_MODULE[child.href] ||
+            child.href.substring(1).split('/')[0] ||
+            '',
         ];
         return childMods.some((childMod) => hasModuleAccess(childMod));
       });
@@ -652,7 +720,7 @@ export function Sidebar({
     return { ...item, children };
   }).filter((item) => {
     if (ALWAYS_VISIBLE.includes(item.href)) return true;
-    
+
     // If it had children originally, keep it if any children survived
     if (item.children) {
       return item.children.length > 0;
@@ -670,7 +738,7 @@ export function Sidebar({
     const matchesModule = (granted: string[]) => {
       // 1. Super admin wildcard
       if (granted.includes('*.*')) return true;
-      
+
       // 2. Exact match
       if (granted.includes(moduleName)) return true;
 
@@ -725,7 +793,14 @@ export function Sidebar({
             className="shrink-0 p-1 text-brand-ink-3 hover:text-brand-ink hover:bg-brand-cream-2 rounded-md transition-colors"
             aria-label="Close menu"
           >
-            <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg
+              aria-hidden="true"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
             </svg>
           </button>
@@ -736,7 +811,18 @@ export function Sidebar({
             className={`shrink-0 p-1 text-brand-ink-3 hover:text-brand-ink hover:bg-brand-cream-2 rounded-md transition-colors ${isCollapsed ? 'hidden' : 'block'}`}
             title={isCollapsed ? t('expandSidebar') : t('collapseSidebar')}
           >
-            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="m15 18-6-6 6-6" />
             </svg>
           </button>
@@ -749,7 +835,18 @@ export function Sidebar({
           className="mx-auto mt-2 p-1.5 text-brand-ink-3 hover:text-brand-ink hover:bg-brand-cream-2 rounded-md transition-colors"
           title={t('expandSidebar')}
         >
-          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path d="m9 18 6-6-6-6" />
           </svg>
         </button>
@@ -793,7 +890,11 @@ export function Sidebar({
                         stroke="currentColor"
                         strokeWidth={2}
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                        />
                       </svg>
                     </button>
 
@@ -862,9 +963,7 @@ export function Sidebar({
           className="absolute inset-0 bg-black/40 backdrop-blur-sm"
           onClick={close}
         />
-        <div className="relative h-full w-fit animate-slide-in-left">
-          {sidebarContent}
-        </div>
+        <div className="relative h-full w-fit animate-slide-in-left">{sidebarContent}</div>
       </div>
     );
   }

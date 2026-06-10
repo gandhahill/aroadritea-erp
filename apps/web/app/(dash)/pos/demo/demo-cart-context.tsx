@@ -141,7 +141,7 @@ export function DemoCartProvider({ children }: { children: ReactNode }) {
         const rates = await getTaxRates();
         const pb1 = rates.find((r) => r.code === 'PB1' || r.code === 'PBJT');
         if (pb1) {
-          const rateValue = parseFloat(pb1.rate);
+          const rateValue = Number.parseFloat(pb1.rate);
           if (!isNaN(rateValue) && rateValue >= 0 && rateValue <= 1) {
             setPb1RateBps(Math.round(rateValue * 10000));
           }
@@ -153,8 +153,10 @@ export function DemoCartProvider({ children }: { children: ReactNode }) {
     loadTaxRates();
   }, []);
 
-  const { subtotal, taxTotal, totalPaid, remainingBalance, grandTotal, excess } =
-    calcDemoTotals(state, pb1RateBps);
+  const { subtotal, taxTotal, totalPaid, remainingBalance, grandTotal, excess } = calcDemoTotals(
+    state,
+    pb1RateBps,
+  );
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {

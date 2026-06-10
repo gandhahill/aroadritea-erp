@@ -6,11 +6,11 @@
  */
 
 import { db } from '@erp/db';
-import type { PermissionCode } from '@erp/shared/types';
 import { products } from '@erp/db/schema/inventory';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, tryCatch } from '@erp/shared/result';
+import type { PermissionCode } from '@erp/shared/types';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq } from 'drizzle-orm';
 import { auditRecord } from '../audit';

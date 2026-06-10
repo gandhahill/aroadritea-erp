@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
-import Image from 'next/image';
 import { amountToWords } from '@erp/shared/amount-to-words';
+import Image from 'next/image';
+import { useEffect } from 'react';
 
 interface PrintInvoiceClientProps {
   data: any;
@@ -100,9 +100,7 @@ export function PrintInvoiceClient({ data, printType, labels }: PrintInvoiceClie
             <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
               {partnerLabel}
             </h3>
-            <p className="text-base font-medium text-brand-ink">
-              {invoice.partnerName ?? '-'}
-            </p>
+            <p className="text-base font-medium text-brand-ink">{invoice.partnerName ?? '-'}</p>
             {invoice.partnerAddress && (
               <p className="mt-1 text-sm text-brand-ink-2 max-w-xs">{invoice.partnerAddress}</p>
             )}

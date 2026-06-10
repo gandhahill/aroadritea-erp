@@ -1,12 +1,9 @@
 'use client';
 
-import {
-  Button,
-  Input,
-} from '@erp/ui';
+import { Button, Input } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
-import { deleteParkedCart, getParkedCarts, type ParkedCart, saveParkedCart } from './idb';
+import { type ParkedCart, deleteParkedCart, getParkedCarts, saveParkedCart } from './idb';
 import { usePosCart } from './pos-cart-context';
 
 export function ParkCartDialog({
@@ -46,7 +43,9 @@ export function ParkCartDialog({
         <h2 className="text-lg font-semibold text-brand-ink">{t('parkCart.title')}</h2>
         <p className="mt-1 text-sm text-brand-ink-3">{t('parkCart.description')}</p>
         <div className="py-4">
-          <label htmlFor="park-name" className="text-sm font-medium text-brand-ink">{t('parkCart.nameLabel')}</label>
+          <label htmlFor="park-name" className="text-sm font-medium text-brand-ink">
+            {t('parkCart.nameLabel')}
+          </label>
           <Input
             id="park-name"
             value={name}
@@ -59,7 +58,9 @@ export function ParkCartDialog({
           <Button variant="secondary" onClick={() => onOpenChange(false)}>
             {t('common.cancel')}
           </Button>
-          <Button variant="primary" onClick={handlePark}>{t('parkCart.confirm')}</Button>
+          <Button variant="primary" onClick={handlePark}>
+            {t('parkCart.confirm')}
+          </Button>
         </div>
       </div>
     </div>
@@ -109,13 +110,16 @@ export function RecallCartDialog({
             <h2 className="text-lg font-semibold text-brand-ink">{t('recallCart.title')}</h2>
             <p className="mt-1 text-sm text-brand-ink-3">{t('recallCart.description')}</p>
           </div>
-          <button onClick={() => onOpenChange(false)} className="text-brand-ink-3 hover:text-brand-ink">&times;</button>
+          <button
+            onClick={() => onOpenChange(false)}
+            className="text-brand-ink-3 hover:text-brand-ink"
+          >
+            &times;
+          </button>
         </div>
         <div className="py-4 max-h-[60vh] overflow-y-auto">
           {carts.length === 0 ? (
-            <p className="text-center text-sm text-brand-ink-3 py-8">
-              {t('recallCart.empty')}
-            </p>
+            <p className="text-center text-sm text-brand-ink-3 py-8">{t('recallCart.empty')}</p>
           ) : (
             <ul className="space-y-3">
               {carts.map((cart) => (
@@ -126,7 +130,8 @@ export function RecallCartDialog({
                   <div>
                     <h4 className="font-semibold text-brand-ink-1">{cart.name}</h4>
                     <p className="text-sm text-brand-ink-3 mt-1">
-                      {new Date(cart.parkedAt).toLocaleString()} • {cart.state.lines.length} {t('recallCart.items')}
+                      {new Date(cart.parkedAt).toLocaleString()} • {cart.state.lines.length}{' '}
+                      {t('recallCart.items')}
                     </p>
                   </div>
                   <div className="flex gap-2">

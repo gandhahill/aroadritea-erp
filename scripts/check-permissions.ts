@@ -24,7 +24,12 @@ function walk(dir: string, fileList: string[] = []) {
   for (const file of files) {
     const filePath = path.join(dir, file);
     if (fs.statSync(filePath).isDirectory()) {
-      if (!filePath.includes('node_modules') && !filePath.includes('.next') && !filePath.includes('.git') && !filePath.includes('dist')) {
+      if (
+        !filePath.includes('node_modules') &&
+        !filePath.includes('.next') &&
+        !filePath.includes('.git') &&
+        !filePath.includes('dist')
+      ) {
         walk(filePath, fileList);
       }
     } else {
@@ -47,13 +52,15 @@ const typeRegex = /(?:PermissionCode|permission)\s*[:=]\s*(['"])([^'"]+)\1/g;
 for (const file of allFiles) {
   if (file === permissionsFile) continue;
   if (file.includes('check-permissions.ts')) continue;
-  
+
   const content = fs.readFileSync(file, 'utf-8');
   let match;
   while ((match = usageRegex.exec(content)) !== null) {
     const usedPerm = match[2];
     if (!validPermissions.has(usedPerm)) {
-      console.error(`❌ INVALID PERMISSION: '${usedPerm}' used in ${path.relative(projectRoot, file)}`);
+      console.error(
+        `❌ INVALID PERMISSION: '${usedPerm}' used in ${path.relative(projectRoot, file)}`,
+      );
       hasError = true;
     }
   }

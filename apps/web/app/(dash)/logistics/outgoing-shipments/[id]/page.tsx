@@ -26,11 +26,7 @@ export default async function OutgoingShipmentDetailPage(props: {
               {t('title')}: {detail.number}
             </>
           }
-          description={
-            <>
-              {detail.subject}
-            </>
-          }
+          description={<>{detail.subject}</>}
           eyebrow={<>{t('eyebrow')}</>}
           actions={
             <div className="flex items-center gap-2">

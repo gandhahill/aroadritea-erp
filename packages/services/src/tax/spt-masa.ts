@@ -1,10 +1,16 @@
 import { db } from '@erp/db';
-import { journalEntries, journalLines, taxRates, invoices, taxInvoices } from '@erp/db/schema/accounting';
-import { eq, and, sql, desc } from 'drizzle-orm';
-import { type Result, tryCatch, ok, err } from '@erp/shared/result';
-import type { AuditContext } from '@erp/shared/types';
-import { requirePermission } from '../iam';
+import {
+  invoices,
+  journalEntries,
+  journalLines,
+  taxInvoices,
+  taxRates,
+} from '@erp/db/schema/accounting';
 import { AppError } from '@erp/shared/errors';
+import { type Result, err, ok, tryCatch } from '@erp/shared/result';
+import type { AuditContext } from '@erp/shared/types';
+import { and, desc, eq, sql } from 'drizzle-orm';
+import { requirePermission } from '../iam';
 
 export interface SptMasaSummary {
   periodId: string;
@@ -50,8 +56,8 @@ export async function calculateSptMasa(
             eq(journalEntries.tenantId, ctx.tenantId),
             eq(journalEntries.periodId, periodId),
             eq(journalEntries.status, 'posted'),
-            sql`${journalLines.taxCode} IN ('PPN_OUT', 'PPN_IN')`
-          )
+            sql`${journalLines.taxCode} IN ('PPN_OUT', 'PPN_IN')`,
+          ),
         )
         .groupBy(journalLines.taxCode);
 
@@ -75,7 +81,7 @@ export async function calculateSptMasa(
         netPayable: totalPpnOut - totalPpnIn,
       };
     },
-    (e) => AppError.internal('tax.sptMasa.calculationFailed', e)
+    (e) => AppError.internal('tax.sptMasa.calculationFailed', e),
   );
 }
 
@@ -98,14 +104,15 @@ export async function getVatLedger(
           and(
             eq(taxRates.tenantId, ctx.tenantId),
             eq(taxRates.code, targetTaxCode),
-            eq(taxRates.isActive, true)
-          )
+            eq(taxRates.isActive, true),
+          ),
         )
         .limit(1);
       if (!rateRows[0]) {
         throw AppError.businessRule('tax.sptMasa.rateNotFound', { taxCode: targetTaxCode });
       }
-      // rateBps e.g. 1100 = 11%. Keep full precision in BigInt numerator.
+      // rateBps e.g. 1100 = 11% effective VAT (2025 non-lux: 12% x DPP 11/12).
+      // Keep full precision in BigInt numerator.
       // DPP = ppn * 10000 / rateBps (avoids loss of sub-integer rates like 1050 bps).
       const rateBpsBigInt = BigInt(rateRows[0].rateBps);
 
@@ -127,25 +134,26 @@ export async function getVatLedger(
         })
         .from(journalLines)
         .innerJoin(journalEntries, eq(journalLines.journalEntryId, journalEntries.id))
-        .leftJoin(invoices, and(
-           eq(journalEntries.referenceId, invoices.id),
-           sql`${journalEntries.referenceType} IN ('sales', 'purchase')`
-        ))
+        .leftJoin(
+          invoices,
+          and(
+            eq(journalEntries.referenceId, invoices.id),
+            sql`${journalEntries.referenceType} IN ('sales', 'purchase')`,
+          ),
+        )
         .leftJoin(taxInvoices, eq(invoices.id, taxInvoices.invoiceId))
         .where(
           and(
             eq(journalEntries.tenantId, ctx.tenantId),
             eq(journalEntries.periodId, periodId),
             eq(journalEntries.status, 'posted'),
-            eq(journalLines.taxCode, targetTaxCode)
-          )
+            eq(journalLines.taxCode, targetTaxCode),
+          ),
         )
         .orderBy(desc(journalEntries.postingDate));
 
       const ledger: VatLedgerRow[] = rows.map((r) => {
-        const ppn = type === 'out' 
-          ? r.credit - r.debit 
-          : r.debit - r.credit;
+        const ppn = type === 'out' ? r.credit - r.debit : r.debit - r.credit;
 
         // If we have invoiceSubtotal, use it as DPP. Otherwise, back-calculate from PPN.
         // Formula: DPP = ppn * 10000 / rateBps (guard against zero rate).
@@ -170,7 +178,7 @@ export async function getVatLedger(
 
       return ledger;
     },
-    (e) => AppError.internal('tax.sptMasa.ledgerFailed', e)
+    (e) => AppError.internal('tax.sptMasa.ledgerFailed', e),
   );
 }
 
@@ -200,6 +208,6 @@ export async function exportSptMasaCsv(
 
       return csv;
     },
-    (e) => AppError.internal('tax.sptMasa.exportFailed', e)
+    (e) => AppError.internal('tax.sptMasa.exportFailed', e),
   );
 }

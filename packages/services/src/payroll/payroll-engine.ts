@@ -308,11 +308,7 @@ export function calculatePayroll(ctx: PayrollEmployeeContext): PayrollResult {
   // 3. T-0247: PPh 21 TER bulanan (PMK 168/2023)
   let pph21Amount = 0n;
   if (ctx.isTaxable) {
-    pph21Amount = calcMonthlyPPh21TER(
-      taxableMonthly,
-      ctx.maritalStatus,
-      ctx.dependentsCount,
-    );
+    pph21Amount = calcMonthlyPPh21TER(taxableMonthly, ctx.maritalStatus, ctx.dependentsCount);
 
     if (pph21Amount > 0n) {
       lines.push({
@@ -461,7 +457,8 @@ export function calculatePayroll(ctx: PayrollEmployeeContext): PayrollResult {
   }
 
   // Employee-borne deductions only (employer BPJS NOT deducted from net)
-  const totalDeductions = pph21Amount + bpjsKesEmployee + bpjsTkEmp + latePenalty + absentPenalty + manualDeductions;
+  const totalDeductions =
+    pph21Amount + bpjsKesEmployee + bpjsTkEmp + latePenalty + absentPenalty + manualDeductions;
   const netSalary = grossMonthly - totalDeductions;
 
   return {

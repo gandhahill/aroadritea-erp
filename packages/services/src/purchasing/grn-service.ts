@@ -54,7 +54,6 @@ function addDays(date: string, days: number): string {
   const value = new Date(`${date.slice(0, 10)}T00:00:00.000Z`);
   value.setUTCDate(value.getUTCDate() + Math.max(0, days));
   return value.toISOString().slice(0, 10);
-
 }
 
 function stockLevelIdentityWhere(input: {
@@ -71,7 +70,9 @@ function stockLevelIdentityWhere(input: {
     eq(stockLevels.productId, input.productId),
     input.variantId ? eq(stockLevels.variantId, input.variantId) : isNull(stockLevels.variantId),
     input.batchNo ? eq(stockLevels.batchNo, input.batchNo) : isNull(stockLevels.batchNo),
-    input.expiryDate ? eq(stockLevels.expiryDate, input.expiryDate) : isNull(stockLevels.expiryDate),
+    input.expiryDate
+      ? eq(stockLevels.expiryDate, input.expiryDate)
+      : isNull(stockLevels.expiryDate),
   );
 }
 
@@ -197,7 +198,7 @@ export async function createGRN(rawInput: unknown, ctx: AuditContext): Promise<R
       qtyReceived: purchaseOrderLines.qtyReceived,
       unitPrice: purchaseOrderLines.unitPrice,
       trackBatch: products.trackBatch,
-      trackExpiry: products.trackExpiry
+      trackExpiry: products.trackExpiry,
     })
     .from(purchaseOrderLines)
     .innerJoin(products, eq(products.id, purchaseOrderLines.productId))
@@ -235,7 +236,7 @@ export async function createGRN(rawInput: unknown, ctx: AuditContext): Promise<R
         }),
       );
     }
-    
+
     if (poLine.trackExpiry && !grnLine.expiryDate) {
       return err(
         AppError.validation('purchasing.errors.missing_expiry_date', {
@@ -436,9 +437,10 @@ export async function confirmGRN(
     );
   }
 
-    return tryCatch(async () => {
-    return await db.transaction(async (tx) => {
-      // CLAIM the GRN first. Two concurrent confirmGRN calls would
+  return tryCatch(
+    async () => {
+      return await db.transaction(async (tx) => {
+        // CLAIM the GRN first. Two concurrent confirmGRN calls would
         // otherwise both run the stock + PO line updates, doubling on-hand
         // qty and posting two GRNI journals.
         const claimedGrn = await tx
@@ -558,7 +560,8 @@ export async function confirmGRN(
               referenceId: grn.id,
               lines: jeLines,
             },
-            ctx, { skipPermissionCheck: true, tx }
+            ctx,
+            { skipPermissionCheck: true, tx },
           );
           if (!jeResult.ok) {
             throw jeResult.error;
@@ -650,7 +653,11 @@ export async function confirmGRN(
         // 3. Update stock_levels — variant-aware lookup; bug fix from opname.
         for (const line of lines) {
           const existingStock = await tx
-            .select({ id: stockLevels.id, qtyOnHand: stockLevels.qtyOnHand, avgUnitCost: stockLevels.avgUnitCost })
+            .select({
+              id: stockLevels.id,
+              qtyOnHand: stockLevels.qtyOnHand,
+              avgUnitCost: stockLevels.avgUnitCost,
+            })
             .from(stockLevels)
             .where(
               stockLevelIdentityWhere({
@@ -675,7 +682,10 @@ export async function confirmGRN(
 
             let newAvgCost = unitCost;
             if (newQty > 0.001) {
-              newAvgCost = (BigInt(Math.round(oldQty * 1000)) * oldAvgCost + BigInt(Math.round(recQty * 1000)) * unitCost) / BigInt(Math.round(newQty * 1000));
+              newAvgCost =
+                (BigInt(Math.round(oldQty * 1000)) * oldAvgCost +
+                  BigInt(Math.round(recQty * 1000)) * unitCost) /
+                BigInt(Math.round(newQty * 1000));
             }
 
             await tx
@@ -764,9 +774,11 @@ export async function confirmGRN(
           journalEntryId,
           movementCount: movementValues.length,
         };
-    });
-  }, (e: any) => {
-    if (e && typeof e === 'object' && 'messageKey' in e) return e as AppError;
-    return AppError.internal('purchasing.errors.grn_confirm_failed', e);
-  });
+      });
+    },
+    (e: any) => {
+      if (e && typeof e === 'object' && 'messageKey' in e) return e as AppError;
+      return AppError.internal('purchasing.errors.grn_confirm_failed', e);
+    },
+  );
 }

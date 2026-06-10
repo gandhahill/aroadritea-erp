@@ -49,11 +49,14 @@ export async function trackPurchaseOrderShipment(
   });
   if (!permCheck.ok) return permCheck;
 
-
-  const formatter = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit' });
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Jakarta',
+    year: 'numeric',
+    month: '2-digit',
+  });
   const parts = formatter.formatToParts(new Date());
-  const year = parts.find(p => p.type === 'year')?.value;
-  const month = parts.find(p => p.type === 'month')?.value;
+  const year = parts.find((p) => p.type === 'year')?.value;
+  const month = parts.find((p) => p.type === 'month')?.value;
   const monthStart = new Date(`${year}-${month}-01T00:00:00+07:00`);
   const [requestCount] = await db
     .select({ c: count() })

@@ -1,8 +1,8 @@
 import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import { getUserPermissions } from '@erp/services/iam';
-import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 export type SettingsGroupId =
@@ -214,7 +214,9 @@ function hasAccess(permission: string | undefined, permissions: PermissionState)
 }
 
 function visibleItems(group: SettingsHubGroup, permissions: PermissionState) {
-  return group.items.filter((item) => item.alwaysVisible || hasAccess(item.permission, permissions));
+  return group.items.filter(
+    (item) => item.alwaysVisible || hasAccess(item.permission, permissions),
+  );
 }
 
 export async function SettingsHub({ groupId }: { groupId?: SettingsGroupId }) {

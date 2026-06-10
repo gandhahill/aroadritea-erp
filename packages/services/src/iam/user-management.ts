@@ -1,12 +1,12 @@
 import { db } from '@erp/db';
-import { users, userRoles } from '@erp/db/schema/auth';
+import { userRoles, users } from '@erp/db/schema/auth';
 import { AppError } from '@erp/shared/errors';
+import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { eq, and } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { requirePermission } from './require-permission';
-import { generateId } from '@erp/shared/id';
 
 export const CreateUserInputSchema = z.object({
   name: z.string().min(1),
@@ -16,7 +16,10 @@ export const CreateUserInputSchema = z.object({
 
 export type CreateUserInput = z.infer<typeof CreateUserInputSchema>;
 
-export async function createUser(input: CreateUserInput, ctx: AuditContext): Promise<Result<{ id: string }>> {
+export async function createUser(
+  input: CreateUserInput,
+  ctx: AuditContext,
+): Promise<Result<{ id: string }>> {
   const parsed = CreateUserInputSchema.safeParse(input);
   if (!parsed.success) return err(AppError.validation(parsed.error.message));
 
@@ -36,7 +39,10 @@ export async function createUser(input: CreateUserInput, ctx: AuditContext): Pro
   return ok({ id });
 }
 
-export async function suspendUser(userId: string, ctx: AuditContext): Promise<Result<{ id: string }>> {
+export async function suspendUser(
+  userId: string,
+  ctx: AuditContext,
+): Promise<Result<{ id: string }>> {
   const permCheck = await requirePermission(ctx.userId, 'iam.manage_users');
   if (!permCheck.ok) return permCheck;
 
@@ -56,7 +62,10 @@ export const AssignRoleInputSchema = z.object({
 
 export type AssignRoleInput = z.infer<typeof AssignRoleInputSchema>;
 
-export async function assignRole(input: AssignRoleInput, ctx: AuditContext): Promise<Result<{ id: string }>> {
+export async function assignRole(
+  input: AssignRoleInput,
+  ctx: AuditContext,
+): Promise<Result<{ id: string }>> {
   const parsed = AssignRoleInputSchema.safeParse(input);
   if (!parsed.success) return err(AppError.validation(parsed.error.message));
 

@@ -1,5 +1,5 @@
-import { can } from '@erp/services/iam';
 import { getSession } from '@/lib/auth';
+import { can } from '@erp/services/iam';
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { fetchLocationOptions, fetchProductOptions, fetchTransferDetail } from '../../actions';
@@ -26,11 +26,5 @@ export default async function EditTransferPage(props: { params: Promise<{ id: st
 
   if (!data || data.status !== 'draft') notFound();
 
-  return (
-    <EditTransferForm
-      data={data}
-      locations={locations}
-      products={products}
-    />
-  );
+  return <EditTransferForm data={data} locations={locations} products={products} />;
 }

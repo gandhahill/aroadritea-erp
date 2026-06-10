@@ -77,7 +77,11 @@ export default async function ProductDetailPage({ params }: Props) {
       {product ? (
         <>
           <ProductForm mode="edit" categories={data.categories} product={product} />
-          <VariantManager productId={product.id} variants={product.variants} defaultCostPrice={product.defaultCostPrice} />
+          <VariantManager
+            productId={product.id}
+            variants={product.variants}
+            defaultCostPrice={product.defaultCostPrice}
+          />
         </>
       ) : null}
     </div>

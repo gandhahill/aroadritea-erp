@@ -348,14 +348,28 @@ export function AttendanceListClient({
           </p>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => applyFilter({ employeeId: initialEmployeeId, dateFrom: initialDateFrom, dateTo: initialDateTo, page: page - 1 })}
+              onClick={() =>
+                applyFilter({
+                  employeeId: initialEmployeeId,
+                  dateFrom: initialDateFrom,
+                  dateTo: initialDateTo,
+                  page: page - 1,
+                })
+              }
               disabled={page <= 1}
               className="rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink disabled:cursor-not-allowed disabled:opacity-40 hover:bg-brand-cream-1"
             >
               {t('prev')}
             </button>
             <button
-              onClick={() => applyFilter({ employeeId: initialEmployeeId, dateFrom: initialDateFrom, dateTo: initialDateTo, page: page + 1 })}
+              onClick={() =>
+                applyFilter({
+                  employeeId: initialEmployeeId,
+                  dateFrom: initialDateFrom,
+                  dateTo: initialDateTo,
+                  page: page + 1,
+                })
+              }
               disabled={page >= totalPages}
               className="rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink disabled:cursor-not-allowed disabled:opacity-40 hover:bg-brand-cream-1"
             >

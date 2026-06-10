@@ -1,10 +1,10 @@
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
-import { db, eq, and } from '@erp/db';
-import { invoices, accounts } from '@erp/db';
+import { and, db, eq } from '@erp/db';
+import { accounts, invoices } from '@erp/db';
+import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { PayInvoiceForm } from './client';
-import { getTranslations } from 'next-intl/server';
-import { PageHeader } from '@/components/page-header';
 
 export default async function PayInvoicePage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
@@ -26,7 +26,9 @@ export default async function PayInvoicePage(props: { params: Promise<{ id: stri
   const bankAccounts = await db
     .select()
     .from(accounts)
-    .where(and(eq(accounts.tenantId, String(user.tenantId ?? 'default')), eq(accounts.type, 'asset')));
+    .where(
+      and(eq(accounts.tenantId, String(user.tenantId ?? 'default')), eq(accounts.type, 'asset')),
+    );
 
   return (
     <div className="space-y-6">

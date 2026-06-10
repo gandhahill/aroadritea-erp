@@ -114,7 +114,12 @@ export function EmployeeForm({
           <span className="text-sm font-medium text-brand-ink">
             {f('baseSalary')} <span className="text-brand-red">*</span>
           </span>
-          <MoneyInput id="baseSalary" name="baseSalary" required defaultValue={employee?.contracts?.[0]?.baseSalary ?? '0'} />
+          <MoneyInput
+            id="baseSalary"
+            name="baseSalary"
+            required
+            defaultValue={employee?.contracts?.[0]?.baseSalary ?? '0'}
+          />
         </label>
         {!isEdit ? (
           <label htmlFor="loginScope" className="space-y-1.5">

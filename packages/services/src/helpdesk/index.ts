@@ -12,13 +12,13 @@
 
 import { db } from '@erp/db';
 import { users } from '@erp/db/schema/auth';
+import { sequences } from '@erp/db/schema/common';
 import { helpdeskTicketReplies, helpdeskTickets } from '@erp/db/schema/helpdesk';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, desc, eq, inArray, or, sql } from 'drizzle-orm';
-import { sequences } from '@erp/db/schema/common';
 import { z } from 'zod';
 import { auditRecord } from '../audit';
 import { can, requirePermission } from '../iam';
@@ -305,9 +305,7 @@ export async function getTicket(
     .orderBy(helpdeskTicketReplies.createdAt);
 
   // Filter internal notes for non-handlers.
-  const visibleReplies = handleAllowed
-    ? replyRows
-    : replyRows.filter((r) => !r.isInternal);
+  const visibleReplies = handleAllowed ? replyRows : replyRows.filter((r) => !r.isInternal);
 
   const userIds = [
     ...new Set([

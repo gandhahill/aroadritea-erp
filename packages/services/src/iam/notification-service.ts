@@ -1,12 +1,12 @@
 import { db } from '@erp/db';
-import { userNotifications, userNotificationPreferences } from '@erp/db/schema/notification';
+import { userNotificationPreferences, userNotifications } from '@erp/db/schema/notification';
 import { AppError } from '@erp/shared/errors';
+import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { eq, and } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { requirePermission } from './require-permission';
-import { generateId } from '@erp/shared/id';
 
 export const CreateNotificationInputSchema = z.object({
   userId: z.string().min(1),
@@ -19,7 +19,10 @@ export const CreateNotificationInputSchema = z.object({
 
 export type CreateNotificationInput = z.infer<typeof CreateNotificationInputSchema>;
 
-export async function createNotification(input: CreateNotificationInput, ctx: AuditContext): Promise<Result<{ id: string }>> {
+export async function createNotification(
+  input: CreateNotificationInput,
+  ctx: AuditContext,
+): Promise<Result<{ id: string }>> {
   const parsed = CreateNotificationInputSchema.safeParse(input);
   if (!parsed.success) return err(AppError.validation(parsed.error.message));
 
@@ -28,9 +31,14 @@ export async function createNotification(input: CreateNotificationInput, ctx: Au
     const [prefs] = await db
       .select()
       .from(userNotificationPreferences)
-      .where(and(eq(userNotificationPreferences.userId, input.userId), eq(userNotificationPreferences.tenantId, ctx.tenantId)));
-      
-    if (prefs && prefs.eventPreferences) {
+      .where(
+        and(
+          eq(userNotificationPreferences.userId, input.userId),
+          eq(userNotificationPreferences.tenantId, ctx.tenantId),
+        ),
+      );
+
+    if (prefs?.eventPreferences) {
       // If the user explicitly disabled this event type, don't create it
       if (prefs.eventPreferences[input.eventCode] === false) {
         return ok({ id: 'skipped' });
@@ -54,14 +62,23 @@ export async function createNotification(input: CreateNotificationInput, ctx: Au
   return ok({ id });
 }
 
-export async function markNotificationRead(notificationId: string, ctx: AuditContext): Promise<Result<{ id: string }>> {
+export async function markNotificationRead(
+  notificationId: string,
+  ctx: AuditContext,
+): Promise<Result<{ id: string }>> {
   await db
     .update(userNotifications)
     .set({
       readAt: new Date(),
       updatedBy: ctx.userId,
     })
-    .where(and(eq(userNotifications.id, notificationId), eq(userNotifications.tenantId, ctx.tenantId), eq(userNotifications.userId, ctx.userId)));
+    .where(
+      and(
+        eq(userNotifications.id, notificationId),
+        eq(userNotifications.tenantId, ctx.tenantId),
+        eq(userNotifications.userId, ctx.userId),
+      ),
+    );
 
   return ok({ id: notificationId });
 }

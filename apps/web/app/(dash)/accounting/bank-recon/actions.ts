@@ -1,5 +1,5 @@
 import type { PermissionCode } from '@erp/shared/types';
-'use server';
+('use server');
 
 import { getSession } from '@/lib/auth';
 import { authorizedLocationIdsForTenant, requirePermissionAtLocation } from '@/lib/authz';
@@ -486,10 +486,7 @@ export async function finalizeStatement(id: string) {
     .select({ id: bankStatementLines.id })
     .from(bankStatementLines)
     .where(
-      and(
-        eq(bankStatementLines.statementId, id),
-        eq(bankStatementLines.matchStatus, 'unmatched'),
-      ),
+      and(eq(bankStatementLines.statementId, id), eq(bankStatementLines.matchStatus, 'unmatched')),
     )
     .limit(1);
 

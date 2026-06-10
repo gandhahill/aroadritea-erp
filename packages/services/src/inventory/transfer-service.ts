@@ -100,7 +100,9 @@ function stockLevelIdentityWhere(input: {
     eq(stockLevels.productId, input.productId),
     input.variantId ? eq(stockLevels.variantId, input.variantId) : isNull(stockLevels.variantId),
     input.batchNo ? eq(stockLevels.batchNo, input.batchNo) : isNull(stockLevels.batchNo),
-    input.expiryDate ? eq(stockLevels.expiryDate, input.expiryDate) : isNull(stockLevels.expiryDate),
+    input.expiryDate
+      ? eq(stockLevels.expiryDate, input.expiryDate)
+      : isNull(stockLevels.expiryDate),
   );
 }
 
@@ -476,7 +478,9 @@ export async function receiveTransfer(
       .where(eq(stockTransferLines.transferId, data.transferId))
       .orderBy(stockTransferLines.lineNo);
     const lineById = new Map(lines.map((line) => [line.id, line]));
-    const lineUpdateMap = new Map((data.lines ?? []).map((line) => [line.lineId, line.qtyReceived]));
+    const lineUpdateMap = new Map(
+      (data.lines ?? []).map((line) => [line.lineId, line.qtyReceived]),
+    );
 
     for (const [lineId, qtyReceived] of lineUpdateMap.entries()) {
       const line = lineById.get(lineId);
@@ -525,7 +529,9 @@ export async function receiveTransfer(
         await tx
           .update(stockTransferLines)
           .set({ qtyReceived, updatedBy: ctx.userId })
-          .where(and(eq(stockTransferLines.id, line.id), eq(stockTransferLines.transferId, trf.id)));
+          .where(
+            and(eq(stockTransferLines.id, line.id), eq(stockTransferLines.transferId, trf.id)),
+          );
 
         const sourceStock = await tx
           .select({ avgUnitCost: stockLevels.avgUnitCost })
@@ -563,8 +569,7 @@ export async function receiveTransfer(
           )
           .limit(1)
           .then(
-            (rows: Array<{ id: string; qtyOnHand: string; avgUnitCost: bigint | null }>) =>
-              rows[0],
+            (rows: Array<{ id: string; qtyOnHand: string; avgUnitCost: bigint | null }>) => rows[0],
           );
 
         if (existingDest) {
@@ -763,7 +768,9 @@ export async function updateTransferDraft(
       return err(AppError.notFound('inventory.transfer.notFound', { transferId: data.transferId }));
     }
     if (trf.status !== 'draft') {
-      return err(AppError.businessRule('inventory.transfer.notDraft', { currentStatus: trf.status }));
+      return err(
+        AppError.businessRule('inventory.transfer.notDraft', { currentStatus: trf.status }),
+      );
     }
     if (trf.version !== data.version) {
       return err(AppError.conflict('inventory.transfer.versionMismatch'));
@@ -784,16 +791,28 @@ export async function updateTransferDraft(
     for (const line of data.lines) {
       const product = productMap.get(line.productId);
       if (!product) {
-        return err(AppError.notFound('inventory.transfer.productNotFound', { productId: line.productId }));
+        return err(
+          AppError.notFound('inventory.transfer.productNotFound', { productId: line.productId }),
+        );
       }
       if (!product.isActive) {
-        return err(AppError.businessRule('inventory.transfer.productInactive', { productId: line.productId }));
+        return err(
+          AppError.businessRule('inventory.transfer.productInactive', {
+            productId: line.productId,
+          }),
+        );
       }
       if (product.trackBatch && !line.batchNo) {
-        return err(AppError.validation('inventory.transfer.missingBatchNo', { productId: line.productId }));
+        return err(
+          AppError.validation('inventory.transfer.missingBatchNo', { productId: line.productId }),
+        );
       }
       if (product.trackExpiry && !line.expiryDate) {
-        return err(AppError.validation('inventory.transfer.missingExpiryDate', { productId: line.productId }));
+        return err(
+          AppError.validation('inventory.transfer.missingExpiryDate', {
+            productId: line.productId,
+          }),
+        );
       }
     }
 
@@ -829,9 +848,7 @@ export async function updateTransferDraft(
         throw AppError.conflict('inventory.transfer.versionMismatch');
       }
 
-      await tx
-        .delete(stockTransferLines)
-        .where(eq(stockTransferLines.transferId, data.transferId));
+      await tx.delete(stockTransferLines).where(eq(stockTransferLines.transferId, data.transferId));
 
       const lineValues = data.lines.map((line, idx) => ({
         id: generateId(),
@@ -908,7 +925,9 @@ export async function deleteTransfer(
     if (!permCheck.ok) return permCheck;
 
     if (trf.status !== 'draft') {
-      return err(AppError.businessRule('inventory.transfer.notDraft', { currentStatus: trf.status }));
+      return err(
+        AppError.businessRule('inventory.transfer.notDraft', { currentStatus: trf.status }),
+      );
     }
 
     await db.transaction(async (tx) => {

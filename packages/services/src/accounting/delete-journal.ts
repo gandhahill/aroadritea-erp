@@ -1,5 +1,5 @@
 import { db } from '@erp/db';
-import { journalEntries, journalLines, journalAttachments } from '@erp/db/schema/accounting';
+import { journalAttachments, journalEntries, journalLines } from '@erp/db/schema/accounting';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
@@ -7,10 +7,7 @@ import { and, eq } from 'drizzle-orm';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 
-export async function deleteJournal(
-  journalId: string,
-  ctx: AuditContext,
-): Promise<Result<void>> {
+export async function deleteJournal(journalId: string, ctx: AuditContext): Promise<Result<void>> {
   const je = await db
     .select()
     .from(journalEntries)
@@ -45,10 +42,8 @@ export async function deleteJournal(
           .update(journalEntries)
           .set({ deletedAt, updatedBy: ctx.userId, updatedAt: deletedAt })
           .where(eq(journalEntries.id, journalId));
-          
-        await tx
-          .delete(journalAttachments)
-          .where(eq(journalAttachments.journalEntryId, journalId));
+
+        await tx.delete(journalAttachments).where(eq(journalAttachments.journalEntryId, journalId));
       });
 
       await auditRecord({

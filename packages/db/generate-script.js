@@ -2,7 +2,7 @@ import { spawn } from 'child_process';
 
 const child = spawn('npx', ['drizzle-kit', 'generate'], {
   cwd: 'd:\\KERJA\\Aroadri Tea\\ERP\\packages\\db',
-  shell: true
+  shell: true,
 });
 
 child.stdout.on('data', (data) => {

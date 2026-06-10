@@ -1,13 +1,13 @@
 import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import { authorizedLocationIdsForTenant } from '@/lib/authz';
+import { db, eq } from '@erp/db';
+import { invoices } from '@erp/db/schema/accounting';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { fetchJournalFormData } from '../../../journals/actions';
 import { PostInvoiceForm } from './client';
-import { db, eq } from '@erp/db';
-import { invoices } from '@erp/db/schema/accounting';
 
 export const metadata: Metadata = {
   title: 'Post Invoice',
@@ -32,7 +32,7 @@ export default async function PostInvoicePage({ params }: { params: Promise<{ id
 
   const [data, t] = await Promise.all([
     fetchJournalFormData(),
-    getTranslations('accounting.invoice.postAction')
+    getTranslations('accounting.invoice.postAction'),
   ]);
 
   return (

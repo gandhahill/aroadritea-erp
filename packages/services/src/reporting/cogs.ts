@@ -22,7 +22,7 @@ import { bomLines, boms, productVariants, products } from '@erp/db/schema/invent
 import { AppError } from '@erp/shared/errors';
 import { type Result, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq, isNull, inArray } from 'drizzle-orm';
+import { and, eq, inArray, isNull } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 
 export interface CogsInput {
@@ -134,10 +134,7 @@ export async function cogsReport(input: CogsInput, ctx: AuditContext): Promise<R
               defaultCostPrice: products.defaultCostPrice,
             })
             .from(products)
-            .where(and(
-              eq(products.tenantId, ctx.tenantId),
-              inArray(products.id, ingredientIds)
-            ))
+            .where(and(eq(products.tenantId, ctx.tenantId), inArray(products.id, ingredientIds)))
         : [];
       const ingredientById = new Map(ingredientRows.map((r) => [r.id, r]));
 
@@ -181,7 +178,7 @@ export async function cogsReport(input: CogsInput, ctx: AuditContext): Promise<R
           const intPart = parts[0] || '0';
           const fracPart = (parts[1] || '').padEnd(4, '0').slice(0, 4);
           const qtyScaled = BigInt(intPart + fracPart);
-          
+
           // lineCost = (unitCost * qtyScaled + 5000) / 10000 for proper rounding
           const lineCost = (unitCost * qtyScaled + 5000n) / 10000n;
           totalCost += lineCost;

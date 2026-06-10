@@ -1,12 +1,12 @@
 import { PageHeader } from '@/components/page-header';
+import { getSession } from '@/lib/auth';
+import { getActiveLocationOptions } from '@/lib/location-options';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import { getLocale } from 'next-intl/server';
 import Link from 'next/link';
 import { fetchProductMasterData } from '../actions';
 import { ProductForm } from '../product-form';
-import { getActiveLocationOptions } from '@/lib/location-options';
-import { getSession } from '@/lib/auth';
-import { getLocale } from 'next-intl/server';
 
 export const metadata: Metadata = {
   title: 'New Product',
@@ -26,7 +26,7 @@ export default async function NewProductPage({
   const isSupply = kindParam ? SUPPLY_KINDS.includes(kindParam) : false;
 
   const data = await fetchProductMasterData();
-  
+
   const locale = await getLocale();
   const session = await getSession();
   const user = session?.user as Record<string, unknown> | undefined;

@@ -43,7 +43,10 @@ export const CreateEmployeeInputSchema = z.object({
       return trimmed.length === 0 ? undefined : trimmed;
     }),
   name: z.string().min(1).max(128),
-  email: z.string().email().transform((val) => val.toLowerCase()),
+  email: z
+    .string()
+    .email()
+    .transform((val) => val.toLowerCase()),
   phone: z.string().optional(),
   address: z.string().optional(),
   position: z.string().min(1).max(64),
@@ -51,7 +54,11 @@ export const CreateEmployeeInputSchema = z.object({
   hireDate: z.string().datetime(), // ISO date string
   probationEndDate: z.string().datetime().optional(),
   contractType: z.enum(['pkwt', 'pkwtt']),
-  baseSalary: z.string().regex(/^[0-9]+$/).optional().default('0'),
+  baseSalary: z
+    .string()
+    .regex(/^[0-9]+$/)
+    .optional()
+    .default('0'),
   workSchedule: z.enum(['fulltime', 'parttime', 'shift']).optional().default('fulltime'),
   npwp: z.string().optional(),
   bpjsKesehatan: z.string().optional(),
@@ -82,14 +89,21 @@ export const UpdateEmployeeInputSchema = z.object({
   nik: z.string().optional(),
   locationId: z.string().min(1).optional(),
   name: z.string().min(1).max(128).optional(),
-  email: z.string().email().transform((val) => val.toLowerCase()).optional(),
+  email: z
+    .string()
+    .email()
+    .transform((val) => val.toLowerCase())
+    .optional(),
   phone: z.string().optional(),
   address: z.string().optional(),
   position: z.string().min(1).max(64).optional(),
   department: z.string().optional(),
   status: z.enum(['probation', 'active', 'on_leave', 'terminated']).optional(),
   contractType: z.enum(['pkwt', 'pkwtt']).optional(),
-  baseSalary: z.string().regex(/^[0-9]+$/).optional(),
+  baseSalary: z
+    .string()
+    .regex(/^[0-9]+$/)
+    .optional(),
   workSchedule: z.enum(['fulltime', 'parttime', 'shift']).optional(),
   npwp: z.string().optional(),
   bpjsKesehatan: z.string().optional(),
@@ -116,4 +130,3 @@ export const UpdateEmployeeLoginInputSchema = z.object({
 });
 
 export type UpdateEmployeeLoginInput = z.infer<typeof UpdateEmployeeLoginInputSchema>;
-

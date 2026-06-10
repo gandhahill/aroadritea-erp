@@ -1,13 +1,13 @@
 import { db } from '@erp/db';
-import { absenceDispensations } from '@erp/db/schema/hr';
 import { users } from '@erp/db/schema/auth';
+import { absenceDispensations } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
+import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { generateId } from '@erp/shared/id';
 import { and, eq, inArray, sql } from 'drizzle-orm';
-import { requirePermission } from '../iam';
 import { auditRecord } from '../audit';
+import { requirePermission } from '../iam';
 
 export async function createAbsenceDispensation(
   input: { employeeId: string; dates: string[]; reason: string },
@@ -32,10 +32,7 @@ export async function createAbsenceDispensation(
     updatedBy: ctx.userId,
   }));
 
-  await db
-    .insert(absenceDispensations)
-    .values(values)
-    .onConflictDoNothing();
+  await db.insert(absenceDispensations).values(values).onConflictDoNothing();
 
   await auditRecord({
     action: 'forgive_late',
@@ -156,8 +153,8 @@ export async function revokeAbsenceDispensation(
       and(
         eq(absenceDispensations.tenantId, ctx.tenantId),
         eq(absenceDispensations.employeeId, input.employeeId),
-        inArray(absenceDispensations.workDate, input.dates)
-      )
+        inArray(absenceDispensations.workDate, input.dates),
+      ),
     );
 
   await auditRecord({

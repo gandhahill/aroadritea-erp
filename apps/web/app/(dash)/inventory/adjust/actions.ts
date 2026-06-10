@@ -3,21 +3,21 @@
 import { getSession } from '@/lib/auth';
 import { getActiveLocationOptions } from '@/lib/location-options';
 import { and, asc, db, desc, eq, inArray, sql } from '@erp/db';
+import { locations } from '@erp/db/schema/auth';
+import { users } from '@erp/db/schema/auth';
 import {
   products,
   stockAdjustmentLines,
   stockAdjustments,
   stockLevels,
 } from '@erp/db/schema/inventory';
-import { locations } from '@erp/db/schema/auth';
-import { users } from '@erp/db/schema/auth';
+import { can } from '@erp/services/iam';
 import {
   approveAdjustment,
   createAdjustmentDraft,
   rejectAdjustment,
   submitAdjustment,
 } from '@erp/services/inventory';
-import { can } from '@erp/services/iam';
 import type { AuditContext } from '@erp/shared/types';
 import { getLocale } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
@@ -89,7 +89,11 @@ export async function fetchQuickAdjustData(): Promise<QuickAdjustData> {
   const locale = rawLocale === 'en' || rawLocale === 'zh' ? rawLocale : 'id';
 
   const [locations, productRows] = await Promise.all([
-    getActiveLocationOptions({ tenantId: ctx.tenantId, locale, type: ['store', 'warehouse', 'office'] }),
+    getActiveLocationOptions({
+      tenantId: ctx.tenantId,
+      locale,
+      type: ['store', 'warehouse', 'office'],
+    }),
     db
       .select({
         id: products.id,
@@ -160,9 +164,7 @@ export async function createQuickAdjustmentAction(
 
   const unitCost =
     currentStock?.avgUnitCost ??
-    (product.defaultCostPrice && product.defaultCostPrice > 0n
-      ? product.defaultCostPrice
-      : null);
+    (product.defaultCostPrice && product.defaultCostPrice > 0n ? product.defaultCostPrice : null);
 
   const created = await createAdjustmentDraft(
     {
@@ -237,7 +239,9 @@ export async function fetchAdjustments(): Promise<AdjustmentRow[]> {
     .orderBy(desc(stockAdjustments.createdAt))
     .limit(100);
 
-  const userIds = [...new Set(rows.map((r) => r.createdBy).filter((id): id is string => Boolean(id)))];
+  const userIds = [
+    ...new Set(rows.map((r) => r.createdBy).filter((id): id is string => Boolean(id))),
+  ];
   const userRows =
     userIds.length > 0
       ? await db

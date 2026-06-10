@@ -8,18 +8,18 @@
 
 import { db } from '@erp/db';
 import { accountingPeriods, accounts, partners } from '@erp/db/schema/accounting';
+import { journalEntries } from '@erp/db/schema/accounting';
 import { cmsSettings } from '@erp/db/schema/cms';
 import { products } from '@erp/db/schema/inventory';
+import { stockLevels, stockMovements } from '@erp/db/schema/inventory';
 import { purchaseOrderLines, purchaseOrders } from '@erp/db/schema/purchasing';
+import { goodsReceiptNotes, grnLines } from '@erp/db/schema/purchasing';
 import { AppError } from '@erp/shared/errors';
+import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { reverseJournal } from '../accounting/reverse-journal';
-import { journalEntries } from '@erp/db/schema/accounting';
-import { goodsReceiptNotes, grnLines } from '@erp/db/schema/purchasing';
-import { stockMovements, stockLevels } from '@erp/db/schema/inventory';
-import { generateId } from '@erp/shared/id';
 
 import { createJournal } from '../accounting/create-journal';
 import {
@@ -244,7 +244,7 @@ export async function approvePO(
       }),
     );
   }
-  
+
   // Note: no separation-of-duties restriction — the same user may submit and
   // approve a PO (small-team workflow where one person handles purchasing).
 
@@ -444,28 +444,48 @@ export async function cancelPO(
 
   if (po.status === 'received') {
     // Reverse all confirmed GRNs (T-0238)
-    const grns = await db.select().from(goodsReceiptNotes).where(eq(goodsReceiptNotes.purchaseOrderId, po.id));
+    const grns = await db
+      .select()
+      .from(goodsReceiptNotes)
+      .where(eq(goodsReceiptNotes.purchaseOrderId, po.id));
     for (const grn of grns) {
       if (grn.status === 'confirmed') {
-        const [je] = await db.select().from(journalEntries).where(and(eq(journalEntries.referenceType, 'purchase'), eq(journalEntries.referenceId, grn.id))).limit(1);
+        const [je] = await db
+          .select()
+          .from(journalEntries)
+          .where(
+            and(
+              eq(journalEntries.referenceType, 'purchase'),
+              eq(journalEntries.referenceId, grn.id),
+            ),
+          )
+          .limit(1);
         if (je) {
-          const revRes = await reverseJournal({
-             journalId: je.id,
-             postingDate: new Date().toISOString().slice(0, 10),
-          }, ctx, { skipPermissionCheck: true });
+          const revRes = await reverseJournal(
+            {
+              journalId: je.id,
+              postingDate: new Date().toISOString().slice(0, 10),
+            },
+            ctx,
+            { skipPermissionCheck: true },
+          );
           if (!revRes.ok) return err(AppError.businessRule('purchasing.errors.grn_reverse_failed'));
         }
 
-        const lines = await db.select({
-          productId: grnLines.productId,
-          variantId: grnLines.variantId,
-          batchNo: grnLines.batchNo,
-          expiryDate: grnLines.expiryDate,
-          qtyReceived: grnLines.qtyReceived,
-          uom: grnLines.uom,
-          unitPrice: purchaseOrderLines.unitPrice,
-        }).from(grnLines).innerJoin(purchaseOrderLines, eq(grnLines.poLineId, purchaseOrderLines.id)).where(eq(grnLines.grnId, grn.id));
-        
+        const lines = await db
+          .select({
+            productId: grnLines.productId,
+            variantId: grnLines.variantId,
+            batchNo: grnLines.batchNo,
+            expiryDate: grnLines.expiryDate,
+            qtyReceived: grnLines.qtyReceived,
+            uom: grnLines.uom,
+            unitPrice: purchaseOrderLines.unitPrice,
+          })
+          .from(grnLines)
+          .innerJoin(purchaseOrderLines, eq(grnLines.poLineId, purchaseOrderLines.id))
+          .where(eq(grnLines.grnId, grn.id));
+
         const movementValues = lines.map((line) => ({
           id: generateId(),
           tenantId: ctx.tenantId,
@@ -509,7 +529,10 @@ export async function cancelPO(
               );
           }
         }
-        await db.update(goodsReceiptNotes).set({ status: 'draft', updatedBy: ctx.userId, version: grn.version + 1 }).where(eq(goodsReceiptNotes.id, grn.id));
+        await db
+          .update(goodsReceiptNotes)
+          .set({ status: 'draft', updatedBy: ctx.userId, version: grn.version + 1 })
+          .where(eq(goodsReceiptNotes.id, grn.id));
       }
     }
   }

@@ -1,9 +1,9 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import { ConfirmDialog, InlineAlert } from '@/components/confirm-dialog';
+import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import { useState, useTransition } from 'react';
 import { deleteEmployeeAction, hardDeleteEmployeeAction } from '../actions';
 
 interface DeleteEmployeeButtonProps {
@@ -23,10 +23,10 @@ export function DeleteEmployeeButton({ employeeId }: DeleteEmployeeButtonProps) 
     setError(null);
     startTransition(async () => {
       try {
-        const result = isHard 
+        const result = isHard
           ? await hardDeleteEmployeeAction(employeeId)
           : await deleteEmployeeAction(employeeId);
-          
+
         if (result.error) {
           setError(result.error);
           setOpenDialogType(null);
@@ -72,7 +72,9 @@ export function DeleteEmployeeButton({ employeeId }: DeleteEmployeeButtonProps) 
       {openDialogType && (
         <ConfirmDialog
           title={openDialogType === 'hard' ? t('hardDeleteAccount') : t('deleteAccount')}
-          message={openDialogType === 'hard' ? t('hardDeleteAccountConfirm') : t('deleteAccountConfirm')}
+          message={
+            openDialogType === 'hard' ? t('hardDeleteAccountConfirm') : t('deleteAccountConfirm')
+          }
           onConfirm={handleDelete}
           onCancel={() => setOpenDialogType(null)}
           tone="danger"

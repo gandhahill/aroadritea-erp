@@ -12,9 +12,9 @@ import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, isNull, like, or, sql } from 'drizzle-orm';
+import safeRegex from 'safe-regex';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
-import safeRegex from 'safe-regex';
 
 // ─── Data type enum ──────────────────────────────────────────────────────────
 

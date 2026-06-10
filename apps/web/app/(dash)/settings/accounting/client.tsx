@@ -1,7 +1,7 @@
 'use client';
 
-import { toast } from '@erp/ui';
 import type { PostingAccountPurpose } from '@erp/services/accounting';
+import { toast } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState, useTransition } from 'react';
 import { saveAccountMapAction } from './actions';

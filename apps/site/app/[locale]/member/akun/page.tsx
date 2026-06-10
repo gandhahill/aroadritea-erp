@@ -143,8 +143,7 @@ export default async function MemberAccountPage({ params }: Props) {
               let label = '';
               if (kind === 'discount_percent') label = `${val}% OFF`;
               else if (kind === 'discount_fixed') label = `Rp${val.toLocaleString()}`;
-              else if (kind === 'free_delivery')
-                label = t('freeDelivery');
+              else if (kind === 'free_delivery') label = t('freeDelivery');
               else label = `${val}`;
               return (
                 <div

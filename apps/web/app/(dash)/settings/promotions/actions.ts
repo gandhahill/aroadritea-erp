@@ -5,13 +5,13 @@ import { and, db, eq } from '@erp/db';
 import { accounts } from '@erp/db/schema/accounting';
 import { locations } from '@erp/db/schema/auth';
 import { productVariants, products } from '@erp/db/schema/inventory';
+import { requirePermission } from '@erp/services/iam';
 import {
   type PromotionListItem,
   type UpsertPromotionInput,
   listPromotions,
   upsertPromotion,
 } from '@erp/services/promotion';
-import { requirePermission } from '@erp/services/iam';
 import type { AuditContext } from '@erp/shared/types';
 import { getLocale } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';

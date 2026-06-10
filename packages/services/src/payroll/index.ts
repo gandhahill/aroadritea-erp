@@ -6,15 +6,15 @@
 
 export * from './payroll-engine';
 export * from './run-payroll';
-export { 
-  ApprovePayrollInputSchema, 
-  MarkPaidInputSchema, 
-  CancelPayrollInputSchema, 
+export {
+  ApprovePayrollInputSchema,
+  MarkPaidInputSchema,
+  CancelPayrollInputSchema,
   type ApprovePayrollInput,
   type MarkPaidInput,
-  approvePayroll, 
-  markPayrollPaid, 
-  cancelPayroll 
+  approvePayroll,
+  markPayrollPaid,
+  cancelPayroll,
 } from './approve-payroll';
 export * from './payslip';
 export * from './bank-transfer';

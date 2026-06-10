@@ -170,9 +170,7 @@ export async function fetchLocations(tenantIdRaw?: string): Promise<LocationItem
     .where(
       and(
         eq(locations.tenantId, tenantId),
-        ...(locationScope.global
-          ? []
-          : [inArray(locations.id, locationScope.locationIds)]),
+        ...(locationScope.global ? [] : [inArray(locations.id, locationScope.locationIds)]),
       ),
     );
   const locale = (await getLocale().catch(() => 'id')) as 'id' | 'en' | 'zh';

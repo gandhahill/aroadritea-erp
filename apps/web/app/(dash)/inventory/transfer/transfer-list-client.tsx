@@ -2,7 +2,17 @@
 
 import { PageHeader } from '@/components/page-header';
 import { Pagination } from '@/components/pagination';
-import { Button, Input, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@erp/ui';
+import {
+  Button,
+  Input,
+  Select,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -74,7 +84,7 @@ export function TransferListClient({ data, locations, searchParams }: Props) {
     }
   };
 
-  const page = parseInt(searchParams.page || '1', 10);
+  const page = Number.parseInt(searchParams.page || '1', 10);
   const pageSize = 25;
   const totalPages = Math.max(1, Math.ceil(data.total / pageSize));
 
@@ -84,7 +94,10 @@ export function TransferListClient({ data, locations, searchParams }: Props) {
         title={<>{t('title')}</>}
         description={<>{t('subtitle')}</>}
         actions={
-          <Link href="/inventory/transfer/new" className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-red disabled:pointer-events-none disabled:opacity-50 bg-brand-red text-white shadow hover:bg-brand-red-dark h-9 px-4 py-2">
+          <Link
+            href="/inventory/transfer/new"
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-red disabled:pointer-events-none disabled:opacity-50 bg-brand-red text-white shadow hover:bg-brand-red-dark h-9 px-4 py-2"
+          >
             {t('new')}
           </Link>
         }
@@ -151,9 +164,7 @@ export function TransferListClient({ data, locations, searchParams }: Props) {
                   <TableCell>{trf.toLocationName}</TableCell>
                   <TableCell>
                     <div>
-                      <span className="text-sm text-brand-ink">
-                        {trf.createdByName || '—'}
-                      </span>
+                      <span className="text-sm text-brand-ink">{trf.createdByName || '—'}</span>
                       {trf.updatedByName && (
                         <span className="block text-xs text-brand-ink-3">
                           {t('editedBy', { name: trf.updatedByName })}
@@ -162,7 +173,9 @@ export function TransferListClient({ data, locations, searchParams }: Props) {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${getStatusColor(trf.status)}`}>
+                    <span
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${getStatusColor(trf.status)}`}
+                    >
                       {getStatusLabel(trf.status)}
                     </span>
                   </TableCell>
@@ -174,11 +187,7 @@ export function TransferListClient({ data, locations, searchParams }: Props) {
 
         {data.total > 0 && (
           <div className="border-t border-brand-cream-3 p-4">
-            <Pagination
-              currentPage={page}
-              totalItems={data.total}
-              pageSize={pageSize}
-            />
+            <Pagination currentPage={page} totalItems={data.total} pageSize={pageSize} />
           </div>
         )}
       </section>

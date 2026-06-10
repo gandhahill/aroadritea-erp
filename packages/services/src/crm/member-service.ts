@@ -221,7 +221,7 @@ export async function adjustMemberPoints(
       .where(eq(memberLoyalty.memberId, input.memberId))
       .limit(1)
       .for('update');
-      
+
     const loyalty = loyaltyRows[0];
     if (!loyalty) return err(AppError.notFound('crm.member.loyaltyNotFound'));
 
@@ -303,14 +303,13 @@ export async function getMemberPurchaseHistory(
       .limit(50);
 
     return ok({
-      items: rows.map(r => ({
+      items: rows.map((r) => ({
         ...r,
         grandTotal: r.grandTotal.toString(),
         placedAt: r.placedAt.toISOString(),
-      }))
+      })),
     });
   } catch (e) {
     return err(AppError.internal('crm.member.historyFailed', e));
   }
 }
-

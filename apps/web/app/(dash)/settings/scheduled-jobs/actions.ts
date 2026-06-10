@@ -83,7 +83,7 @@ export async function toggleScheduledJob(
   try {
     const ctx = await requireContext(tenantId);
     if (!ctx) return { success: false, error: 'Forbidden' };
-    
+
     const [before] = await db
       .select({ enabled: scheduledJobs.enabled })
       .from(scheduledJobs)

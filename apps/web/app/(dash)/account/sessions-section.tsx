@@ -33,7 +33,7 @@ interface Props {
 
 function summariseUserAgent(ua: string | null): string {
   if (!ua) return '—';
-  
+
   let browser = 'Unknown Browser';
   if (/Edg\//i.test(ua)) browser = 'Edge';
   else if (/OPR\//i.test(ua)) browser = 'Opera';
@@ -53,7 +53,7 @@ function summariseUserAgent(ua: string | null): string {
   if (browser === 'Unknown Browser' && os === 'Unknown OS') {
     return ua.slice(0, 32);
   }
-  
+
   return `${os} · ${browser}`;
 }
 
@@ -153,10 +153,25 @@ export function SessionsSection({ sessions }: Props) {
                 </div>
                 <div className="text-xs text-brand-ink-3">
                   {t('ipLabel')}: {s.ipAddress ?? '—'} · {t('createdLabel')}:{' '}
-                  {format.dateTime(new Date(s.createdAt), { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', timeZone: 'Asia/Jakarta' })}
+                  {format.dateTime(new Date(s.createdAt), {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    timeZone: 'Asia/Jakarta',
+                  })}
                 </div>
                 <div className="text-[11px] text-brand-ink-3">
-                  {t('expiresLabel')}: {format.dateTime(new Date(s.expiresAt), { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', timeZone: 'Asia/Jakarta' })}
+                  {t('expiresLabel')}:{' '}
+                  {format.dateTime(new Date(s.expiresAt), {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    timeZone: 'Asia/Jakarta',
+                  })}
                 </div>
               </div>
               {!s.isCurrent ? (

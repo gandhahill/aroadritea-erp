@@ -1,17 +1,7 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import {
-  and,
-  asc,
-  auditLog,
-  db,
-  desc,
-  eq,
-  isNull,
-  leaveRequests,
-  leaveTypes,
-} from '@erp/db';
+import { and, asc, auditLog, db, desc, eq, isNull, leaveRequests, leaveTypes } from '@erp/db';
 import { resolveEmployeeForUser } from '@erp/services/hr';
 import { notifyByPermission } from '@erp/services/notification';
 import { generateId } from '@erp/shared/id';
@@ -183,7 +173,14 @@ export async function createMyLeaveRequestAction(formData: FormData): Promise<vo
     entityType: 'leave_request',
     entityId: id,
     before: null,
-    after: { employeeId: emp.id, leaveTypeId, startStr, endStr, status: 'pending', selfService: true } as never,
+    after: {
+      employeeId: emp.id,
+      leaveTypeId,
+      startStr,
+      endStr,
+      status: 'pending',
+      selfService: true,
+    } as never,
   });
 
   revalidatePath('/hr/my-leave');

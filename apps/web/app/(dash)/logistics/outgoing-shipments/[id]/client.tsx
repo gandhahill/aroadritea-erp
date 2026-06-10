@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
-import { Input, Select, Button, toast } from '@erp/ui';
 import { COURIERS } from '@erp/shared/binderbyte-couriers';
+import { Button, Input, Select, toast } from '@erp/ui';
+import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { syncTrackingAction } from '../actions';
 import type { OutgoingShipmentDetail } from '../actions';
 
@@ -78,7 +78,9 @@ export function OutgoingShipmentDetailClient({ detail }: { detail: OutgoingShipm
           <Field label={t('lastUpdate')} value={lastUpdate ?? '-'} />
           <Field
             label={t('syncedAt')}
-            value={detail.trackingSyncedAt ? detail.trackingSyncedAt.slice(0, 16).replace('T', ' ') : '-'}
+            value={
+              detail.trackingSyncedAt ? detail.trackingSyncedAt.slice(0, 16).replace('T', ' ') : '-'
+            }
           />
         </dl>
 
@@ -102,7 +104,9 @@ export function OutgoingShipmentDetailClient({ detail }: { detail: OutgoingShipm
 
         <form action={handleSync} className="mt-4 grid gap-3 md:grid-cols-[10rem_1fr_8rem]">
           <div>
-            <label className="text-xs font-semibold text-brand-ink-3">{tShipment('courierCode')}</label>
+            <label className="text-xs font-semibold text-brand-ink-3">
+              {tShipment('courierCode')}
+            </label>
             <Select name="courierCode" defaultValue={detail.courierCode ?? ''} className="w-full">
               <option value="">{tShipment('selectCourier')}</option>
               {COURIERS.map((courier) => (
@@ -114,10 +118,16 @@ export function OutgoingShipmentDetailClient({ detail }: { detail: OutgoingShipm
           </div>
           <div>
             <label className="text-xs font-semibold text-brand-ink-3">{tShipment('awb')}</label>
-            <Input name="awb" defaultValue={detail.awb ?? ''} placeholder={tShipment('awbPlaceholder')} />
+            <Input
+              name="awb"
+              defaultValue={detail.awb ?? ''}
+              placeholder={tShipment('awbPlaceholder')}
+            />
           </div>
           <div>
-            <span className="block text-xs font-semibold text-brand-ink-3 opacity-0">{t('track')}</span>
+            <span className="block text-xs font-semibold text-brand-ink-3 opacity-0">
+              {t('track')}
+            </span>
             <Button
               type="submit"
               disabled={syncing}

@@ -1,6 +1,6 @@
 'use client';
 
-import { Component, useEffect, type PropsWithChildren, type ReactNode } from 'react';
+import { Component, type PropsWithChildren, type ReactNode, useEffect } from 'react';
 
 // ─── Global error / rejection listener ──────────────────────────────────────
 

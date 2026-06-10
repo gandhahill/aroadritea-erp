@@ -10,8 +10,8 @@
 
 import { db } from '@erp/db';
 import { permissions, rolePermissions, userRoles } from '@erp/db/schema/auth';
-import { eq } from 'drizzle-orm';
 import type { PermissionCode } from '@erp/shared/types';
+import { eq } from 'drizzle-orm';
 
 // --- Types ---
 

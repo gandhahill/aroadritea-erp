@@ -1,5 +1,5 @@
 import { db } from '@erp/db';
-import { taxRates, withholdingTaxes, partners } from '@erp/db/schema/accounting';
+import { partners, taxRates, withholdingTaxes } from '@erp/db/schema/accounting';
 import { cmsSettings } from '@erp/db/schema/cms';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
@@ -33,7 +33,13 @@ export async function calculateWithholding(
       const [rate] = await db
         .select({ rateBps: taxRates.rateBps })
         .from(taxRates)
-        .where(and(eq(taxRates.tenantId, tenantId), eq(taxRates.code, taxCode), eq(taxRates.isActive, true)))
+        .where(
+          and(
+            eq(taxRates.tenantId, tenantId),
+            eq(taxRates.code, taxCode),
+            eq(taxRates.isActive, true),
+          ),
+        )
         .limit(1);
 
       if (!rate) {
@@ -46,7 +52,7 @@ export async function calculateWithholding(
     (e) => {
       if (e instanceof AppError) return e;
       return AppError.internal('tax.withholding.calculationFailed', e);
-    }
+    },
   );
 }
 
@@ -56,7 +62,9 @@ export async function generateBuktiPotong(
 ): Promise<Result<{ id: string; bupotNumber: string }>> {
   const parsed = GenerateBupotInputSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('tax.withholding.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('tax.withholding.validationFailed', { issues: parsed.error.issues }),
+    );
   }
   const data = parsed.data;
 
@@ -76,10 +84,10 @@ export async function generateBuktiPotong(
         .where(
           and(
             eq(withholdingTaxes.tenantId, ctx.tenantId),
-            eq(withholdingTaxes.period, data.period)
-          )
+            eq(withholdingTaxes.period, data.period),
+          ),
         );
-      
+
       const seq = (existing.length + 1).toString().padStart(4, '0');
       const bupotNumber = `BPT-${data.period}-${seq}`;
       const id = generateId();
@@ -105,7 +113,11 @@ export async function generateBuktiPotong(
         entityType: 'withholding_tax',
         entityId: id,
         before: null,
-        after: { bupotNumber, vendorId: data.vendorId, taxAmount: calcRes.value.taxAmount.toString() },
+        after: {
+          bupotNumber,
+          vendorId: data.vendorId,
+          taxAmount: calcRes.value.taxAmount.toString(),
+        },
         ctx,
       });
 
@@ -114,7 +126,7 @@ export async function generateBuktiPotong(
     (e) => {
       if (e instanceof AppError) return e;
       return AppError.internal('tax.withholding.generationFailed', e);
-    }
+    },
   );
 }
 
@@ -156,12 +168,12 @@ export async function listBuktiPotong(
         .where(
           and(
             eq(withholdingTaxes.tenantId, ctx.tenantId),
-            period ? eq(withholdingTaxes.period, period) : undefined
-          )
+            period ? eq(withholdingTaxes.period, period) : undefined,
+          ),
         )
         .orderBy(desc(withholdingTaxes.issueDate), desc(withholdingTaxes.bupotNumber));
 
-      return rows.map(r => ({
+      return rows.map((r) => ({
         ...r,
         vendorName: r.vendorName ?? 'Unknown Vendor',
         dpp: r.dpp.toString(),
@@ -169,7 +181,7 @@ export async function listBuktiPotong(
         issueDate: String(r.issueDate),
       }));
     },
-    (e) => AppError.internal('tax.withholding.listFailed', e)
+    (e) => AppError.internal('tax.withholding.listFailed', e),
   );
 }
 
@@ -230,7 +242,9 @@ export async function exportBupotUnifikasiXml(
         })
         .from(withholdingTaxes)
         .leftJoin(partners, eq(partners.id, withholdingTaxes.vendorId))
-        .where(and(eq(withholdingTaxes.tenantId, ctx.tenantId), eq(withholdingTaxes.period, period)));
+        .where(
+          and(eq(withholdingTaxes.tenantId, ctx.tenantId), eq(withholdingTaxes.period, period)),
+        );
 
       if (rows.length === 0) {
         throw AppError.businessRule('tax.bupotUnifikasi.noData', { period });

@@ -6,8 +6,8 @@
 
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
-import { type PermissionContext, can } from './permission-engine';
 import type { PermissionCode } from '@erp/shared/types';
+import { type PermissionContext, can } from './permission-engine';
 
 /**
  * Check permission and return a Result.

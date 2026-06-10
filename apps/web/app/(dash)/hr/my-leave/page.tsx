@@ -137,7 +137,9 @@ export default async function MyLeavePage() {
                 </tr>
               ) : (
                 data.requests.map((r) => {
-                  const start = r.startDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
+                  const start = r.startDate.toLocaleDateString('en-CA', {
+                    timeZone: 'Asia/Jakarta',
+                  });
                   const end = r.endDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
                   return (
                     <tr key={r.id} className="text-brand-ink">

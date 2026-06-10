@@ -19,12 +19,7 @@ export function ImportCsvPanel({ locations, defaultLocationId }: Props) {
   if (!open) {
     return (
       <div className="flex gap-2">
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={() => setOpen(true)}
-        >
+        <Button type="button" variant="secondary" size="sm" onClick={() => setOpen(true)}>
           {t('importCsv', { defaultValue: 'Import CSV' })}
         </Button>
         <a
@@ -46,7 +41,10 @@ export function ImportCsvPanel({ locations, defaultLocationId }: Props) {
             {t('importCsvTitle', { defaultValue: 'Import Produk dari CSV' })}
           </h2>
           <p className="text-sm text-brand-ink-3">
-            {t('importCsvDesc', { defaultValue: 'Upload file CSV sesuai template. Produk yang sudah ada (berdasarkan KODE) akan diupdate.' })}
+            {t('importCsvDesc', {
+              defaultValue:
+                'Upload file CSV sesuai template. Produk yang sudah ada (berdasarkan KODE) akan diupdate.',
+            })}
           </p>
         </div>
         <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>

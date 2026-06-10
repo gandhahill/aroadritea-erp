@@ -94,7 +94,9 @@ export function VariantManager({
               <TableHead className="px-4 py-3">{tc('fields.attributes')}</TableHead>
               <TableHead className="px-4 py-3 text-right">{tp('sellingPrice')}</TableHead>
               <TableHead className="px-4 py-3 text-right">{tp('costPrice')}</TableHead>
-              <TableHead className="px-4 py-3 text-right">{tp('margin', { defaultValue: 'Margin' })}</TableHead>
+              <TableHead className="px-4 py-3 text-right">
+                {tp('margin', { defaultValue: 'Margin' })}
+              </TableHead>
               <TableHead className="px-4 py-3">{tc('fields.status')}</TableHead>
               <TableHead className="px-4 py-3 text-right">{tc('fields.actions')}</TableHead>
             </tr>
@@ -112,7 +114,12 @@ export function VariantManager({
                 const sell = Number(isEditingThis ? editSellPrice : variant.sellPrice);
                 const cost = Number(isEditingThis ? editCostPrice : variant.costPrice);
                 const margin = sell > 0 ? ((sell - cost) / sell) * 100 : 0;
-                const marginColor = margin < 15 ? 'text-rose-600' : margin < 30 ? 'text-amber-600' : 'text-brand-jade';
+                const marginColor =
+                  margin < 15
+                    ? 'text-rose-600'
+                    : margin < 30
+                      ? 'text-amber-600'
+                      : 'text-brand-jade';
 
                 return (
                   <tr key={variant.id}>
@@ -138,7 +145,9 @@ export function VariantManager({
                           className="w-28 text-right"
                         />
                       ) : (
-                        <span className="font-semibold text-brand-ink">{formatRupiah(variant.sellPrice)}</span>
+                        <span className="font-semibold text-brand-ink">
+                          {formatRupiah(variant.sellPrice)}
+                        </span>
                       )}
                     </TableCell>
                     <TableCell className="px-4 py-3 text-right">
@@ -155,15 +164,19 @@ export function VariantManager({
                         <span className="text-brand-ink-2">{formatRupiah(variant.costPrice)}</span>
                       )}
                     </TableCell>
-                    <TableCell className={`px-4 py-3 text-right text-sm font-medium ${marginColor}`}>
+                    <TableCell
+                      className={`px-4 py-3 text-right text-sm font-medium ${marginColor}`}
+                    >
                       {margin.toFixed(1)}%
                     </TableCell>
                     <TableCell className="px-4 py-3">
-                      <span className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                        variant.isActive
-                          ? 'bg-brand-jade-light text-brand-jade'
-                          : 'bg-rose-50 text-rose-600'
-                      }`}>
+                      <span
+                        className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                          variant.isActive
+                            ? 'bg-brand-jade-light text-brand-jade'
+                            : 'bg-rose-50 text-rose-600'
+                        }`}
+                      >
                         {variant.isActive ? tc('status.active') : tc('status.inactive')}
                       </span>
                     </TableCell>
@@ -345,7 +358,9 @@ export function VariantManager({
           </Button>
         </div>
       </form>
-      {createState?.error ? <p className="mt-3 text-sm text-rose-700">{createState.error}</p> : null}
+      {createState?.error ? (
+        <p className="mt-3 text-sm text-rose-700">{createState.error}</p>
+      ) : null}
     </section>
   );
 }

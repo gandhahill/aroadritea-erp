@@ -122,20 +122,29 @@ export async function listSopDocuments(
   const conditions = [eq(sopDocuments.tenantId, ctx.tenantId), isNull(sopDocuments.deletedAt)];
   if (data.status) conditions.push(eq(sopDocuments.status, data.status));
   if (data.category) conditions.push(eq(sopDocuments.category, data.category));
-  
+
   if (authLocs.scope === 'location') {
     if (data.locationId) {
       if (!authLocs.locationIds.includes(data.locationId)) {
         return err(AppError.forbidden('common.errors.forbidden', { permission: 'hr.sop.read' }));
       }
-      conditions.push(or(eq(sopDocuments.locationId, data.locationId), isNull(sopDocuments.locationId))!);
+      conditions.push(
+        or(eq(sopDocuments.locationId, data.locationId), isNull(sopDocuments.locationId))!,
+      );
     } else {
-      conditions.push(or(inArray(sopDocuments.locationId, authLocs.locationIds), isNull(sopDocuments.locationId))!);
+      conditions.push(
+        or(
+          inArray(sopDocuments.locationId, authLocs.locationIds),
+          isNull(sopDocuments.locationId),
+        )!,
+      );
     }
   } else {
     // Global scope
     if (data.locationId) {
-      conditions.push(or(eq(sopDocuments.locationId, data.locationId), isNull(sopDocuments.locationId))!);
+      conditions.push(
+        or(eq(sopDocuments.locationId, data.locationId), isNull(sopDocuments.locationId))!,
+      );
     }
   }
 
@@ -203,12 +212,15 @@ export async function createSopDocument(
   const data = parsed.data;
 
   if (data.locationId) {
-    const perm = await requirePermission(ctx.userId, 'hr.sop.manage', { locationId: data.locationId });
+    const perm = await requirePermission(ctx.userId, 'hr.sop.manage', {
+      locationId: data.locationId,
+    });
     if (!perm.ok) return perm;
   } else {
     const { canGlobally } = await import('../iam/permission-engine');
     const hasGlobal = await canGlobally(ctx.userId, 'hr.sop.manage');
-    if (!hasGlobal) return err(AppError.forbidden('common.errors.forbidden', { permission: 'hr.sop.manage' }));
+    if (!hasGlobal)
+      return err(AppError.forbidden('common.errors.forbidden', { permission: 'hr.sop.manage' }));
   }
 
   const id = generateId();
@@ -279,14 +291,17 @@ export async function updateSopDocument(
   if (!existing) return err(AppError.notFound('hr.sop.notFound', { id: data.id }));
 
   const targetLocationId = data.locationId !== undefined ? data.locationId : existing.locationId;
-  
+
   if (targetLocationId) {
-    const perm = await requirePermission(ctx.userId, 'hr.sop.manage', { locationId: targetLocationId });
+    const perm = await requirePermission(ctx.userId, 'hr.sop.manage', {
+      locationId: targetLocationId,
+    });
     if (!perm.ok) return perm;
   } else {
     const { canGlobally } = await import('../iam/permission-engine');
     const hasGlobal = await canGlobally(ctx.userId, 'hr.sop.manage');
-    if (!hasGlobal) return err(AppError.forbidden('common.errors.forbidden', { permission: 'hr.sop.manage' }));
+    if (!hasGlobal)
+      return err(AppError.forbidden('common.errors.forbidden', { permission: 'hr.sop.manage' }));
   }
 
   const now = new Date();
@@ -346,12 +361,15 @@ export async function deleteSopDocument(id: string, ctx: AuditContext): Promise<
   if (!existing) return err(AppError.notFound('hr.sop.notFound', { id }));
 
   if (existing.locationId) {
-    const perm = await requirePermission(ctx.userId, 'hr.sop.manage', { locationId: existing.locationId });
+    const perm = await requirePermission(ctx.userId, 'hr.sop.manage', {
+      locationId: existing.locationId,
+    });
     if (!perm.ok) return perm;
   } else {
     const { canGlobally } = await import('../iam/permission-engine');
     const hasGlobal = await canGlobally(ctx.userId, 'hr.sop.manage');
-    if (!hasGlobal) return err(AppError.forbidden('common.errors.forbidden', { permission: 'hr.sop.manage' }));
+    if (!hasGlobal)
+      return err(AppError.forbidden('common.errors.forbidden', { permission: 'hr.sop.manage' }));
   }
 
   const now = new Date();

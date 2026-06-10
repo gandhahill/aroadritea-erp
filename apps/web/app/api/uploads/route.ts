@@ -1,4 +1,3 @@
-import type { PermissionCode } from '@erp/shared/types';
 import { getSession } from '@/lib/auth';
 import {
   type UploadArea,
@@ -8,6 +7,7 @@ import {
   storeUpload,
 } from '@/lib/upload-storage';
 import { requirePermission } from '@erp/services/iam';
+import type { PermissionCode } from '@erp/shared/types';
 import { NextResponse } from 'next/server';
 
 const UPLOAD_WRITE_PERMISSION: Record<UploadArea, string> = {
@@ -57,7 +57,10 @@ export async function POST(request: Request) {
   }
 
   if (area !== 'whistleblower') {
-    const permission = await requirePermission(userId, UPLOAD_WRITE_PERMISSION[area] as PermissionCode);
+    const permission = await requirePermission(
+      userId,
+      UPLOAD_WRITE_PERMISSION[area] as PermissionCode,
+    );
     if (!permission.ok) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

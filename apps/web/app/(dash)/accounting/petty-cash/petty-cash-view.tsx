@@ -47,7 +47,12 @@ interface Props {
   emptyLocations: PettyCashEmptyLocation[];
 }
 
-export function PettyCashView({ accounts, transactions, transactionTotals, emptyLocations }: Props) {
+export function PettyCashView({
+  accounts,
+  transactions,
+  transactionTotals,
+  emptyLocations,
+}: Props) {
   const t = useTranslations('accounting.pettyCash');
   const router = useRouter();
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(
@@ -460,7 +465,10 @@ export function PettyCashView({ accounts, transactions, transactionTotals, empty
           </div>
           {selectedAccountId && (transactionTotals[selectedAccountId] ?? 0) > txList.length && (
             <p className="mt-2 text-center text-xs text-brand-ink-3">
-              {t('showingOf', { shown: txList.length, total: transactionTotals[selectedAccountId] ?? 0 })}
+              {t('showingOf', {
+                shown: txList.length,
+                total: transactionTotals[selectedAccountId] ?? 0,
+              })}
             </p>
           )}
         </div>

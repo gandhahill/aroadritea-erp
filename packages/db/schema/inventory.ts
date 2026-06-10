@@ -139,7 +139,7 @@ export const uomConversions = pgTable(
 
     fromUom: text('from_uom').notNull(),
     toUom: text('to_uom').notNull(),
-    
+
     // fromUom * multiplyBy = toUom (e.g., kg -> g => multiplyBy = 1000)
     multiplyBy: numeric('multiply_by', { precision: 14, scale: 6 }).notNull(),
 
@@ -270,7 +270,7 @@ export const boms = pgTable(
     // T-0237: Yield & Sub-recipe support
     yieldQty: numeric('yield_qty', { precision: 14, scale: 3 }).notNull().default('1'),
     yieldUom: text('yield_uom').notNull().default('portion'),
-    
+
     // T-0237: Effective versions
     effectiveFrom: date('effective_from'),
     effectiveUntil: date('effective_until'),
@@ -588,14 +588,14 @@ export const productionBatches = pgTable(
 
     productId: text('product_id').notNull(), // Target product (finished good / semi-finished)
     variantId: text('variant_id'),
-    
+
     qtyProduced: numeric('qty_produced', { precision: 14, scale: 3 }).notNull(),
     uom: text('uom').notNull(),
 
     status: text('status').notNull().default('draft'), // 'draft' | 'completed' | 'cancelled'
-    
+
     // Cost calculation (T-0249 COGM)
-    totalCost: bigint('total_cost', { mode: 'bigint' }), 
+    totalCost: bigint('total_cost', { mode: 'bigint' }),
     journalEntryId: text('journal_entry_id'), // Ref to COGM journal entry
 
     notes: text('notes'),
@@ -606,7 +606,7 @@ export const productionBatches = pgTable(
     index('production_batches_tenant_loc_idx').on(t.tenantId, t.locationId),
     index('production_batches_product_idx').on(t.productId),
     index('production_batches_status_idx').on(t.status),
-  ]
+  ],
 );
 
 export const productionBatchLines = pgTable(
@@ -616,11 +616,11 @@ export const productionBatchLines = pgTable(
     ...tenantCol,
 
     batchId: text('batch_id').notNull(), // FK production_batches
-    
+
     // Ingredient consumed
     productId: text('product_id').notNull(), // FK products
     variantId: text('variant_id'),
-    
+
     qtyConsumed: numeric('qty_consumed', { precision: 14, scale: 3 }).notNull(),
     uom: text('uom').notNull(),
 
@@ -631,5 +631,5 @@ export const productionBatchLines = pgTable(
   (t) => [
     index('production_batch_lines_batch_idx').on(t.batchId),
     index('production_batch_lines_product_idx').on(t.productId),
-  ]
+  ],
 );

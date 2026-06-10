@@ -246,9 +246,7 @@ export const rfqLines = pgTable(
 
     ...auditCols,
   },
-  (t) => [
-    index('rfq_lines_rfq_idx').on(t.rfqId),
-  ],
+  (t) => [index('rfq_lines_rfq_idx').on(t.rfqId)],
 );
 
 // ─── GRN Lines ────────────────────────────────────────────────────────────────
@@ -516,17 +514,15 @@ export const landedCosts = pgTable(
 
     grnId: text('grn_id').notNull(), // FK goods_receipt_notes
     costType: text('cost_type').notNull(), // 'shipping' | 'insurance' | 'customs' | 'other'
-    
+
     amount: bigint('amount', { mode: 'bigint' }).notNull(),
     allocationMethod: text('allocation_method').notNull().default('value'), // 'value' | 'qty' | 'weight' | 'volume' | 'manual'
-    
+
     invoiceId: text('invoice_id'), // FK purchase_invoices (optional, if cost came from a separate invoice)
-    
+
     notes: text('notes'),
 
     ...auditCols,
   },
-  (t) => [
-    index('landed_costs_grn_idx').on(t.grnId),
-  ],
+  (t) => [index('landed_costs_grn_idx').on(t.grnId)],
 );

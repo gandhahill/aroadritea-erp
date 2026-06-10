@@ -2,8 +2,8 @@
 
 import { FilterBar, FilterField } from '@/components/filter-bar';
 import { Input, Select, TableCell, TableHead } from '@erp/ui';
-import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {

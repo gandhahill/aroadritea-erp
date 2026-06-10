@@ -51,7 +51,10 @@ for (const file of files) {
   }
   for (const [v, nsList] of Object.entries(nsByVar)) {
     // match  v('key')  or  v.rich('key')  or  v.has('key')
-    const reCall = new RegExp(`\\b${v}(?:\\.(?:rich|has|markup))?\\s*\\(\\s*(['"\\\`])([^'"\\\`]*?)\\1`, 'g');
+    const reCall = new RegExp(
+      `\\b${v}(?:\\.(?:rich|has|markup))?\\s*\\(\\s*(['"\\\`])([^'"\\\`]*?)\\1`,
+      'g',
+    );
     let c;
     while ((c = reCall.exec(src))) {
       const quote = c[1];
@@ -71,14 +74,22 @@ for (const file of files) {
       const resolves = candidates.some((full) => en[full] && id[full] && zh[full]);
       if (!resolves) {
         const full = candidates[0];
-        missing.push({ file: path.relative(webRoot, file), key: full, en: !!en[full], id: !!id[full], zh: !!zh[full] });
+        missing.push({
+          file: path.relative(webRoot, file),
+          key: full,
+          en: !!en[full],
+          id: !!id[full],
+          zh: !!zh[full],
+        });
       }
     }
   }
 }
 
 console.log(`Scanned ${files.length} files in apps/web.`);
-console.log(`Keys: en=${Object.keys(en).length} id=${Object.keys(id).length} zh=${Object.keys(zh).length}`);
+console.log(
+  `Keys: en=${Object.keys(en).length} id=${Object.keys(id).length} zh=${Object.keys(zh).length}`,
+);
 console.log(`t() calls checked: ${callsChecked}  (dynamic/skipped: ${dynamicSkipped})`);
 
 // dedupe missing
@@ -94,7 +105,8 @@ if (uniqMissing.length === 0) {
   console.log('\n✅ NO missing i18n key references — every static t() key resolves in en+id+zh.');
 } else {
   console.log(`\n❌ ${uniqMissing.length} missing key reference(s):`);
-  for (const x of uniqMissing) console.log(`   ${x.key}   [en:${x.en} id:${x.id} zh:${x.zh}]   ${x.file}`);
+  for (const x of uniqMissing)
+    console.log(`   ${x.key}   [en:${x.en} id:${x.id} zh:${x.zh}]   ${x.file}`);
 }
 
 // Locale parity (key set equality)
@@ -110,5 +122,6 @@ if (parityGaps.length === 0) {
   console.log('✅ Locale parity OK — en, id, zh have identical key sets.');
 } else {
   console.log(`\n❌ ${parityGaps.length} locale parity gap(s):`);
-  for (const k of parityGaps.slice(0, 80)) console.log(`   ${k}   [en:${!!en[k]} id:${!!id[k]} zh:${!!zh[k]}]`);
+  for (const k of parityGaps.slice(0, 80))
+    console.log(`   ${k}   [en:${!!en[k]} id:${!!id[k]} zh:${!!zh[k]}]`);
 }

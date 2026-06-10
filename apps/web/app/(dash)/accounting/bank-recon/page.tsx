@@ -30,7 +30,9 @@ export default async function BankReconPage({
 
   const params = await searchParams;
   const page = Math.max(1, Number(params.page) || 1);
-  const pageSize = [10, 20, 50, 100].includes(Number(params.pageSize)) ? Number(params.pageSize) : 20;
+  const pageSize = [10, 20, 50, 100].includes(Number(params.pageSize))
+    ? Number(params.pageSize)
+    : 20;
 
   const [{ items: statements, total }, t] = await Promise.all([
     fetchStatements({ limit: pageSize, offset: (page - 1) * pageSize }),

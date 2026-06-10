@@ -6,8 +6,8 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, sql } from 'drizzle-orm';
-import { auditRecord } from '../audit';
 import { getPostingAccountCodes } from '../accounting/posting-accounts';
+import { auditRecord } from '../audit';
 
 const DEFAULT_PB1_TAX_CODE = 'PB1';
 const DEFAULT_DELIVERY_CHANNELS = [

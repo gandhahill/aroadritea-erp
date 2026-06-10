@@ -46,6 +46,7 @@ export {
   CashFlowSchema,
   GeneralLedgerSchema,
   TrialBalanceSchema,
+  FinancialStatementNotesSchema,
   DailySummarySchema,
 } from './reporting';
 

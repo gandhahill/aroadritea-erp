@@ -32,9 +32,7 @@ export default async function PurchaseReturnsPage({
   const result = await fetchPurchaseReturnsAction({ status: params.status });
 
   // Resolve supplier names from partner IDs
-  const supplierIds = [
-    ...new Set((result.data ?? []).map((r) => r.supplierId).filter(Boolean)),
-  ];
+  const supplierIds = [...new Set((result.data ?? []).map((r) => r.supplierId).filter(Boolean))];
   const supplierNameMap = new Map<string, string>();
   if (supplierIds.length > 0) {
     const rows = await db
@@ -114,7 +112,9 @@ export default async function PurchaseReturnsPage({
                     </Link>
                   </td>
                   <td className="px-3 py-2 text-brand-ink-2">{row.returnDate}</td>
-                  <td className="px-3 py-2 text-brand-ink-2">{supplierNameMap.get(row.supplierId) ?? row.supplierId}</td>
+                  <td className="px-3 py-2 text-brand-ink-2">
+                    {supplierNameMap.get(row.supplierId) ?? row.supplierId}
+                  </td>
                   <td className="px-3 py-2">
                     <StatusBadge
                       status={row.status}

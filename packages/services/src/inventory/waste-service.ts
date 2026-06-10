@@ -1,15 +1,20 @@
 import { db } from '@erp/db';
-import { stockAdjustments, stockAdjustmentLines, stockLevels, products } from '@erp/db/schema/inventory';
+import {
+  products,
+  stockAdjustmentLines,
+  stockAdjustments,
+  stockLevels,
+} from '@erp/db/schema/inventory';
 import { AppError } from '@erp/shared/errors';
+import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { generateId } from '@erp/shared/id';
-import { eq, and, isNull, sql } from 'drizzle-orm';
+import { and, eq, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
-import { requirePermission } from '../iam';
-import { createJournal } from '../accounting/create-journal';
 import { resolveAccountIdsByCodes } from '../accounting/account-resolver';
+import { createJournal } from '../accounting/create-journal';
 import { getPostingAccountCodes } from '../accounting/posting-accounts';
+import { requirePermission } from '../iam';
 import { depleteStock } from './stock-depletion-service';
 
 export const RecordWasteInputSchema = z.object({
@@ -22,11 +27,19 @@ export const RecordWasteInputSchema = z.object({
 
 export type RecordWasteInput = z.infer<typeof RecordWasteInputSchema>;
 
-export async function recordWaste(input: RecordWasteInput, ctx: AuditContext): Promise<Result<{ id: string }>> {
+export async function recordWaste(
+  input: RecordWasteInput,
+  ctx: AuditContext,
+): Promise<Result<{ id: string }>> {
   const parsed = RecordWasteInputSchema.safeParse(input);
-  if (!parsed.success) return err(AppError.validation('common.errors.validationFailed', { issues: parsed.error.issues }));
+  if (!parsed.success)
+    return err(
+      AppError.validation('common.errors.validationFailed', { issues: parsed.error.issues }),
+    );
 
-  const permCheck = await requirePermission(ctx.userId, 'inventory.adjust', { locationId: input.locationId });
+  const permCheck = await requirePermission(ctx.userId, 'inventory.adjust', {
+    locationId: input.locationId,
+  });
   if (!permCheck.ok) return permCheck;
 
   // 1. Fetch Product for Accounts
@@ -49,7 +62,7 @@ export async function recordWaste(input: RecordWasteInput, ctx: AuditContext): P
       referenceId: adjId,
       referenceType: 'stock_adjustment',
     },
-    ctx
+    ctx,
   );
 
   if (!depletionResult.ok) return depletionResult;
@@ -61,7 +74,14 @@ export async function recordWaste(input: RecordWasteInput, ctx: AuditContext): P
   const [slRow] = await db
     .select({ avgUnitCost: stockLevels.avgUnitCost })
     .from(stockLevels)
-    .where(and(eq(stockLevels.tenantId, ctx.tenantId), eq(stockLevels.locationId, input.locationId), eq(stockLevels.productId, input.productId), variantCond))
+    .where(
+      and(
+        eq(stockLevels.tenantId, ctx.tenantId),
+        eq(stockLevels.locationId, input.locationId),
+        eq(stockLevels.productId, input.productId),
+        variantCond,
+      ),
+    )
     .limit(1);
   const unitCost = (slRow?.avgUnitCost as bigint | null) ?? product.defaultCostPrice ?? 0n;
   const scaledQty = BigInt(Math.round(input.quantity * 1000));
@@ -104,8 +124,9 @@ export async function recordWaste(input: RecordWasteInput, ctx: AuditContext): P
     const acctCodes = await getPostingAccountCodes(ctx.tenantId);
     const invCode = acctCodes.inventory;
     const expCode = acctCodes['adjustment.expense'];
-    const invAccountId = product.inventoryAccountId
-      ?? (await resolveAccountIdsByCodes(ctx.tenantId, [invCode])).get(invCode);
+    const invAccountId =
+      product.inventoryAccountId ??
+      (await resolveAccountIdsByCodes(ctx.tenantId, [invCode])).get(invCode);
     const expAccountId = (await resolveAccountIdsByCodes(ctx.tenantId, [expCode])).get(expCode);
 
     if (invAccountId && expAccountId) {
@@ -133,7 +154,8 @@ export async function recordWaste(input: RecordWasteInput, ctx: AuditContext): P
             },
           ],
         },
-        ctx, { skipPermissionCheck: true }
+        ctx,
+        { skipPermissionCheck: true },
       );
     }
   }

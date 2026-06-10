@@ -1,10 +1,25 @@
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
-import { Button, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, toast } from '@erp/ui';
-import { useTranslations } from 'next-intl';
-import { calculateSptMasaAction, fetchVatLedgerAction, exportSptMasaAction, type PeriodOption } from './actions';
 import type { SptMasaSummary, VatLedgerRow } from '@erp/services/tax';
+import {
+  Button,
+  Select,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  toast,
+} from '@erp/ui';
+import { useTranslations } from 'next-intl';
+import { useEffect, useState, useTransition } from 'react';
+import {
+  type PeriodOption,
+  calculateSptMasaAction,
+  exportSptMasaAction,
+  fetchVatLedgerAction,
+} from './actions';
 
 export default function SptMasaClient({ initialPeriods }: { initialPeriods: PeriodOption[] }) {
   const t = useTranslations('tax.spt');
@@ -57,11 +72,8 @@ export default function SptMasaClient({ initialPeriods }: { initialPeriods: Peri
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="w-full sm:w-64">
-          <Select
-            value={selectedPeriod}
-            onChange={(e: any) => setSelectedPeriod(e.target.value)}
-          >
-            {initialPeriods.map(p => (
+          <Select value={selectedPeriod} onChange={(e: any) => setSelectedPeriod(e.target.value)}>
+            {initialPeriods.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name} ({p.status})
               </option>
@@ -80,16 +92,30 @@ export default function SptMasaClient({ initialPeriods }: { initialPeriods: Peri
           <div className="grid gap-6 md:grid-cols-3">
             <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
               <h3 className="text-sm font-medium leading-none mb-2">{t('totalPpnOut')}</h3>
-              <p className="text-2xl font-bold">{Number(summary.totalPpnOut).toLocaleString('id-ID')}</p>
+              <p className="text-2xl font-bold">
+                {Number(summary.totalPpnOut).toLocaleString('id-ID')}
+              </p>
             </div>
             <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
               <h3 className="text-sm font-medium leading-none mb-2">{t('totalPpnIn')}</h3>
-              <p className="text-2xl font-bold">{Number(summary.totalPpnIn).toLocaleString('id-ID')}</p>
+              <p className="text-2xl font-bold">
+                {Number(summary.totalPpnIn).toLocaleString('id-ID')}
+              </p>
             </div>
-            <div className={`rounded-lg border shadow-sm p-6 ${summary.netPayable > 0n ? 'bg-red-50 text-red-900 border-red-200' : 'bg-green-50 text-green-900 border-green-200'}`}>
+            <div
+              className={`rounded-lg border shadow-sm p-6 ${summary.netPayable > 0n ? 'bg-red-50 text-red-900 border-red-200' : 'bg-green-50 text-green-900 border-green-200'}`}
+            >
               <h3 className="text-sm font-medium leading-none mb-2">{t('netLabel')}</h3>
-              <p className="text-2xl font-bold">{Number(summary.netPayable).toLocaleString('id-ID')}</p>
-              <p className="text-xs mt-1 opacity-80">{summary.netPayable > 0n ? t('payable') : summary.netPayable < 0n ? t('overpaid') : t('nihil')}</p>
+              <p className="text-2xl font-bold">
+                {Number(summary.netPayable).toLocaleString('id-ID')}
+              </p>
+              <p className="text-xs mt-1 opacity-80">
+                {summary.netPayable > 0n
+                  ? t('payable')
+                  : summary.netPayable < 0n
+                    ? t('overpaid')
+                    : t('nihil')}
+              </p>
             </div>
           </div>
 
@@ -130,15 +156,25 @@ export default function SptMasaClient({ initialPeriods }: { initialPeriods: Peri
                   ) : (
                     activeLedger.map((row) => (
                       <TableRow key={row.journalLineId}>
-                        <TableCell>{new Date(row.postingDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</TableCell>
+                        <TableCell>
+                          {new Date(row.postingDate).toLocaleDateString('id-ID', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
+                        </TableCell>
                         <TableCell>
                           <div className="font-medium">{row.referenceId || '-'}</div>
                           <div className="text-xs text-muted-foreground">{row.description}</div>
                         </TableCell>
                         <TableCell>{row.partnerName}</TableCell>
                         <TableCell className="font-mono text-xs">{row.nsfp || '-'}</TableCell>
-                        <TableCell className="text-right">{Number(row.dpp).toLocaleString('id-ID')}</TableCell>
-                        <TableCell className="text-right">{Number(row.ppn).toLocaleString('id-ID')}</TableCell>
+                        <TableCell className="text-right">
+                          {Number(row.dpp).toLocaleString('id-ID')}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {Number(row.ppn).toLocaleString('id-ID')}
+                        </TableCell>
                       </TableRow>
                     ))
                   )}

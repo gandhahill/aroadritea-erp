@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useEffect, useState } from 'react';
 
 interface CartLine {
   id: string;
@@ -171,7 +171,9 @@ export default function PosDisplayPage() {
 
               {BigInt(remainingBalance) > BigInt(0) && (
                 <div className="flex justify-between items-center pt-2">
-                  <span className="text-2xl font-semibold text-brand-ink-2">{t('remainingBalance')}</span>
+                  <span className="text-2xl font-semibold text-brand-ink-2">
+                    {t('remainingBalance')}
+                  </span>
                   <span className="text-4xl font-bold text-brand-red">
                     {formatRupiah(remainingBalance)}
                   </span>

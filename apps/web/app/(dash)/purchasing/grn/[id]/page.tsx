@@ -33,7 +33,13 @@ export default async function GrnDetailPage({ params }: { params: Promise<{ id: 
     <div className="space-y-6">
       <div className="mx-auto w-full max-w-5xl space-y-6 px-5 py-6">
         <div className="flex items-start justify-between gap-4">
-          <PageHeader title={<>{tg('grnDetail')} — {grn.number}</>} />
+          <PageHeader
+            title={
+              <>
+                {tg('grnDetail')} — {grn.number}
+              </>
+            }
+          />
           <Link
             href="/purchasing/grn-report"
             className="shrink-0 text-sm text-brand-red hover:underline"

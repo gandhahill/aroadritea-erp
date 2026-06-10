@@ -1,8 +1,8 @@
 import { FilterBar, FilterField } from '@/components/filter-bar';
 import { PageHeader } from '@/components/page-header';
+import { getSession } from '@/lib/auth';
 import { displayAssetUrl } from '@/lib/display-asset-url';
 import { getActiveLocationOptions } from '@/lib/location-options';
-import { getSession } from '@/lib/auth';
 import { Button, Table, TableBody, TableCell, TableHead, TableHeader } from '@erp/ui';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';

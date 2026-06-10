@@ -1,12 +1,12 @@
-import { getStockLedger } from '@erp/services/inventory';
-import { db, eq, and, isNull } from '@erp/db';
-import { products } from '@erp/db/schema/inventory';
-import { locations } from '@erp/db/schema/auth';
 import { getSession } from '@/lib/auth';
+import { and, db, eq, isNull } from '@erp/db';
+import { locations } from '@erp/db/schema/auth';
+import { products } from '@erp/db/schema/inventory';
 import { requirePermission } from '@erp/services/iam';
-import { redirect } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
+import { getStockLedger } from '@erp/services/inventory';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@erp/ui';
+import { getTranslations } from 'next-intl/server';
+import { redirect } from 'next/navigation';
 import { StockLedgerFilter } from './stock-ledger-filter';
 
 export default async function StockLedgerPage({
@@ -53,7 +53,11 @@ export default async function StockLedgerPage({
   }));
   const locationOptions = locationRows.map((l) => ({
     id: l.id,
-    name: { id: `${l.code} - ${(l.name as Record<string, string>)?.id ?? ''}`, en: `${l.code} - ${(l.name as Record<string, string>)?.en ?? ''}`, zh: `${l.code} - ${(l.name as Record<string, string>)?.zh ?? ''}` },
+    name: {
+      id: `${l.code} - ${(l.name as Record<string, string>)?.id ?? ''}`,
+      en: `${l.code} - ${(l.name as Record<string, string>)?.en ?? ''}`,
+      zh: `${l.code} - ${(l.name as Record<string, string>)?.zh ?? ''}`,
+    },
   }));
 
   let detail = null;
@@ -67,7 +71,9 @@ export default async function StockLedgerPage({
     const movements = result.ok ? result.value : [];
 
     const productLabel = (product?.name as Record<string, string>)?.id ?? productId;
-    const locationLabel = location ? `${location.code} - ${(location.name as Record<string, string>)?.id ?? ''}` : locationId;
+    const locationLabel = location
+      ? `${location.code} - ${(location.name as Record<string, string>)?.id ?? ''}`
+      : locationId;
 
     detail = (
       <div className="surface-card overflow-hidden">
@@ -101,9 +107,13 @@ export default async function StockLedgerPage({
                     <TableCell>{new Date(m.occurredAt).toLocaleString()}</TableCell>
                     <TableCell className="capitalize">{m.reason.replace('_', ' ')}</TableCell>
                     <TableCell>
-                      {m.referenceType && m.referenceId ? `${m.referenceType}: ${m.referenceId}` : '-'}
+                      {m.referenceType && m.referenceId
+                        ? `${m.referenceType}: ${m.referenceId}`
+                        : '-'}
                     </TableCell>
-                    <TableCell className={`text-right font-medium ${formatWholeQty(m.qtyDelta) > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <TableCell
+                      className={`text-right font-medium ${formatWholeQty(m.qtyDelta) > 0 ? 'text-green-600' : 'text-red-600'}`}
+                    >
                       {formatWholeQty(m.qtyDelta) > 0 ? '+' : ''}
                       {formatWholeQty(m.qtyDelta)}
                     </TableCell>

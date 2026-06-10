@@ -157,7 +157,7 @@ export async function cashFlow(
           db
             .select({ id: journalLines.journalEntryId })
             .from(journalLines)
-            .where(inArray(journalLines.accountId, cashAccountIds))
+            .where(inArray(journalLines.accountId, cashAccountIds)),
         ),
       ]);
 
@@ -250,10 +250,7 @@ function buildJournalLineConditions(
     .select({ id: journalEntries.reversedByJeId })
     .from(journalEntries)
     .where(
-      and(
-        eq(journalEntries.tenantId, ctx.tenantId),
-        isNotNull(journalEntries.reversedByJeId),
-      ),
+      and(eq(journalEntries.tenantId, ctx.tenantId), isNotNull(journalEntries.reversedByJeId)),
     );
 
   const conditions: SQL[] = [

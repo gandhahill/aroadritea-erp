@@ -8,13 +8,13 @@
 
 import { db } from '@erp/db';
 import { locations } from '@erp/db/schema/auth';
+import { sequences } from '@erp/db/schema/common';
 import { manualSalesClosings, shifts } from '@erp/db/schema/pos';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, desc, eq, inArray, isNull, sql, ne } from 'drizzle-orm';
-import { sequences } from '@erp/db/schema/common';
+import { and, desc, eq, inArray, isNull, ne, sql } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
 import { reverseJournal } from '../accounting/reverse-journal';
 import { auditRecord } from '../audit';
@@ -181,7 +181,7 @@ export async function createManualSalesClosing(
       data.consumedIngredients,
       id,
       ctx,
-      'manual_sales_closing'
+      'manual_sales_closing',
     );
     if (!deductResult.ok) {
       await rollbackAppliedStockDeductions();
@@ -206,7 +206,7 @@ export async function createManualSalesClosing(
         ingredients,
         id,
         ctx,
-        'manual_sales_closing'
+        'manual_sales_closing',
       );
       if (!deductResult.ok) {
         await rollbackAppliedStockDeductions();
@@ -264,8 +264,11 @@ export async function createManualSalesClosing(
     }
   }
 
-  const isPureCash = data.paymentMethod.toLowerCase() === 'cash' || data.paymentMethod.toLowerCase() === 'tunai';
-  const debitAccountId = isPureCash ? postingConfig.value.pureCashAccountId : postingConfig.value.cashAccountId;
+  const isPureCash =
+    data.paymentMethod.toLowerCase() === 'cash' || data.paymentMethod.toLowerCase() === 'tunai';
+  const debitAccountId = isPureCash
+    ? postingConfig.value.pureCashAccountId
+    : postingConfig.value.cashAccountId;
 
   const jeLines: Array<{
     accountId: string;
@@ -325,7 +328,8 @@ export async function createManualSalesClosing(
       referenceId: id,
       lines: jeLines,
     },
-    ctx, { skipPermissionCheck: true }
+    ctx,
+    { skipPermissionCheck: true },
   );
 
   if (!journal.ok) {
@@ -404,7 +408,7 @@ export async function listManualSalesClosings(
     async () => {
       const conditions = [
         eq(manualSalesClosings.tenantId, ctx.tenantId),
-        ne(manualSalesClosings.status, 'voided')
+        ne(manualSalesClosings.status, 'voided'),
       ];
       if (params.locationId) conditions.push(eq(manualSalesClosings.locationId, params.locationId));
       const whereClause = and(...conditions);
@@ -412,12 +416,12 @@ export async function listManualSalesClosings(
         .select({ count: sql<number>`cast(count(*) as int)` })
         .from(manualSalesClosings)
         .where(whereClause);
-        
+
       const { users } = await import('@erp/db/schema/auth');
       const { aliasedTable } = await import('drizzle-orm');
       const creators = aliasedTable(users, 'creators');
       const updaters = aliasedTable(users, 'updaters');
-      
+
       const rows = await db
         .select({
           closing: manualSalesClosings,
@@ -431,14 +435,14 @@ export async function listManualSalesClosings(
         .orderBy(desc(manualSalesClosings.salesDate), desc(manualSalesClosings.createdAt))
         .limit(params.limit ?? 25)
         .offset(params.offset ?? 0);
-        
-      return { 
-        items: rows.map(r => ({
+
+      return {
+        items: rows.map((r) => ({
           ...toResult(r.closing),
           createdByName: r.createdByName,
           updatedByName: r.updatedByName,
-        })), 
-        total: count 
+        })),
+        total: count,
       };
     },
     (e) => AppError.internal('pos.manualSales.listFailed', e),
@@ -466,7 +470,6 @@ export async function listManualSalesLocations(ctx: AuditContext) {
     .orderBy(locations.code);
   return rows;
 }
-
 
 export async function getManualSalesClosingDetail(id: string, ctx: AuditContext) {
   const permCheck = await requirePermission(ctx.userId, 'pos.transact', {
@@ -497,20 +500,20 @@ export async function getManualSalesClosingDetail(id: string, ctx: AuditContext)
           and(
             eq(stockMovements.tenantId, ctx.tenantId),
             eq(stockMovements.referenceType, 'manual_sales_closing'),
-            eq(stockMovements.referenceId, id)
-          )
+            eq(stockMovements.referenceId, id),
+          ),
         );
 
       return {
         closing: toResult(closing),
         lineItems: closing.lineItemsJson || [],
-        stockMovements: movements.map(m => ({
+        stockMovements: movements.map((m) => ({
           ...m,
-          productName: m.productName as Record<string, string>
-        }))
+          productName: m.productName as Record<string, string>,
+        })),
       };
     },
-    (e) => AppError.internal('pos.manualSales.detailFailed', e)
+    (e) => AppError.internal('pos.manualSales.detailFailed', e),
   );
 }
 
@@ -538,7 +541,7 @@ export async function deleteManualSalesClosing(id: string, ctx: AuditContext) {
     async () => {
       // 1. Reverse stock movements
       const { stockMovements, stockLevels } = await import('@erp/db/schema/inventory');
-      
+
       const movements = await db
         .select({
           id: stockMovements.id,
@@ -551,24 +554,24 @@ export async function deleteManualSalesClosing(id: string, ctx: AuditContext) {
         })
         .from(stockMovements)
         .leftJoin(
-          stockLevels, 
+          stockLevels,
           and(
             eq(stockLevels.productId, stockMovements.productId),
             eq(stockLevels.locationId, stockMovements.locationId),
-            eq(stockLevels.tenantId, ctx.tenantId)
-          )
+            eq(stockLevels.tenantId, ctx.tenantId),
+          ),
         )
         .where(
           and(
             eq(stockMovements.tenantId, ctx.tenantId),
             eq(stockMovements.referenceType, 'manual_sales_closing'),
-            eq(stockMovements.referenceId, id)
-          )
+            eq(stockMovements.referenceId, id),
+          ),
         );
 
       const deductions = movements
-        .filter(m => m.stockLevelId && m.qtyDelta.startsWith('-'))
-        .map(m => ({
+        .filter((m) => m.stockLevelId && m.qtyDelta.startsWith('-'))
+        .map((m) => ({
           stockLevelId: m.stockLevelId!,
           tenantId: ctx.tenantId,
           locationId: m.locationId,
@@ -594,15 +597,17 @@ export async function deleteManualSalesClosing(id: string, ctx: AuditContext) {
         } else if (typeof pDate === 'string' && pDate.length > 10) {
           pDate = pDate.substring(0, 10);
         }
-        
+
         const reverseRes = await reverseJournal(
           { journalId: closing.journalEntryId, postingDate: pDate as string },
           ctx,
-          { skipPermissionCheck: true }
+          { skipPermissionCheck: true },
         );
         if (!reverseRes.ok) {
           // If already reversed, we can proceed safely to void the closing
-          const isAlreadyReversed = reverseRes.error.code === 'BUSINESS_RULE' && reverseRes.error.messageKey === 'accounting.journal.cannotReverse';
+          const isAlreadyReversed =
+            reverseRes.error.code === 'BUSINESS_RULE' &&
+            reverseRes.error.messageKey === 'accounting.journal.cannotReverse';
           if (!isAlreadyReversed) {
             throw reverseRes.error;
           }
@@ -632,14 +637,21 @@ export async function deleteManualSalesClosing(id: string, ctx: AuditContext) {
 
       return true;
     },
-    (e) => (e instanceof AppError || (e && typeof e === 'object' && 'code' in e && 'messageKey' in e)) ? (e as AppError) : new AppError('INTERNAL', 'pos.manualSales.deleteFailed', e instanceof Error ? e.message : String(e))
+    (e) =>
+      e instanceof AppError || (e && typeof e === 'object' && 'code' in e && 'messageKey' in e)
+        ? (e as AppError)
+        : new AppError(
+            'INTERNAL',
+            'pos.manualSales.deleteFailed',
+            e instanceof Error ? e.message : String(e),
+          ),
   );
 }
 
 export async function updateManualSalesClosing(
   id: string,
   input: CreateManualSalesClosingInput,
-  ctx: AuditContext
+  ctx: AuditContext,
 ) {
   // We use Delete and Recreate for safe edit
   const deleteRes = await deleteManualSalesClosing(id, ctx);
@@ -647,4 +659,3 @@ export async function updateManualSalesClosing(
 
   return createManualSalesClosing(input, ctx);
 }
-

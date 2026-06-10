@@ -1,12 +1,12 @@
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
-import { db, eq, and } from '@erp/db';
+import { authorizedLocationIdsForTenant } from '@/lib/authz';
+import { and, db, eq } from '@erp/db';
 import { locations } from '@erp/db';
 import { partners } from '@erp/db/schema/accounting';
-import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { PageHeader } from '@/components/page-header';
+import { redirect } from 'next/navigation';
 import { OutgoingShipmentForm } from './client';
-import { authorizedLocationIdsForTenant } from '@/lib/authz';
 
 export default async function NewOutgoingShipmentPage() {
   const session = await getSession();
@@ -22,7 +22,10 @@ export default async function NewOutgoingShipmentPage() {
 
   if (!scope.global && scope.locationIds.length === 0) redirect('/dashboard');
 
-  let locs = await db.select().from(locations).where(eq(locations.tenantId, String(user.tenantId ?? 'default')));
+  let locs = await db
+    .select()
+    .from(locations)
+    .where(eq(locations.tenantId, String(user.tenantId ?? 'default')));
   if (!scope.global) {
     locs = locs.filter((l) => scope.locationIds.includes(l.id));
   }
@@ -35,7 +38,9 @@ export default async function NewOutgoingShipmentPage() {
       phone: partners.phone,
     })
     .from(partners)
-    .where(and(eq(partners.tenantId, String(user.tenantId ?? 'default')), eq(partners.isActive, true)));
+    .where(
+      and(eq(partners.tenantId, String(user.tenantId ?? 'default')), eq(partners.isActive, true)),
+    );
 
   return (
     <div className="space-y-6">

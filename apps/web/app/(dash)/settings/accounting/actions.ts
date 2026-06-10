@@ -4,11 +4,8 @@ import { getSession } from '@/lib/auth';
 import { and, db, eq, inArray, isNull } from '@erp/db';
 import { accounts } from '@erp/db/schema/accounting';
 import { cmsSettings } from '@erp/db/schema/cms';
+import { ACCOUNT_MAP_SETTING_KEY, POSTING_ACCOUNT_PURPOSES } from '@erp/services/accounting';
 import { auditRecord } from '@erp/services/audit';
-import {
-  ACCOUNT_MAP_SETTING_KEY,
-  POSTING_ACCOUNT_PURPOSES,
-} from '@erp/services/accounting';
 import { requirePermission } from '@erp/services/iam';
 import { generateId } from '@erp/shared/id';
 import type { AuditContext } from '@erp/shared/types';
@@ -91,7 +88,9 @@ export async function saveAccountMapAction(
     });
   } else {
     const id = generateId();
-    await db.insert(cmsSettings).values({ id, tenantId, key: ACCOUNT_MAP_SETTING_KEY, value: cleaned });
+    await db
+      .insert(cmsSettings)
+      .values({ id, tenantId, key: ACCOUNT_MAP_SETTING_KEY, value: cleaned });
     await auditRecord({
       action: 'create',
       entityType: 'cms_settings',

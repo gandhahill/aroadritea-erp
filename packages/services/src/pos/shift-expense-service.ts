@@ -220,7 +220,8 @@ export async function approveShiftExpense(
             },
           ],
         },
-        ctx, { skipPermissionCheck: true }
+        ctx,
+        { skipPermissionCheck: true },
       );
 
       if (!journalRes.ok) throw journalRes.error;

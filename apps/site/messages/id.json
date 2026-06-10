@@ -111,7 +111,9 @@
     "defaultHours": "10:00-22:00 WIB",
     "store": "Outlet",
     "office": "Kantor",
-    "map": "Buka peta"
+    "map": "Buka peta",
+    "mapEmbedTitle": "Peta untuk {name}",
+    "orderDelivery": "Pesan delivery"
   },
   "footer": {
     "company": "PT. Gandha Hill Catering Management Indonesia",

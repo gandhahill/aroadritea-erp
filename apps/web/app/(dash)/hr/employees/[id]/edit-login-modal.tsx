@@ -18,11 +18,15 @@ export function EditLoginModal({ employeeId, roles, canChangeRole = false }: Edi
   const [open, setOpen] = useState(false);
   const [state, formAction, isPending] = useActionState(updateEmployeeLoginAction, null);
 
-  const [loginInfo, setLoginInfo] = useState<{
-    roleCode: string | null;
-    loginScope: string | null;
-    requirePasswordChange: boolean | null;
-  } | null | undefined>(undefined);
+  const [loginInfo, setLoginInfo] = useState<
+    | {
+        roleCode: string | null;
+        loginScope: string | null;
+        requirePasswordChange: boolean | null;
+      }
+    | null
+    | undefined
+  >(undefined);
 
   useEffect(() => {
     if (open) {
@@ -56,9 +60,11 @@ export function EditLoginModal({ employeeId, roles, canChangeRole = false }: Edi
         >
           <div className="w-full max-w-md rounded-xl border border-brand-jade/15 bg-brand-paper p-6 shadow-xl">
             <h2 className="text-lg font-semibold text-brand-ink">{t('editLoginTitle')}</h2>
-            
+
             {loginInfo === undefined ? (
-              <div className="flex h-32 items-center justify-center text-sm text-brand-ink-3">Loading...</div>
+              <div className="flex h-32 items-center justify-center text-sm text-brand-ink-3">
+                Loading...
+              </div>
             ) : (
               <form action={formAction} className="space-y-4 pt-4">
                 <input type="hidden" name="employeeId" value={employeeId} />
@@ -70,7 +76,10 @@ export function EditLoginModal({ employeeId, roles, canChangeRole = false }: Edi
                 )}
 
                 <div>
-                  <label htmlFor="roleCode" className="mb-1 block text-sm font-medium text-brand-ink">
+                  <label
+                    htmlFor="roleCode"
+                    className="mb-1 block text-sm font-medium text-brand-ink"
+                  >
                     {t('role')}
                   </label>
                   <select
@@ -93,7 +102,10 @@ export function EditLoginModal({ employeeId, roles, canChangeRole = false }: Edi
                 </div>
 
                 <div>
-                  <label htmlFor="loginScope" className="mb-1 block text-sm font-medium text-brand-ink">
+                  <label
+                    htmlFor="loginScope"
+                    className="mb-1 block text-sm font-medium text-brand-ink"
+                  >
                     {t('loginScope')}
                   </label>
                   <select
@@ -108,7 +120,10 @@ export function EditLoginModal({ employeeId, roles, canChangeRole = false }: Edi
                 </div>
 
                 <div>
-                  <label htmlFor="password" className="mb-1 block text-sm font-medium text-brand-ink">
+                  <label
+                    htmlFor="password"
+                    className="mb-1 block text-sm font-medium text-brand-ink"
+                  >
                     {t('newPassword')} ({commonT('optional')})
                   </label>
                   <input
@@ -128,7 +143,10 @@ export function EditLoginModal({ employeeId, roles, canChangeRole = false }: Edi
                     defaultChecked={loginInfo?.requirePasswordChange ?? false}
                     className="h-4 w-4 rounded border-brand-cream-3 text-brand-ember-5 focus:ring-brand-ember-5"
                   />
-                  <label htmlFor="requirePasswordChange" className="text-sm font-medium text-brand-ink">
+                  <label
+                    htmlFor="requirePasswordChange"
+                    className="text-sm font-medium text-brand-ink"
+                  >
                     {t('requirePasswordChange')}
                   </label>
                 </div>

@@ -1,6 +1,6 @@
 /**
  * Standardize all page metadata titles to format: "Page Name | Aroadri ERP"
- * 
+ *
  * Run: node scripts/fix-page-titles.mjs
  */
 
@@ -16,7 +16,7 @@ const TITLE_MAP = {
   // Dashboard
   '(dash)/dashboard/page.tsx': 'Dashboard',
   '(dash)/account/page.tsx': null, // uses generateMetadata, skip
-  
+
   // Accounting
   '(dash)/accounting/journals/page.tsx': 'Journal Entries',
   '(dash)/accounting/journals/new/page.tsx': 'New Journal Entry',
@@ -158,7 +158,7 @@ for (const [relPath, desiredTitle] of Object.entries(TITLE_MAP)) {
   const metadataRegex2 = /(metadata\s*=\s*\{[^}]*?title:\s*)['"](.*?)['"]/;
 
   const match = content.match(metadataRegex) || content.match(metadataRegex2);
-  
+
   if (match) {
     const oldTitle = match[2];
     if (oldTitle === fullTitle) {

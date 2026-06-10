@@ -11,9 +11,9 @@ import { describe, expect, it } from 'vitest';
 import {
   type PayrollEmployeeContext,
   type PayrollResult,
+  calculateOvertime,
   calculatePayroll,
   calculateTHRProRata,
-  calculateOvertime,
 } from '../src/payroll/payroll-engine.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -150,11 +150,16 @@ describe('Employer BPJS portions (T-0243)', () => {
 
   it('employer BPJS NOT deducted from employee net', () => {
     const result = payroll({ baseSalary: 5_000_000n });
-    const totalEmployerBpjs = result.bpjsKesEmployer + result.bpjsJkkEmployer +
-      result.bpjsJkmEmployer + result.bpjsJhtEmployer + result.bpjsJpEmployer;
+    const totalEmployerBpjs =
+      result.bpjsKesEmployer +
+      result.bpjsJkkEmployer +
+      result.bpjsJkmEmployer +
+      result.bpjsJhtEmployer +
+      result.bpjsJpEmployer;
     expect(totalEmployerBpjs).toBeGreaterThan(0n);
     // Net = earnings - employee deductions only
-    const expectedNet = 5_000_000n - result.pph21Amount - result.bpjsKesEmployee - result.bpjsTkEmployee;
+    const expectedNet =
+      5_000_000n - result.pph21Amount - result.bpjsKesEmployee - result.bpjsTkEmployee;
     expect(result.netSalary).toBe(expectedNet);
   });
 

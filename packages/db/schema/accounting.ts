@@ -760,7 +760,6 @@ export const bankStatementLinesRelations = relations(bankStatementLines, ({ one 
   }),
 }));
 
-
 // ================================================================
 // INVOICES
 // ================================================================
@@ -856,9 +855,7 @@ export const nsfpBlocks = pgTable(
     isActive: boolean('is_active').notNull().default(true),
     ...auditCols,
   },
-  (t) => [
-    index('nsfp_blocks_tenant_active_idx').on(t.tenantId, t.isActive),
-  ]
+  (t) => [index('nsfp_blocks_tenant_active_idx').on(t.tenantId, t.isActive)],
 );
 
 export const taxInvoices = pgTable(
@@ -882,7 +879,7 @@ export const taxInvoices = pgTable(
     index('tax_invoices_invoice_idx').on(t.invoiceId),
     index('tax_invoices_tenant_period_idx').on(t.tenantId, t.taxPeriod),
     check('tax_invoices_status_check', sql`status IN ('draft', 'posted', 'cancelled', 'replaced')`),
-  ]
+  ],
 );
 
 export const nsfpBlocksRelations = relations(nsfpBlocks, ({ one }) => ({
@@ -892,4 +889,3 @@ export const nsfpBlocksRelations = relations(nsfpBlocks, ({ one }) => ({
 export const taxInvoicesRelations = relations(taxInvoices, ({ one }) => ({
   invoice: one(invoices, { fields: [taxInvoices.invoiceId], references: [invoices.id] }),
 }));
-

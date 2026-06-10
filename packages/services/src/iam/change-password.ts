@@ -1,5 +1,5 @@
 import { db } from '@erp/db';
-import { users, authAccounts, userRoles } from '@erp/db/schema/auth';
+import { authAccounts, userRoles, users } from '@erp/db/schema/auth';
 import { hashPassword, verifyPassword } from '@erp/services/auth/password';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
@@ -28,7 +28,9 @@ export async function changeMyPassword(
 ): Promise<Result<{ success: boolean }>> {
   const parsed = ChangeMyPasswordSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('iam.password.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('iam.password.validationFailed', { issues: parsed.error.issues }),
+    );
   }
   const { oldPassword, newPassword } = parsed.data;
 
@@ -84,7 +86,7 @@ export async function changeMyPassword(
     (e) => {
       if (e instanceof AppError) return e;
       return AppError.internal('iam.password.changeFailed', e);
-    }
+    },
   );
 }
 
@@ -97,7 +99,9 @@ export async function adminResetPassword(
 ): Promise<Result<{ success: boolean }>> {
   const parsed = AdminResetPasswordSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('iam.password.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('iam.password.validationFailed', { issues: parsed.error.issues }),
+    );
   }
   const { userId, newPassword } = parsed.data;
 
@@ -111,7 +115,9 @@ export async function adminResetPassword(
         .limit(1);
       const targetLocationId = roleRows[0]?.locationId ?? undefined;
 
-      const permCheck = await requirePermission(ctx.userId, 'hr.employee.write', { locationId: targetLocationId });
+      const permCheck = await requirePermission(ctx.userId, 'hr.employee.write', {
+        locationId: targetLocationId,
+      });
       if (!permCheck.ok) {
         throw permCheck.error;
       }
@@ -161,6 +167,6 @@ export async function adminResetPassword(
     (e) => {
       if (e instanceof AppError) return e;
       return AppError.internal('iam.password.resetFailed', e);
-    }
+    },
   );
 }

@@ -14,12 +14,18 @@
 import { db } from '@erp/db';
 import { accountingPeriods, accounts } from '@erp/db/schema/accounting';
 import { cmsSettings } from '@erp/db/schema/cms';
-import { purchaseInvoiceLines, purchaseInvoices, purchaseOrders, goodsReceiptNotes, purchaseOrderLines } from '@erp/db/schema/purchasing';
+import {
+  goodsReceiptNotes,
+  purchaseInvoiceLines,
+  purchaseInvoices,
+  purchaseOrderLines,
+  purchaseOrders,
+} from '@erp/db/schema/purchasing';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq, inArray, isNull, sql, desc } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
 import {
   POSTING_ACCOUNT_DEFAULTS,
@@ -30,9 +36,9 @@ import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import {
   CancelPurchaseInvoiceInputSchema,
+  type CreatePurchaseInvoiceInput,
   CreatePurchaseInvoiceInputSchema,
   VerifyPurchaseInvoiceInputSchema,
-  type CreatePurchaseInvoiceInput,
 } from './purchase-invoice-schemas';
 
 // Legacy AP setting (id-based) kept for back-compat; the configurable account
@@ -123,7 +129,9 @@ export async function createPurchaseInvoice(
 ): Promise<Result<{ id: string; number: string }>> {
   const parsed = CreatePurchaseInvoiceInputSchema.safeParse(rawInput);
   if (!parsed.success) {
-    return err(AppError.validation('purchasing.errors.invalid_input', { detail: parsed.error.message }));
+    return err(
+      AppError.validation('purchasing.errors.invalid_input', { detail: parsed.error.message }),
+    );
   }
   const input = parsed.data;
 
@@ -141,7 +149,7 @@ export async function createPurchaseInvoice(
     // Simplistic tax: if taxCode exists, assume 11% for now, or just let caller specify tax amount.
     // For now we assume the caller provided tax amounts, or we just leave it 0n if not handled.
     const lineTax = 0n; // In a full implementation, we lookup tax rate.
-    
+
     subtotal += lineSubtotal;
     taxTotal += lineTax;
 
@@ -240,7 +248,11 @@ export async function verifyPurchaseInvoice(
       .where(eq(purchaseOrderLines.purchaseOrderId, invoice.purchaseOrderId));
 
     // 2. Get GRN
-    const [grn] = await db.select().from(goodsReceiptNotes).where(eq(goodsReceiptNotes.id, invoice.grnId)).limit(1);
+    const [grn] = await db
+      .select()
+      .from(goodsReceiptNotes)
+      .where(eq(goodsReceiptNotes.id, invoice.grnId))
+      .limit(1);
 
     if (grn) {
       // 3-way match logic could enforce strict checks here.
@@ -254,7 +266,9 @@ export async function verifyPurchaseInvoice(
   const [period] = await db
     .select()
     .from(accountingPeriods)
-    .where(and(eq(accountingPeriods.tenantId, ctx.tenantId), eq(accountingPeriods.code, periodCode)))
+    .where(
+      and(eq(accountingPeriods.tenantId, ctx.tenantId), eq(accountingPeriods.code, periodCode)),
+    )
     .limit(1);
 
   if (!period || period.status !== 'open') {
@@ -347,7 +361,8 @@ export async function verifyPurchaseInvoice(
         referenceId: invoice.id,
         lines: linesToPost as any,
       },
-      ctx, { skipPermissionCheck: true }
+      ctx,
+      { skipPermissionCheck: true },
     );
 
     if (!jeResult.ok) {
@@ -359,7 +374,10 @@ export async function verifyPurchaseInvoice(
     }
 
     journalEntryId = jeResult.value.id;
-    await db.update(purchaseInvoices).set({ journalEntryId }).where(eq(purchaseInvoices.id, invoice.id));
+    await db
+      .update(purchaseInvoices)
+      .set({ journalEntryId })
+      .where(eq(purchaseInvoices.id, invoice.id));
   }
 
   await auditRecord({
@@ -380,8 +398,7 @@ export async function cancelPurchaseInvoice(
 ): Promise<Result<{ id: string; status: string }>> {
   const parsed = CancelPurchaseInvoiceInputSchema.safeParse(rawInput);
   if (!parsed.success) return err(AppError.validation('invalid input'));
-  
+
   // Implementation of cancel (not shown fully, just basic structure)
   return ok({ id: parsed.data.invoiceId, status: 'cancelled' });
 }
-

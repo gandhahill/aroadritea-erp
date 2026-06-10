@@ -25,8 +25,8 @@ import { db } from '@erp/db';
 import { auditLog } from '@erp/db/schema/audit';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
-import type { PermissionCode } from '@erp/shared/types';
 import { type Result, err, ok } from '@erp/shared/result';
+import type { PermissionCode } from '@erp/shared/types';
 import type { AuditContext } from '@erp/shared/types';
 import type { z } from 'zod';
 import { can } from '../../iam';
@@ -375,17 +375,18 @@ registerTool({
       notes: { type: 'string', description: 'Operator notes / OCR caveats.' },
       raw_line_items: {
         type: 'array',
-        description: 'PREFERRED — raw items from user input or receipt. Server auto-resolves names to product IDs via fuzzy matching; you do NOT need to call get_product first. Include bracket modifiers like [700ml, Less sugar] in the name for better variant matching.',
+        description:
+          'PREFERRED — raw items from user input or receipt. Server auto-resolves names to product IDs via fuzzy matching; you do NOT need to call get_product first. Include bracket modifiers like [700ml, Less sugar] in the name for better variant matching.',
         items: {
           type: 'object',
           properties: {
             name: { type: 'string', description: 'Product name as typed/printed' },
             qty: { type: 'integer', description: 'Quantity' },
-            amount: { type: 'string', description: 'Line total amount as integer string' }
+            amount: { type: 'string', description: 'Line total amount as integer string' },
           },
-          required: ['name', 'qty', 'amount']
-        }
-      }
+          required: ['name', 'qty', 'amount'],
+        },
+      },
     },
     required: ['sales_date', 'gross_sales'],
   },
@@ -417,11 +418,14 @@ registerTool({
           type: 'object',
           properties: {
             name: { type: 'string' },
-            qty_delta: { type: 'number', description: 'Negative for waste/loss, positive for gain' }
+            qty_delta: {
+              type: 'number',
+              description: 'Negative for waste/loss, positive for gain',
+            },
           },
-          required: ['name', 'qty_delta']
-        }
-      }
+          required: ['name', 'qty_delta'],
+        },
+      },
     },
     required: ['adjustment_date', 'reason', 'raw_line_items'],
   },
@@ -564,7 +568,9 @@ export async function listAvailableTools(
   const out: AiToolDefinition[] = [];
   for (const tool of Object.values(TOOLS)) {
     if (tool.name === 'web_search' && !options.includeWebSearch) continue;
-    const allowed = await can(ctx.userId, tool.permission as PermissionCode, { locationId: ctx.locationId });
+    const allowed = await can(ctx.userId, tool.permission as PermissionCode, {
+      locationId: ctx.locationId,
+    });
     if (!allowed) continue;
     out.push({
       type: 'function',
@@ -623,7 +629,9 @@ export async function executeTool(
     );
   }
 
-  const allowed = await can(ctx.userId, tool.permission as PermissionCode, { locationId: ctx.locationId });
+  const allowed = await can(ctx.userId, tool.permission as PermissionCode, {
+    locationId: ctx.locationId,
+  });
   if (!allowed) {
     const log: ToolExecutionLog = {
       toolName: name,

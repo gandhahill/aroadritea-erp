@@ -1,12 +1,12 @@
 'use client';
 
+import { ConfirmDialog, InlineAlert } from '@/components/confirm-dialog';
 import { FilterBar, FilterField } from '@/components/filter-bar';
 import { Button, Input, Select, TableCell, TableHead } from '@erp/ui';
-import { ConfirmDialog, InlineAlert } from '@/components/confirm-dialog';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import { dispensasiAbsenAction, revokeFaceDataAction, revokeDispensationAction } from './actions';
+import { dispensasiAbsenAction, revokeDispensationAction, revokeFaceDataAction } from './actions';
 
 interface SummaryRow {
   employeeId: string;
@@ -64,7 +64,12 @@ export function AttendanceSummaryClient({
   const [revokeTarget, setRevokeTarget] = useState<{ id: string; name: string } | null>(null);
 
   // Revoke dispensation modal state
-  const [revokeDispTarget, setRevokeDispTarget] = useState<{ id: string; name: string; dates: string[]; reason: string } | null>(null);
+  const [revokeDispTarget, setRevokeDispTarget] = useState<{
+    id: string;
+    name: string;
+    dates: string[];
+    reason: string;
+  } | null>(null);
   const [selectedRevokeDates, setSelectedRevokeDates] = useState<string[]>([]);
 
   // Track locally revoked employees so the button hides immediately after revoke
@@ -139,14 +144,22 @@ export function AttendanceSummaryClient({
     setErrorMsg(null);
     startTransition(async () => {
       const res = await dispensasiAbsenAction(dispEmployee.id, dispDates, dispReason.trim());
-      if (!res.ok) { setErrorMsg(res.error ?? 'Error'); return; }
+      if (!res.ok) {
+        setErrorMsg(res.error ?? 'Error');
+        return;
+      }
       setSuccessMsg(t('dispensationSuccess'));
       setDispEmployee(null);
       router.refresh();
     });
   };
 
-  const openRevokeDispensation = (target: { id: string; name: string; dates: string[]; reason: string }) => {
+  const openRevokeDispensation = (target: {
+    id: string;
+    name: string;
+    dates: string[];
+    reason: string;
+  }) => {
     setRevokeDispTarget(target);
     setSelectedRevokeDates(target.dates); // default select all
   };
@@ -164,8 +177,12 @@ export function AttendanceSummaryClient({
 
   return (
     <div className="space-y-4">
-      {errorMsg && <InlineAlert message={errorMsg} tone="error" onDismiss={() => setErrorMsg(null)} />}
-      {successMsg && <InlineAlert message={successMsg} tone="success" onDismiss={() => setSuccessMsg(null)} />}
+      {errorMsg && (
+        <InlineAlert message={errorMsg} tone="error" onDismiss={() => setErrorMsg(null)} />
+      )}
+      {successMsg && (
+        <InlineAlert message={successMsg} tone="success" onDismiss={() => setSuccessMsg(null)} />
+      )}
 
       {/* Tab switcher */}
       <div className="flex gap-1 rounded-lg bg-brand-cream-2 p-1 w-fit">
@@ -199,7 +216,9 @@ export function AttendanceSummaryClient({
           >
             <option value="">{t('summaryAllLocations')}</option>
             {locations.map((loc) => (
-              <option key={loc.id} value={loc.id}>{loc.name}</option>
+              <option key={loc.id} value={loc.id}>
+                {loc.name}
+              </option>
             ))}
           </Select>
         </FilterField>
@@ -216,24 +235,50 @@ export function AttendanceSummaryClient({
           <table className="w-full min-w-full text-sm">
             <thead>
               <tr className="border-b border-brand-cream-3 bg-brand-cream-1">
-                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.employee')}</TableHead>
-                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('summaryScheduled')}</TableHead>
-                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('summaryPresent')}</TableHead>
-                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('summaryAbsent')}</TableHead>
-                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('summaryDispensed')}</TableHead>
-                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('summaryLateCount')}</TableHead>
-                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('summaryLateMinutes')}</TableHead>
-                <TableHead className="px-4 py-3 font-medium text-brand-ink-2">{t('summaryActions')}</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                  {t('columns.employee')}
+                </TableHead>
+                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">
+                  {t('summaryScheduled')}
+                </TableHead>
+                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">
+                  {t('summaryPresent')}
+                </TableHead>
+                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">
+                  {t('summaryAbsent')}
+                </TableHead>
+                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">
+                  {t('summaryDispensed')}
+                </TableHead>
+                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">
+                  {t('summaryLateCount')}
+                </TableHead>
+                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">
+                  {t('summaryLateMinutes')}
+                </TableHead>
+                <TableHead className="px-4 py-3 font-medium text-brand-ink-2">
+                  {t('summaryActions')}
+                </TableHead>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-cream-2">
               {items.map((row) => (
                 <tr key={row.employeeId} className="hover:bg-brand-cream-1/50">
-                  <TableCell className="px-4 py-3 font-medium text-brand-ink">{row.employeeName}</TableCell>
-                  <TableCell className="px-4 py-3 text-right text-brand-ink-2">{row.scheduledDays}</TableCell>
-                  <TableCell className="px-4 py-3 text-right text-brand-jade font-medium">{row.presentDays}</TableCell>
+                  <TableCell className="px-4 py-3 font-medium text-brand-ink">
+                    {row.employeeName}
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-right text-brand-ink-2">
+                    {row.scheduledDays}
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-right text-brand-jade font-medium">
+                    {row.presentDays}
+                  </TableCell>
                   <TableCell className="px-4 py-3 text-right">
-                    {row.absentDays > 0 ? <span className="font-semibold text-rose-600">{row.absentDays}</span> : <span className="text-brand-ink-3">0</span>}
+                    {row.absentDays > 0 ? (
+                      <span className="font-semibold text-rose-600">{row.absentDays}</span>
+                    ) : (
+                      <span className="text-brand-ink-3">0</span>
+                    )}
                   </TableCell>
                   <TableCell className="px-4 py-3">
                     {row.dispensedDays > 0 ? (
@@ -243,27 +288,55 @@ export function AttendanceSummaryClient({
                           <div className="mt-0.5 space-y-0.5">
                             {(() => {
                               const details = dispensationDetails[row.employeeId] ?? [];
-                              const groups = details.reduce((acc, d) => {
-                                const key = `${d.reason}|${d.givenBy ?? ''}`;
-                                if (!acc[key]) acc[key] = { reason: d.reason, givenBy: d.givenBy, dates: [] };
-                                acc[key].dates.push(d.workDate);
-                                return acc;
-                              }, {} as Record<string, { reason: string; givenBy?: string | null; dates: string[] }>);
+                              const groups = details.reduce(
+                                (acc, d) => {
+                                  const key = `${d.reason}|${d.givenBy ?? ''}`;
+                                  if (!acc[key])
+                                    acc[key] = { reason: d.reason, givenBy: d.givenBy, dates: [] };
+                                  acc[key].dates.push(d.workDate);
+                                  return acc;
+                                },
+                                {} as Record<
+                                  string,
+                                  { reason: string; givenBy?: string | null; dates: string[] }
+                                >,
+                              );
 
                               return Object.values(groups).map((g) => (
-                                <div key={`${g.reason}-${g.givenBy}`} className="flex items-center gap-1 group">
+                                <div
+                                  key={`${g.reason}-${g.givenBy}`}
+                                  className="flex items-center gap-1 group"
+                                >
                                   <p className="text-[11px] text-brand-ink-3">
-                                    {g.dates.join(', ')} — {g.reason} {g.givenBy ? t('dispensationGivenBy', { name: g.givenBy }) : ''}
+                                    {g.dates.join(', ')} — {g.reason}{' '}
+                                    {g.givenBy ? t('dispensationGivenBy', { name: g.givenBy }) : ''}
                                   </p>
                                   <button
                                     type="button"
                                     title={t('revokeDispBtn')}
-                                    onClick={() => openRevokeDispensation({ id: row.employeeId, name: row.employeeName, dates: g.dates, reason: g.reason })}
+                                    onClick={() =>
+                                      openRevokeDispensation({
+                                        id: row.employeeId,
+                                        name: row.employeeName,
+                                        dates: g.dates,
+                                        reason: g.reason,
+                                      })
+                                    }
                                     disabled={isPending}
                                     className="text-rose-400 hover:text-rose-600 p-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity"
                                   >
-                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    <svg
+                                      className="w-3.5 h-3.5"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M6 18L18 6M6 6l12 12"
+                                      />
                                     </svg>
                                   </button>
                                 </div>
@@ -277,7 +350,11 @@ export function AttendanceSummaryClient({
                     )}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-right">
-                    {row.lateCount > 0 ? <span className="text-amber-600">{row.lateCount}</span> : <span className="text-brand-ink-3">0</span>}
+                    {row.lateCount > 0 ? (
+                      <span className="text-amber-600">{row.lateCount}</span>
+                    ) : (
+                      <span className="text-brand-ink-3">0</span>
+                    )}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-right text-brand-ink-2">
                     {row.totalLateMinutes > 0 ? `${row.totalLateMinutes}m` : '—'}
@@ -287,23 +364,28 @@ export function AttendanceSummaryClient({
                       {(absentDates[row.employeeId] ?? []).length > 0 && (
                         <button
                           type="button"
-                          onClick={() => openDispensation({ id: row.employeeId, name: row.employeeName })}
+                          onClick={() =>
+                            openDispensation({ id: row.employeeId, name: row.employeeName })
+                          }
                           disabled={isPending}
                           className="rounded-md border border-brand-jade/30 px-2.5 py-1 text-xs font-semibold text-brand-jade hover:bg-brand-jade/10"
                         >
                           {t('dispensationBtn')}
                         </button>
                       )}
-                      {employeesWithFace.includes(row.employeeId) && !locallyRevoked.has(row.employeeId) && (
-                        <button
-                          type="button"
-                          onClick={() => setRevokeTarget({ id: row.employeeId, name: row.employeeName })}
-                          disabled={isPending}
-                          className="rounded-md border border-rose-200 px-2.5 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50"
-                        >
-                          {t('revokeFaceBtn')}
-                        </button>
-                      )}
+                      {employeesWithFace.includes(row.employeeId) &&
+                        !locallyRevoked.has(row.employeeId) && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setRevokeTarget({ id: row.employeeId, name: row.employeeName })
+                            }
+                            disabled={isPending}
+                            className="rounded-md border border-rose-200 px-2.5 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50"
+                          >
+                            {t('revokeFaceBtn')}
+                          </button>
+                        )}
                     </div>
                   </TableCell>
                 </tr>
@@ -312,12 +394,22 @@ export function AttendanceSummaryClient({
             <tfoot>
               <tr className="border-t-2 border-brand-cream-3 bg-brand-cream-1 font-semibold">
                 <TableCell className="px-4 py-3 text-brand-ink">{t('summaryTotal')}</TableCell>
-                <TableCell className="px-4 py-3 text-right text-brand-ink">{totals.scheduled}</TableCell>
-                <TableCell className="px-4 py-3 text-right text-brand-jade">{totals.present}</TableCell>
-                <TableCell className="px-4 py-3 text-right text-rose-600">{totals.absent}</TableCell>
-                <TableCell className="px-4 py-3 text-right text-brand-jade">{totals.dispensed}</TableCell>
+                <TableCell className="px-4 py-3 text-right text-brand-ink">
+                  {totals.scheduled}
+                </TableCell>
+                <TableCell className="px-4 py-3 text-right text-brand-jade">
+                  {totals.present}
+                </TableCell>
+                <TableCell className="px-4 py-3 text-right text-rose-600">
+                  {totals.absent}
+                </TableCell>
+                <TableCell className="px-4 py-3 text-right text-brand-jade">
+                  {totals.dispensed}
+                </TableCell>
                 <TableCell className="px-4 py-3 text-right text-amber-600">{totals.late}</TableCell>
-                <TableCell className="px-4 py-3 text-right text-brand-ink">{totals.lateMinutes > 0 ? `${totals.lateMinutes}m` : '—'}</TableCell>
+                <TableCell className="px-4 py-3 text-right text-brand-ink">
+                  {totals.lateMinutes > 0 ? `${totals.lateMinutes}m` : '—'}
+                </TableCell>
                 <TableCell className="px-4 py-3" />
               </tr>
             </tfoot>
@@ -336,7 +428,9 @@ export function AttendanceSummaryClient({
 
             <div className="mt-3 space-y-3">
               <div>
-                <label className="mb-1 block text-xs font-medium text-brand-ink-3">{t('dispensationDates')}</label>
+                <label className="mb-1 block text-xs font-medium text-brand-ink-3">
+                  {t('dispensationDates')}
+                </label>
                 {(() => {
                   const availableDates = dispEmployee ? (absentDates[dispEmployee.id] ?? []) : [];
                   if (availableDates.length === 0) {
@@ -387,7 +481,9 @@ export function AttendanceSummaryClient({
                 })()}
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-brand-ink-3">{t('dispensationReason')}</label>
+                <label className="mb-1 block text-xs font-medium text-brand-ink-3">
+                  {t('dispensationReason')}
+                </label>
                 <textarea
                   value={dispReason}
                   onChange={(e) => setDispReason(e.target.value)}
@@ -398,8 +494,13 @@ export function AttendanceSummaryClient({
             </div>
 
             <div className="mt-4 flex justify-end gap-2">
-              <Button variant="secondary" onClick={() => setDispEmployee(null)}>{tCommon('actions.cancel')}</Button>
-              <Button onClick={submitDispensation} disabled={isPending || dispDates.length === 0 || dispReason.trim().length < 3}>
+              <Button variant="secondary" onClick={() => setDispEmployee(null)}>
+                {tCommon('actions.cancel')}
+              </Button>
+              <Button
+                onClick={submitDispensation}
+                disabled={isPending || dispDates.length === 0 || dispReason.trim().length < 3}
+              >
                 {isPending ? tCommon('actions.saving') : t('dispensationSubmit')}
               </Button>
             </div>
@@ -468,7 +569,12 @@ export function AttendanceSummaryClient({
             </div>
 
             <div className="mt-5 flex justify-end gap-2">
-              <Button type="button" variant="ghost" onClick={() => setRevokeDispTarget(null)} disabled={isPending}>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setRevokeDispTarget(null)}
+                disabled={isPending}
+              >
                 {tCommon('actions.cancel')}
               </Button>
               <Button

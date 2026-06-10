@@ -94,7 +94,9 @@ export function HppClient({ locations }: Props) {
           <span className="text-sm font-medium text-brand-ink">{t('location')}</span>
           <Select value={locationId} onChange={(e) => setLocationId(e.target.value)}>
             {locations.map((l) => (
-              <option key={l.value} value={l.value}>{l.label}</option>
+              <option key={l.value} value={l.value}>
+                {l.label}
+              </option>
             ))}
           </Select>
         </label>
@@ -155,8 +157,12 @@ export function HppClient({ locations }: Props) {
                         <TableCell className="px-4 py-3">{line.productName}</TableCell>
                         <TableCell className="px-4 py-3 text-right">{line.physicalQty}</TableCell>
                         <TableCell className="px-4 py-3">{line.uom}</TableCell>
-                        <TableCell className="px-4 py-3 text-right">{formatMoney(line.avgUnitCost)}</TableCell>
-                        <TableCell className="px-4 py-3 text-right font-medium">{formatMoney(line.physicalValue)}</TableCell>
+                        <TableCell className="px-4 py-3 text-right">
+                          {formatMoney(line.avgUnitCost)}
+                        </TableCell>
+                        <TableCell className="px-4 py-3 text-right font-medium">
+                          {formatMoney(line.physicalValue)}
+                        </TableCell>
                       </tr>
                     ))
                   )}
@@ -198,8 +204,12 @@ export function HppClient({ locations }: Props) {
                         <TableCell className="px-4 py-3">{line.productName}</TableCell>
                         <TableCell className="px-4 py-3 text-right">{line.physicalQty}</TableCell>
                         <TableCell className="px-4 py-3">{line.uom}</TableCell>
-                        <TableCell className="px-4 py-3 text-right">{formatMoney(line.avgUnitCost)}</TableCell>
-                        <TableCell className="px-4 py-3 text-right font-medium">{formatMoney(line.physicalValue)}</TableCell>
+                        <TableCell className="px-4 py-3 text-right">
+                          {formatMoney(line.avgUnitCost)}
+                        </TableCell>
+                        <TableCell className="px-4 py-3 text-right font-medium">
+                          {formatMoney(line.physicalValue)}
+                        </TableCell>
                       </tr>
                     ))
                   )}

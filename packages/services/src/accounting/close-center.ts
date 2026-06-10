@@ -193,7 +193,10 @@ async function buildChecklist({
   const locationFilter = locationId ? eq(journalEntries.locationId, locationId) : undefined;
   const journalPeriodFilter = period
     ? eq(journalEntries.periodId, period.id)
-    : and(gte(journalEntries.postingDate, bounds.startDate), lte(journalEntries.postingDate, bounds.endDate));
+    : and(
+        gte(journalEntries.postingDate, bounds.startDate),
+        lte(journalEntries.postingDate, bounds.endDate),
+      );
 
   const [
     draftJournals,
@@ -300,7 +303,13 @@ async function buildChecklist({
       locationId ? eq(stockMovements.locationId, locationId) : undefined,
       gte(stockMovements.occurredAt, bounds.startAt),
       lte(stockMovements.occurredAt, bounds.endAt),
-      inArray(stockMovements.reason, ['purchase', 'opening', 'adjustment', 'production', 'transfer_in']),
+      inArray(stockMovements.reason, [
+        'purchase',
+        'opening',
+        'adjustment',
+        'production',
+        'transfer_in',
+      ]),
       sql`${stockMovements.qtyDelta}::numeric > 0`,
       isNull(stockMovements.unitCost),
       isNull(stockMovements.deletedAt),
@@ -454,8 +463,7 @@ async function buildChecklist({
     },
     {
       id: 'payroll',
-      status:
-        payrollBlockingRuns > 0 ? 'blocked' : payrollRuns === 0 ? 'warning' : 'ready',
+      status: payrollBlockingRuns > 0 ? 'blocked' : payrollRuns === 0 ? 'warning' : 'ready',
       href: `/hr/payroll?periodCode=${periodCode}${locationId ? `&locationId=${locationId}` : ''}`,
       counts: {
         payrollRuns,
@@ -486,9 +494,14 @@ async function countPurchaseInvoices(
         gte(purchaseInvoices.invoiceDate, bounds.startDate),
         lte(purchaseInvoices.invoiceDate, bounds.endDate),
         locationId
-          ? or(eq(purchaseOrders.locationId, locationId), eq(goodsReceiptNotes.locationId, locationId))
+          ? or(
+              eq(purchaseOrders.locationId, locationId),
+              eq(goodsReceiptNotes.locationId, locationId),
+            )
           : undefined,
-        unpaidOnly ? sql`${purchaseInvoices.paidAmount} < ${purchaseInvoices.grandTotal}` : undefined,
+        unpaidOnly
+          ? sql`${purchaseInvoices.paidAmount} < ${purchaseInvoices.grandTotal}`
+          : undefined,
         isNull(purchaseInvoices.deletedAt),
       ),
     );
@@ -518,10 +531,7 @@ async function countUnmatchedBankLines(
   return Number(rows[0]?.value ?? 0);
 }
 
-async function countRows(
-  table: AnyPgTable,
-  conditions: Array<SQL | undefined>,
-): Promise<number> {
+async function countRows(table: AnyPgTable, conditions: Array<SQL | undefined>): Promise<number> {
   const rows = await db
     .select({ value: count() })
     .from(table)

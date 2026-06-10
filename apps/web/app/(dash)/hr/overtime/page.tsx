@@ -11,14 +11,26 @@ export const metadata: Metadata = { title: 'Overtime' };
 export default async function OvertimePage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; employeeId?: string; dateFrom?: string; dateTo?: string; page?: string }>;
+  searchParams: Promise<{
+    status?: string;
+    employeeId?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    page?: string;
+  }>;
 }) {
   const session = await getSession();
   if (!session?.user) redirect('/login');
 
   const params = await searchParams;
   const page = Math.max(1, Number.parseInt(params.page ?? '1', 10));
-  const result = await fetchOvertimePage(params.status, params.employeeId, params.dateFrom, params.dateTo, page);
+  const result = await fetchOvertimePage(
+    params.status,
+    params.employeeId,
+    params.dateFrom,
+    params.dateTo,
+    page,
+  );
   if (!result) redirect('/dashboard');
 
   const t = await getTranslations('hr.overtime');

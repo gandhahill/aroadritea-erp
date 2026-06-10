@@ -175,7 +175,7 @@ export async function aging(input: AgingInput, ctx: AuditContext): Promise<Resul
             input.kind === 'AR'
               ? BigInt(row.debit) - BigInt(row.credit)
               : BigInt(row.credit) - BigInt(row.debit);
-          
+
           if (amount < 0n) {
             totalPayments += -amount;
           } else if (amount > 0n) {
@@ -191,7 +191,9 @@ export async function aging(input: AgingInput, ctx: AuditContext): Promise<Resul
         });
 
         const partnerId = key === '__none__' ? null : key;
-        const partnerName = partnerId ? (partnerMap.get(partnerId) ?? partnerId) : '(tanpa partner)';
+        const partnerName = partnerId
+          ? (partnerMap.get(partnerId) ?? partnerId)
+          : '(tanpa partner)';
         const buckets = emptyBuckets();
         let lineCount = 0;
 

@@ -1,23 +1,24 @@
 import 'dotenv/config'; // will load root .env
+import { inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { products, stockLevels, stockMovements } from './packages/db/schema/inventory';
-import { inArray } from 'drizzle-orm';
 
 async function main() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error('DATABASE_URL is missing');
-  
+
   console.log('Connecting to', connectionString.split('@')[1]);
   const sql = postgres(connectionString);
   const db = drizzle(sql);
 
   console.log('Fetching supplies...');
-  const supplies = await db.select({ id: products.id })
+  const supplies = await db
+    .select({ id: products.id })
     .from(products)
     .where(inArray(products.kind, ['raw_material', 'consumable', 'merchandise', 'service']));
 
-  const ids = supplies.map(s => s.id);
+  const ids = supplies.map((s) => s.id);
 
   if (ids.length === 0) {
     console.log('No supplies found.');

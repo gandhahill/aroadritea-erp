@@ -240,125 +240,132 @@ export function JournalForm({ accounts, locations, partners }: Props) {
               {lines.map((line, index) => {
                 const showPartner = needsPartner(line.accountId);
                 return (
-                <tr key={line.key} className="group">
-                  <TableCell className="min-w-72 px-4 py-3 align-top">
-                    <Select
-                      name={`accountId-${index}`}
-                      required
-                      value={line.accountId}
-                      onChange={(event) => {
-                        const newAccountId = event.target.value;
-                        const patch: Partial<LineDraft> = { accountId: newAccountId };
-                        if (!needsPartner(newAccountId)) {
-                          patch.partnerId = '';
-                          patch.dueDate = '';
-                          patch.reminderDaysBefore = '';
+                  <tr key={line.key} className="group">
+                    <TableCell className="min-w-72 px-4 py-3 align-top">
+                      <Select
+                        name={`accountId-${index}`}
+                        required
+                        value={line.accountId}
+                        onChange={(event) => {
+                          const newAccountId = event.target.value;
+                          const patch: Partial<LineDraft> = { accountId: newAccountId };
+                          if (!needsPartner(newAccountId)) {
+                            patch.partnerId = '';
+                            patch.dueDate = '';
+                            patch.reminderDaysBefore = '';
+                          }
+                          updateLine(line.key, patch);
+                        }}
+                      >
+                        <option value="">{t('selectAccount')}</option>
+                        {accounts.map((account) => (
+                          <option key={account.id} value={account.id}>
+                            {account.code} - {pickLocalized(account.name, locale, account.code)}
+                          </option>
+                        ))}
+                      </Select>
+                      {showPartner && (
+                        <div className="mt-2 space-y-2 rounded-md border border-brand-cream-3 bg-brand-cream-2/30 p-2">
+                          <div>
+                            <span className="text-[11px] font-medium text-brand-ink-3">
+                              {t('partner')}
+                            </span>
+                            <Select
+                              name={`partnerId-${index}`}
+                              value={line.partnerId}
+                              onChange={(event) => {
+                                const pid = event.target.value;
+                                const patch: Partial<LineDraft> = { partnerId: pid };
+                                const terms = partnerTermsMap.get(pid);
+                                if (terms != null && !line.dueDate) {
+                                  const pd =
+                                    document.querySelector<HTMLInputElement>(
+                                      'input[name="postingDate"]',
+                                    )?.value || today;
+                                  const due = new Date(pd);
+                                  due.setDate(due.getDate() + terms);
+                                  patch.dueDate = due.toISOString().slice(0, 10);
+                                }
+                                updateLine(line.key, patch);
+                              }}
+                            >
+                              <option value="">{t('noPartner')}</option>
+                              {partners.map((partner) => (
+                                <option key={partner.id} value={partner.id}>
+                                  {partner.name} ({partner.kind})
+                                </option>
+                              ))}
+                            </Select>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <span className="text-[11px] font-medium text-brand-ink-3">
+                                {t('dueDate')}
+                              </span>
+                              <Input
+                                name={`dueDate-${index}`}
+                                type="date"
+                                value={line.dueDate}
+                                onChange={(event) =>
+                                  updateLine(line.key, { dueDate: event.target.value })
+                                }
+                              />
+                            </div>
+                            <div>
+                              <span className="text-[11px] font-medium text-brand-ink-3">
+                                {t('reminderDaysBefore')}
+                              </span>
+                              <Input
+                                name={`reminderDaysBefore-${index}`}
+                                type="number"
+                                min={0}
+                                max={365}
+                                value={line.reminderDaysBefore}
+                                onChange={(event) =>
+                                  updateLine(line.key, { reminderDaysBefore: event.target.value })
+                                }
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="min-w-56 px-4 py-3 align-top">
+                      <Input
+                        name={`lineDescription-${index}`}
+                        value={line.description}
+                        onChange={(event) =>
+                          updateLine(line.key, { description: event.target.value })
                         }
-                        updateLine(line.key, patch);
-                      }}
-                    >
-                      <option value="">{t('selectAccount')}</option>
-                      {accounts.map((account) => (
-                        <option key={account.id} value={account.id}>
-                          {account.code} - {pickLocalized(account.name, locale, account.code)}
-                        </option>
-                      ))}
-                    </Select>
-                    {showPartner && (
-                      <div className="mt-2 space-y-2 rounded-md border border-brand-cream-3 bg-brand-cream-2/30 p-2">
-                        <div>
-                          <span className="text-[11px] font-medium text-brand-ink-3">{t('partner')}</span>
-                          <Select
-                            name={`partnerId-${index}`}
-                            value={line.partnerId}
-                            onChange={(event) => {
-                              const pid = event.target.value;
-                              const patch: Partial<LineDraft> = { partnerId: pid };
-                              const terms = partnerTermsMap.get(pid);
-                              if (terms != null && !line.dueDate) {
-                                const pd = (document.querySelector<HTMLInputElement>('input[name="postingDate"]'))?.value || today;
-                                const due = new Date(pd);
-                                due.setDate(due.getDate() + terms);
-                                patch.dueDate = due.toISOString().slice(0, 10);
-                              }
-                              updateLine(line.key, patch);
-                            }}
-                          >
-                            <option value="">{t('noPartner')}</option>
-                            {partners.map((partner) => (
-                              <option key={partner.id} value={partner.id}>
-                                {partner.name} ({partner.kind})
-                              </option>
-                            ))}
-                          </Select>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <span className="text-[11px] font-medium text-brand-ink-3">{t('dueDate')}</span>
-                            <Input
-                              name={`dueDate-${index}`}
-                              type="date"
-                              value={line.dueDate}
-                              onChange={(event) => updateLine(line.key, { dueDate: event.target.value })}
-                            />
-                          </div>
-                          <div>
-                            <span className="text-[11px] font-medium text-brand-ink-3">{t('reminderDaysBefore')}</span>
-                            <Input
-                              name={`reminderDaysBefore-${index}`}
-                              type="number"
-                              min={0}
-                              max={365}
-                              value={line.reminderDaysBefore}
-                              onChange={(event) =>
-                                updateLine(line.key, { reminderDaysBefore: event.target.value })
-                              }
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="min-w-56 px-4 py-3 align-top">
-                    <Input
-                      name={`lineDescription-${index}`}
-                      value={line.description}
-                      onChange={(event) =>
-                        updateLine(line.key, { description: event.target.value })
-                      }
-                    />
-                  </TableCell>
-                  <TableCell className="min-w-36 px-4 py-3 align-top">
-                    <MoneyInput
-                      name={`debit-${index}`}
-                      value={line.debit}
-                      onValueChange={(raw) =>
-                        updateLine(line.key, { debit: raw, credit: '' })
-                      }
-                    />
-                  </TableCell>
-                  <TableCell className="min-w-36 px-4 py-3 align-top">
-                    <MoneyInput
-                      name={`credit-${index}`}
-                      value={line.credit}
-                      onValueChange={(raw) =>
-                        updateLine(line.key, { credit: raw, debit: '' })
-                      }
-                    />
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-right align-top">
-                    <Button
-                      type="button"
-                      onClick={() => removeLine(line.key)}
-                      disabled={lines.length <= 2}
-                      className="rounded-md "
-                      variant="danger"
-                      size="sm"
-                    >
-                      {t('deleteItem')}
-                    </Button>
-                  </TableCell>
-                </tr>
+                      />
+                    </TableCell>
+                    <TableCell className="min-w-36 px-4 py-3 align-top">
+                      <MoneyInput
+                        name={`debit-${index}`}
+                        value={line.debit}
+                        onValueChange={(raw) => updateLine(line.key, { debit: raw, credit: '' })}
+                      />
+                    </TableCell>
+                    <TableCell className="min-w-36 px-4 py-3 align-top">
+                      <MoneyInput
+                        name={`credit-${index}`}
+                        value={line.credit}
+                        onValueChange={(raw) => updateLine(line.key, { credit: raw, debit: '' })}
+                      />
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-right align-top">
+                      <Button
+                        type="button"
+                        onClick={() => removeLine(line.key)}
+                        disabled={lines.length <= 2}
+                        className="rounded-md "
+                        variant="danger"
+                        size="sm"
+                      >
+                        {t('deleteItem')}
+                      </Button>
+                    </TableCell>
+                  </tr>
                 );
               })}
             </TableBody>

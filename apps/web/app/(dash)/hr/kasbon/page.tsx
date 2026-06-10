@@ -25,15 +25,8 @@ export default async function KasbonPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={<>{t('title')}</>}
-        description={<>{t('subtitle')}</>}
-      />
-      <KasbonClient
-        data={result.data}
-        employees={result.employees}
-        searchParams={params}
-      />
+      <PageHeader title={<>{t('title')}</>} description={<>{t('subtitle')}</>} />
+      <KasbonClient data={result.data} employees={result.employees} searchParams={params} />
     </div>
   );
 }

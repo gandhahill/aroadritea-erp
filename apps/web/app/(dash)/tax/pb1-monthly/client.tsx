@@ -1,10 +1,20 @@
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
-import { Button, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, toast } from '@erp/ui';
-import { fetchOmzetBulananAction, exportOmzetBulananXlsxAction } from './actions';
 import type { OmzetBulananResult } from '@erp/services/reporting';
-import { useTranslations, useLocale } from 'next-intl';
+import {
+  Button,
+  Input,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  toast,
+} from '@erp/ui';
+import { useLocale, useTranslations } from 'next-intl';
+import { useEffect, useState, useTransition } from 'react';
+import { exportOmzetBulananXlsxAction, fetchOmzetBulananAction } from './actions';
 
 interface LocationOption {
   id: string;
@@ -21,7 +31,7 @@ export default function Pb1MonthlyClient({
   const t = useTranslations('tax.pb1Monthly');
   const locale = useLocale();
   const [period, setPeriod] = useState<string>(
-    `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
+    `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`,
   );
   const [locationId, setLocationId] = useState<string>(initialLocationId);
   const [data, setData] = useState<OmzetBulananResult | null>(null);
@@ -51,7 +61,9 @@ export default function Pb1MonthlyClient({
         byteNumbers[i] = byteCharacters.charCodeAt(i);
       }
       const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const blob = new Blob([byteArray], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -126,20 +138,40 @@ export default function Pb1MonthlyClient({
                   {data.rows.map((row) => (
                     <TableRow key={row.date}>
                       <TableCell>{row.date}</TableCell>
-                      <TableCell className="text-right">{(Number(row.grossSales) / 100).toLocaleString('id-ID')}</TableCell>
-                      <TableCell className="text-right">{(Number(row.netOmzet) / 100).toLocaleString('id-ID')}</TableCell>
-                      <TableCell className="text-right">{(Number(row.pb1Amount) / 100).toLocaleString('id-ID')}</TableCell>
-                      <TableCell className="text-right">{(Number(row.adjustmentAmount) / 100).toLocaleString('id-ID')}</TableCell>
-                      <TableCell className="text-right font-medium">{(Number(row.fiscalOmzet) / 100).toLocaleString('id-ID')}</TableCell>
+                      <TableCell className="text-right">
+                        {(Number(row.grossSales) / 100).toLocaleString('id-ID')}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {(Number(row.netOmzet) / 100).toLocaleString('id-ID')}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {(Number(row.pb1Amount) / 100).toLocaleString('id-ID')}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {(Number(row.adjustmentAmount) / 100).toLocaleString('id-ID')}
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {(Number(row.fiscalOmzet) / 100).toLocaleString('id-ID')}
+                      </TableCell>
                     </TableRow>
                   ))}
                   <TableRow className="bg-muted/50 font-bold">
                     <TableCell>{t('total')}</TableCell>
-                    <TableCell className="text-right">{(Number(data.totals.grossSales) / 100).toLocaleString('id-ID')}</TableCell>
-                    <TableCell className="text-right">{(Number(data.totals.netOmzet) / 100).toLocaleString('id-ID')}</TableCell>
-                    <TableCell className="text-right">{(Number(data.totals.pb1Amount) / 100).toLocaleString('id-ID')}</TableCell>
-                    <TableCell className="text-right">{(Number(data.totals.adjustmentAmount) / 100).toLocaleString('id-ID')}</TableCell>
-                    <TableCell className="text-right">{(Number(data.totals.fiscalOmzet) / 100).toLocaleString('id-ID')}</TableCell>
+                    <TableCell className="text-right">
+                      {(Number(data.totals.grossSales) / 100).toLocaleString('id-ID')}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {(Number(data.totals.netOmzet) / 100).toLocaleString('id-ID')}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {(Number(data.totals.pb1Amount) / 100).toLocaleString('id-ID')}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {(Number(data.totals.adjustmentAmount) / 100).toLocaleString('id-ID')}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {(Number(data.totals.fiscalOmzet) / 100).toLocaleString('id-ID')}
+                    </TableCell>
                   </TableRow>
                 </>
               )}

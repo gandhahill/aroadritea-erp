@@ -133,14 +133,14 @@ export const cmsRevisions = pgTable('cms_revisions', {
 export const cmsMediaLibrary = pgTable('cms_media_library', {
   ...pk,
   tenantId: text('tenant_id').notNull().default('default'),
-  
+
   filename: text('filename').notNull(),
   url: text('url').notNull(),
   mimeType: text('mime_type').notNull(),
   sizeBytes: text('size_bytes'),
-  
+
   altText: text('alt_text'),
   uploadedBy: text('uploaded_by'),
-  
+
   ...auditCols,
 });

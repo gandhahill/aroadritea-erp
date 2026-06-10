@@ -167,7 +167,11 @@ export async function listProducts(
           })
           .from(productVariants)
           .where(
-            and(inArray(productVariants.productId, productIds), eq(productVariants.tenantId, ctx.tenantId), eq(productVariants.isActive, true)),
+            and(
+              inArray(productVariants.productId, productIds),
+              eq(productVariants.tenantId, ctx.tenantId),
+              eq(productVariants.isActive, true),
+            ),
           )
           .groupBy(productVariants.productId);
 
@@ -265,7 +269,13 @@ export async function getProduct(
             eq(productCategories.tenantId, ctx.tenantId),
           ),
         )
-        .where(and(eq(products.tenantId, ctx.tenantId), eq(products.id, productId), isNull(products.deletedAt)))
+        .where(
+          and(
+            eq(products.tenantId, ctx.tenantId),
+            eq(products.id, productId),
+            isNull(products.deletedAt),
+          ),
+        )
         .limit(1);
 
       if (!row) {
@@ -278,7 +288,11 @@ export async function getProduct(
         .select()
         .from(productVariants)
         .where(
-          and(eq(productVariants.productId, productId), eq(productVariants.tenantId, ctx.tenantId), eq(productVariants.isActive, true)),
+          and(
+            eq(productVariants.productId, productId),
+            eq(productVariants.tenantId, ctx.tenantId),
+            eq(productVariants.isActive, true),
+          ),
         )
         .orderBy(productVariants.sortOrder);
 

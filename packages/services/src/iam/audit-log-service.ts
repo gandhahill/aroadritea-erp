@@ -1,10 +1,10 @@
 import { db } from '@erp/db';
-import { loginAttempts, users } from '@erp/db/schema/auth';
 import { auditLog } from '@erp/db/schema/audit';
+import { loginAttempts, users } from '@erp/db/schema/auth';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { eq, and, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { requirePermission } from './require-permission';
 
@@ -15,7 +15,10 @@ export const ExportAuditLogInputSchema = z.object({
 
 export type ExportAuditLogInput = z.infer<typeof ExportAuditLogInputSchema>;
 
-export async function exportAuditLog(input: ExportAuditLogInput, ctx: AuditContext): Promise<Result<{ csvData: string }>> {
+export async function exportAuditLog(
+  input: ExportAuditLogInput,
+  ctx: AuditContext,
+): Promise<Result<{ csvData: string }>> {
   const parsed = ExportAuditLogInputSchema.safeParse(input);
   if (!parsed.success) return err(AppError.validation(parsed.error.message));
 
@@ -29,19 +32,28 @@ export async function exportAuditLog(input: ExportAuditLogInput, ctx: AuditConte
       and(
         eq(auditLog.tenantId, ctx.tenantId),
         sql`${auditLog.createdAt} >= ${new Date(input.startDate)}`,
-        sql`${auditLog.createdAt} <= ${new Date(input.endDate)}`
-      )
+        sql`${auditLog.createdAt} <= ${new Date(input.endDate)}`,
+      ),
     )
     .orderBy(auditLog.createdAt);
 
   // In real implementation this would stream to a CSV, for now we just return a stub
-  const csvData = `id,action,entity_type,entity_id,user_id,timestamp\n` +
-    logs.map(l => `${l.id},${l.action},${l.entityType},${l.entityId},${l.userId},${l.createdAt.toISOString()}`).join('\n');
+  const csvData =
+    `id,action,entity_type,entity_id,user_id,timestamp\n` +
+    logs
+      .map(
+        (l) =>
+          `${l.id},${l.action},${l.entityType},${l.entityId},${l.userId},${l.createdAt.toISOString()}`,
+      )
+      .join('\n');
 
   return ok({ csvData });
 }
 
-export async function checkPasswordPolicy(emailHash: string, ctx: AuditContext): Promise<Result<{ isLocked: boolean }>> {
+export async function checkPasswordPolicy(
+  emailHash: string,
+  ctx: AuditContext,
+): Promise<Result<{ isLocked: boolean }>> {
   // Check lockout from loginAttempts
   const recentFailures = await db
     .select()

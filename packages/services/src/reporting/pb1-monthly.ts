@@ -113,8 +113,8 @@ export async function getOmzetBulanan(
           eq(dailyRevenueAdjustments.tenantId, ctx.tenantId),
           eq(dailyRevenueAdjustments.locationId, params.locationId),
           sql`${dailyRevenueAdjustments.date} >= ${`${params.period}-01`}`,
-          sql`${dailyRevenueAdjustments.date} <= ${periodEnd}`
-        )
+          sql`${dailyRevenueAdjustments.date} <= ${periodEnd}`,
+        ),
       );
 
     const grossByDate = new Map<string, bigint>();
@@ -281,11 +281,12 @@ export async function exportOmzetBulananXlsx(
     tRow.font = { bold: true };
     tRow.eachCell((cell, cId) => {
       if (cId >= 3 && cell) cell.numFmt = idrFmt;
-      if (cell) cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFEAEAEA' },
-      };
+      if (cell)
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFEAEAEA' },
+        };
     });
 
     sheet.getColumn(1).width = 14;

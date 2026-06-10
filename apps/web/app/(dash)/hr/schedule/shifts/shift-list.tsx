@@ -1,11 +1,11 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import type { ShiftDefinitionData } from './actions';
 import { deleteShiftDefinition } from './actions';
 import { ShiftDialog } from './shift-dialog';
-import { useRouter } from 'next/navigation';
 
 interface Props {
   shifts: ShiftDefinitionData[];
@@ -97,7 +97,10 @@ export function ShiftList({ shifts, locationId }: Props) {
                       {t('edit')}
                     </button>
                     <button
-                      onClick={() => { setDeleteTarget(shift); setDeleteError(null); }}
+                      onClick={() => {
+                        setDeleteTarget(shift);
+                        setDeleteError(null);
+                      }}
                       className="text-rose-500 hover:text-rose-700 text-xs font-semibold"
                     >
                       {t('delete')}

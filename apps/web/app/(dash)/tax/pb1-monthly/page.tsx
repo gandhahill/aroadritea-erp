@@ -1,11 +1,11 @@
 import { getSession } from '@/lib/auth';
-import { requirePermission } from '@erp/services/iam';
-import { redirect } from 'next/navigation';
 import { db } from '@erp/db';
+import { and, eq } from '@erp/db';
 import { locations } from '@erp/db/schema/auth';
-import { eq, and } from '@erp/db';
-import Pb1MonthlyClient from './client';
+import { requirePermission } from '@erp/services/iam';
 import { getTranslations } from 'next-intl/server';
+import { redirect } from 'next/navigation';
+import Pb1MonthlyClient from './client';
 
 export async function generateMetadata() {
   const t = await getTranslations('tax.pb1Monthly');
@@ -17,7 +17,7 @@ export async function generateMetadata() {
 export default async function Pb1MonthlyPage() {
   const session = await getSession();
   if (!session?.user) redirect('/login');
-  
+
   const user = session.user as Record<string, unknown>;
   const userId = String(user.id ?? '');
   const tenantId = String(user.tenantId ?? 'default');

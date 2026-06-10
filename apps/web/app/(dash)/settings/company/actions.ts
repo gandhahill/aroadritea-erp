@@ -1,12 +1,12 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { db, eq, and } from '@erp/db';
+import { and, db, eq } from '@erp/db';
 import { cmsSettings } from '@erp/db/schema/cms';
-import { revalidatePath } from 'next/cache';
-import type { AuditContext } from '@erp/shared/types';
 import { auditRecord } from '@erp/services/audit';
 import { generateId } from '@erp/shared/id';
+import type { AuditContext } from '@erp/shared/types';
+import { revalidatePath } from 'next/cache';
 
 export interface CompanyInfo {
   name: string;
@@ -15,12 +15,7 @@ export interface CompanyInfo {
   phone: string;
 }
 
-const COMPANY_KEYS = [
-  'company.name',
-  'company.address',
-  'company.npwp',
-  'company.phone',
-] as const;
+const COMPANY_KEYS = ['company.name', 'company.address', 'company.npwp', 'company.phone'] as const;
 
 export async function fetchCompanySettings(): Promise<CompanyInfo> {
   const session = await getSession();
@@ -31,11 +26,7 @@ export async function fetchCompanySettings(): Promise<CompanyInfo> {
   const rows = await db
     .select({ key: cmsSettings.key, value: cmsSettings.value })
     .from(cmsSettings)
-    .where(
-      and(
-        eq(cmsSettings.tenantId, tenantId),
-      ),
-    );
+    .where(and(eq(cmsSettings.tenantId, tenantId)));
 
   const map = new Map<string, unknown>();
   for (const row of rows) {

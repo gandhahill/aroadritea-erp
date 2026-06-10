@@ -1,7 +1,7 @@
 /**
  * hr.deleteEmployee — SD §9.6, §21.8
  *
- * Soft-deletes an employee and their corresponding user account, 
+ * Soft-deletes an employee and their corresponding user account,
  * freeing up their email for future re-registration.
  * Permission: hr.employee.write (global or scoped to employee's location)
  */
@@ -29,14 +29,22 @@ export async function deleteEmployee(
       const [emp] = await db
         .select()
         .from(employees)
-        .where(and(eq(employees.tenantId, ctx.tenantId), eq(employees.id, employeeId), isNull(employees.deletedAt)))
+        .where(
+          and(
+            eq(employees.tenantId, ctx.tenantId),
+            eq(employees.id, employeeId),
+            isNull(employees.deletedAt),
+          ),
+        )
         .limit(1);
 
       if (!emp) throw AppError.notFound('hr.employee.notFound');
 
       // Pengecekan scope location
       if (emp.locationId) {
-        const locPermCheck = await requirePermission(ctx.userId, 'hr.employee.write', { locationId: emp.locationId });
+        const locPermCheck = await requirePermission(ctx.userId, 'hr.employee.write', {
+          locationId: emp.locationId,
+        });
         if (!locPermCheck.ok) throw locPermCheck.error;
       }
 
@@ -46,18 +54,24 @@ export async function deleteEmployee(
       const deletedAt = new Date();
 
       // Enkripsi kembali dengan suffix untuk menghindari unique constraint
-      const scrambledEmail = encryptPiiForLookup(email ? `${email}${deletedSuffix}` : `deleted_${deletedSuffix}`, 'employees.email') ?? `deleted_${deletedSuffix}`;
-      const scrambledNik = nik ? (encryptPiiForLookup(`${nik}${deletedSuffix}`, 'employees.nik') ?? null) : null;
+      const scrambledEmail =
+        encryptPiiForLookup(
+          email ? `${email}${deletedSuffix}` : `deleted_${deletedSuffix}`,
+          'employees.email',
+        ) ?? `deleted_${deletedSuffix}`;
+      const scrambledNik = nik
+        ? (encryptPiiForLookup(`${nik}${deletedSuffix}`, 'employees.nik') ?? null)
+        : null;
 
       await db.transaction(async (tx) => {
         // 1. Soft-delete the employee & scramble unique fields
         await tx
           .update(employees)
-          .set({ 
-            status: 'terminated', 
+          .set({
+            status: 'terminated',
             deletedAt,
             email: scrambledEmail,
-            nik: scrambledNik
+            nik: scrambledNik,
           })
           .where(eq(employees.id, employeeId));
 
@@ -72,13 +86,13 @@ export async function deleteEmployee(
           if (user) {
             // Rename the email to free up the unique constraint so the user can be recreated
             const deletedEmail = `${email}${deletedSuffix}`;
-            
+
             await tx
               .update(users)
-              .set({ 
-                status: 'suspended', 
+              .set({
+                status: 'suspended',
                 deletedAt,
-                email: deletedEmail 
+                email: deletedEmail,
               })
               .where(eq(users.id, user.id));
 

@@ -14,7 +14,7 @@ import { payments, salesOrders } from '@erp/db/schema/pos';
 import { AppError } from '@erp/shared/errors';
 import { type Result, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq, gte, isNotNull, lt, lte, inArray } from 'drizzle-orm';
+import { and, eq, gte, inArray, isNotNull, lt, lte } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -96,10 +96,7 @@ export async function getDonationReport(
       roundingOption: payments.roundingOption,
     })
     .from(payments)
-    .where(and(
-      isNotNull(payments.donationAmount),
-      inArray(payments.salesOrderId, saleIds)
-    ));
+    .where(and(isNotNull(payments.donationAmount), inArray(payments.salesOrderId, saleIds)));
 
   // Filter to only payments from our sales set with non-zero donation
   const relevantDonations = donationPayments.filter(

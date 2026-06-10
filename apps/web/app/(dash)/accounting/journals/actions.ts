@@ -13,14 +13,19 @@ import { and, asc, db, desc, eq, inArray, sql } from '@erp/db';
 import {
   accountingPeriods,
   accounts,
+  bankAccounts,
   journalEntries,
   journalLines,
   partners,
-  bankAccounts,
 } from '@erp/db/schema/accounting';
-import { cmsSettings } from '@erp/db/schema/cms';
 import { locations } from '@erp/db/schema/auth';
-import { createJournal, postJournal, reverseJournal, deleteJournal } from '@erp/services/accounting';
+import { cmsSettings } from '@erp/db/schema/cms';
+import {
+  createJournal,
+  deleteJournal,
+  postJournal,
+  reverseJournal,
+} from '@erp/services/accounting';
 import { requirePermission } from '@erp/services/iam';
 import type { AuditContext } from '@erp/shared/types';
 import { getLocale, getTranslations } from 'next-intl/server';
@@ -510,13 +515,13 @@ export async function postJournalAction(
 ): Promise<JournalCreateState> {
   const ctx = await getAuditContext();
   if (!ctx) return { error: 'Unauthenticated' };
-  
+
   const journalId = text(formData, 'journalId');
   if (!journalId) return { error: 'Journal ID required' };
-  
+
   const result = await postJournal({ journalId }, ctx);
   if (!result.ok) return { error: await postJournalErrorMessage(result.error) };
-  
+
   revalidatePath('/accounting/journals');
   revalidatePath(`/accounting/journals/${journalId}`);
   return { ok: true, journalId: result.value.id };
@@ -528,16 +533,16 @@ export async function reverseJournalAction(
 ): Promise<JournalCreateState> {
   const ctx = await getAuditContext();
   if (!ctx) return { error: 'Unauthenticated' };
-  
+
   const journalId = text(formData, 'journalId');
   const postingDate = text(formData, 'postingDate');
-  
+
   if (!journalId) return { error: 'Journal ID required' };
   if (!postingDate) return { error: 'Posting Date required' };
-  
+
   const result = await reverseJournal({ journalId, postingDate }, ctx);
   if (!result.ok) return { error: errorMessage(result.error) };
-  
+
   revalidatePath('/accounting/journals');
   revalidatePath(`/accounting/journals/${journalId}`);
   revalidatePath(`/accounting/journals/${result.value.id}`);
@@ -550,13 +555,13 @@ export async function deleteJournalAction(
 ): Promise<JournalCreateState> {
   const ctx = await getAuditContext();
   if (!ctx) return { error: 'Unauthenticated' };
-  
+
   const journalId = text(formData, 'journalId');
   if (!journalId) return { error: 'Journal ID required' };
-  
+
   const result = await deleteJournal(journalId, ctx);
   if (!result.ok) return { error: errorMessage(result.error) };
-  
+
   revalidatePath('/accounting/journals');
   return { ok: true };
 }
@@ -844,7 +849,12 @@ export async function fetchPrintJournalData(journalId: string): Promise<PrintJou
     .where(
       and(
         eq(cmsSettings.tenantId, ctx.tenantId),
-        inArray(cmsSettings.key, ['company.name', 'company.address', 'company.npwp', 'company.phone']),
+        inArray(cmsSettings.key, [
+          'company.name',
+          'company.address',
+          'company.npwp',
+          'company.phone',
+        ]),
       ),
     );
 
@@ -854,7 +864,8 @@ export async function fetchPrintJournalData(journalId: string): Promise<PrintJou
   }
 
   const companyInfo: CompanyInfo = {
-    name: (companyMap.get('company.name') as string) ?? 'PT. Gandha Hill Catering Management Indonesia',
+    name:
+      (companyMap.get('company.name') as string) ?? 'PT. Gandha Hill Catering Management Indonesia',
     address: (companyMap.get('company.address') as string) ?? '',
     npwp: (companyMap.get('company.npwp') as string) ?? '',
     phone: (companyMap.get('company.phone') as string) ?? '',

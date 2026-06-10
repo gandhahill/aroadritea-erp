@@ -248,7 +248,10 @@ export default async function StockPerOutletPage({ searchParams }: SearchProps) 
           })}
         </div>
         <StockLocationFilter
-          outlets={outletRows.map((o) => ({ id: o.id, label: `${o.code} — ${pickLocalized(o.name, locale, o.code)}` }))}
+          outlets={outletRows.map((o) => ({
+            id: o.id,
+            label: `${o.code} — ${pickLocalized(o.name, locale, o.code)}`,
+          }))}
           selectedId={selectedLocationId}
           kind={kind}
           allLocationsLabel={t('allLocations')}
@@ -263,7 +266,10 @@ export default async function StockPerOutletPage({ searchParams }: SearchProps) 
               <TableHead className="px-4 py-3">{t('columns.sku')}</TableHead>
               <TableHead className="px-4 py-3">{t('columns.name')}</TableHead>
               <TableHead className="px-4 py-3">{t('columns.uom')}</TableHead>
-              {(selectedLocationId ? outletRows.filter((o) => o.id === selectedLocationId) : outletRows).map((outlet) => (
+              {(selectedLocationId
+                ? outletRows.filter((o) => o.id === selectedLocationId)
+                : outletRows
+              ).map((outlet) => (
                 <TableHead key={outlet.id} className="px-4 py-3 text-right">
                   {outlet.code}
                 </TableHead>
@@ -285,65 +291,68 @@ export default async function StockPerOutletPage({ searchParams }: SearchProps) 
                 ? outletRows.filter((o) => o.id === selectedLocationId)
                 : outletRows;
               return filteredProducts.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={6 + displayOutlets.length}
-                  className="px-4 py-8 text-center text-brand-ink-3"
-                >
-                  {t('empty')}
-                </td>
-              </tr>
-            ) : (
-              filteredProducts.map((product) => {
-                const displayName = pickLocalized(product.name, locale, product.sku);
-                const summary = productSummaries.get(product.id);
-                return (
-                  <tr key={product.id} className="hover:bg-brand-cream-1/60">
-                    <TableCell className="px-4 py-3 font-mono text-xs text-brand-ink">
-                      {product.sku}
-                    </TableCell>
-                    <TableCell className="px-4 py-3 font-medium text-brand-ink">
-                      {displayName}
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-xs text-brand-ink-3">
-                      {product.uom}
-                    </TableCell>
-                    {(selectedLocationId ? outletRows.filter((o) => o.id === selectedLocationId) : outletRows).map((outlet) => {
-                      const stock = stockMap.get(`${product.id}::${outlet.id}`);
-                      const available = stock ? Number(stock.available) : null;
-                      const isUntracked = available === null;
-                      const isEmpty = !isUntracked && available <= 0;
-                      const isLow = !isUntracked && available > 0 && available < 5;
-                      return (
-                        <TableCell
-                          key={outlet.id}
-                          className={`px-4 py-3 text-right font-semibold ${
-                            isUntracked
-                              ? 'text-brand-ink-3'
-                              : isEmpty
-                                ? 'text-rose-600'
-                                : isLow
-                                  ? 'text-amber-600'
-                                  : 'text-brand-ink'
-                          }`}
-                        >
-                          {isUntracked ? t('untracked') : formatQty(available ?? 0)}
-                        </TableCell>
-                      );
-                    })}
-                    <TableCell className="px-4 py-3 text-right font-semibold text-brand-ink">
-                      {formatQty(summary?.totalOnHand ?? 0)}
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-right font-semibold text-brand-ink">
-                      {formatMoney(BigInt(Math.round(summary?.unitCost ?? 0)), locale)}
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-right font-semibold text-brand-ink">
-                      {formatMoney(summary?.inventoryValue ?? 0n, locale)}
-                    </TableCell>
-                  </tr>
-                );
-              })
-            );
+                <tr>
+                  <td
+                    colSpan={6 + displayOutlets.length}
+                    className="px-4 py-8 text-center text-brand-ink-3"
+                  >
+                    {t('empty')}
+                  </td>
+                </tr>
+              ) : (
+                filteredProducts.map((product) => {
+                  const displayName = pickLocalized(product.name, locale, product.sku);
+                  const summary = productSummaries.get(product.id);
+                  return (
+                    <tr key={product.id} className="hover:bg-brand-cream-1/60">
+                      <TableCell className="px-4 py-3 font-mono text-xs text-brand-ink">
+                        {product.sku}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 font-medium text-brand-ink">
+                        {displayName}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-xs text-brand-ink-3">
+                        {product.uom}
+                      </TableCell>
+                      {(selectedLocationId
+                        ? outletRows.filter((o) => o.id === selectedLocationId)
+                        : outletRows
+                      ).map((outlet) => {
+                        const stock = stockMap.get(`${product.id}::${outlet.id}`);
+                        const available = stock ? Number(stock.available) : null;
+                        const isUntracked = available === null;
+                        const isEmpty = !isUntracked && available <= 0;
+                        const isLow = !isUntracked && available > 0 && available < 5;
+                        return (
+                          <TableCell
+                            key={outlet.id}
+                            className={`px-4 py-3 text-right font-semibold ${
+                              isUntracked
+                                ? 'text-brand-ink-3'
+                                : isEmpty
+                                  ? 'text-rose-600'
+                                  : isLow
+                                    ? 'text-amber-600'
+                                    : 'text-brand-ink'
+                            }`}
+                          >
+                            {isUntracked ? t('untracked') : formatQty(available ?? 0)}
+                          </TableCell>
+                        );
+                      })}
+                      <TableCell className="px-4 py-3 text-right font-semibold text-brand-ink">
+                        {formatQty(summary?.totalOnHand ?? 0)}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-right font-semibold text-brand-ink">
+                        {formatMoney(BigInt(Math.round(summary?.unitCost ?? 0)), locale)}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-right font-semibold text-brand-ink">
+                        {formatMoney(summary?.inventoryValue ?? 0n, locale)}
+                      </TableCell>
+                    </tr>
+                  );
+                })
+              );
             })()}
           </TableBody>
         </Table>

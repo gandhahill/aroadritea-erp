@@ -102,7 +102,10 @@ async function buildFaceTemplate(video: HTMLVideoElement): Promise<FaceTemplateP
   const faceapi = await import('@vladmandic/face-api');
 
   const detection = await faceapi
-    .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 }))
+    .detectSingleFace(
+      video,
+      new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 }),
+    )
     .withFaceLandmarks(true)
     .withFaceDescriptor();
 
@@ -234,9 +237,7 @@ export function CheckInClient({
       const isPermissionError =
         name === 'NotAllowedError' || name === 'PermissionDeniedError' || name === 'SecurityError';
       setCameraStatus(isPermissionError ? 'denied' : 'error');
-      setCameraError(
-        isPermissionError ? t('face.permissionDenied') : t('face.cameraUnavailable'),
-      );
+      setCameraError(isPermissionError ? t('face.permissionDenied') : t('face.cameraUnavailable'));
     }
   }, [t]);
 
@@ -292,8 +293,7 @@ export function CheckInClient({
           source: 'geolocation_api',
         };
         setGps((s) => {
-          const bestData =
-            !s.data || data.accuracy_m <= s.data.accuracy_m ? data : s.data;
+          const bestData = !s.data || data.accuracy_m <= s.data.accuracy_m ? data : s.data;
           const status: GpsStatus =
             bestData.accuracy_m > GPS_LOW_ACCURACY_THRESHOLD_M ? 'low_accuracy' : 'granted';
           return { ...s, status, data: bestData };
@@ -458,7 +458,9 @@ export function CheckInClient({
       const translated = shortKey ? attendanceT(shortKey, { defaultValue: '' }) : '';
       setResult({
         ok: false,
-        message: translated || t('messages.checkOutFailed', { defaultValue: 'Check-out failed. Try again.' }),
+        message:
+          translated ||
+          t('messages.checkOutFailed', { defaultValue: 'Check-out failed. Try again.' }),
       });
     }
   };
@@ -468,12 +470,7 @@ export function CheckInClient({
     (gps.data?.accuracy_m ?? Number.POSITIVE_INFINITY) <= GPS_HARD_ACCURACY_LIMIT_M;
 
   const canCheckIn =
-    gpsReady &&
-    !submitting &&
-    !!employeeId &&
-    !!selectedShift &&
-    !!faceTemplate &&
-    !isCheckOutMode;
+    gpsReady && !submitting && !!employeeId && !!selectedShift && !!faceTemplate && !isCheckOutMode;
 
   const canCheckOut = gpsReady && !submitting && isCheckOutMode;
 
@@ -615,9 +612,7 @@ export function CheckInClient({
                   locationCheck.withinRadius ? 'text-brand-jade' : 'text-rose-600'
                 }`}
               >
-                {locationCheck.withinRadius
-                  ? t('status.withinRadius')
-                  : t('status.outsideRadius')}
+                {locationCheck.withinRadius ? t('status.withinRadius') : t('status.outsideRadius')}
               </p>
               <p className="text-xs text-brand-ink-3">
                 {t('status.distanceInfoWithAccuracy', {
@@ -633,9 +628,7 @@ export function CheckInClient({
         )}
         {!locationGps && gps.data && (
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-            <p className="text-xs text-amber-700">
-              {t('status.gpsNotConfigured')}
-            </p>
+            <p className="text-xs text-amber-700">{t('status.gpsNotConfigured')}</p>
           </div>
         )}
 

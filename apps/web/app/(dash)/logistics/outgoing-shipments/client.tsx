@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { deleteOutgoingShipmentAction, syncTrackingAction } from './actions';
+import { COURIERS } from '@erp/shared/binderbyte-couriers';
+import { toast } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { COURIERS } from '@erp/shared/binderbyte-couriers';
-import { toast } from '@erp/ui';
+import { useState } from 'react';
+import { deleteOutgoingShipmentAction, syncTrackingAction } from './actions';
 
 function courierLabel(code: string | null | undefined): string {
   if (!code) return '-';
@@ -55,9 +55,7 @@ export function ShipmentsClient({ shipments }: { shipments: any[] }) {
   return (
     <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
       {error ? (
-        <div className="border-b border-red-100 bg-red-50 p-4 text-sm text-red-600">
-          {error}
-        </div>
+        <div className="border-b border-red-100 bg-red-50 p-4 text-sm text-red-600">{error}</div>
       ) : null}
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm text-brand-ink-2">

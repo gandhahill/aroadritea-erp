@@ -1,9 +1,14 @@
 import { db } from '@erp/db';
-import { journalEntries, journalLines, accounts, accountingPeriods } from '@erp/db/schema/accounting';
+import {
+  accountingPeriods,
+  accounts,
+  journalEntries,
+  journalLines,
+} from '@erp/db/schema/accounting';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { eq, and, gte, lte, inArray } from 'drizzle-orm';
+import { and, eq, gte, inArray, lte } from 'drizzle-orm';
 import { z } from 'zod';
 import { requirePermission } from '../iam';
 
@@ -31,11 +36,18 @@ export async function getProfitAndLoss(
   ctx: AuditContext,
 ): Promise<Result<ProfitAndLossResult>> {
   const parsed = GetProfitAndLossInputSchema.safeParse(input);
-  if (!parsed.success) return err(AppError.validation('common.errors.validationFailed', { issues: parsed.error.issues }));
+  if (!parsed.success)
+    return err(
+      AppError.validation('common.errors.validationFailed', { issues: parsed.error.issues }),
+    );
   const { locationId, startDate, endDate } = parsed.data;
 
   // View permission is needed to view reporting.
-  const permCheck = await requirePermission(ctx.userId, 'accounting.reports', locationId ? { locationId } : undefined);
+  const permCheck = await requirePermission(
+    ctx.userId,
+    'accounting.reports',
+    locationId ? { locationId } : undefined,
+  );
   if (!permCheck.ok) return permCheck;
 
   // 1. Fetch relevant accounts (income, cogs, expense)
@@ -45,8 +57,8 @@ export async function getProfitAndLoss(
     .where(
       and(
         eq(accounts.tenantId, ctx.tenantId),
-        inArray(accounts.type, ['income', 'cogs', 'expense'])
-      )
+        inArray(accounts.type, ['income', 'cogs', 'expense']),
+      ),
     );
 
   const accountMap = new Map(relevantAccounts.map((a) => [a.id, a]));
@@ -59,14 +71,14 @@ export async function getProfitAndLoss(
         eq(journalEntries.status, 'posted'),
         gte(journalEntries.postingDate, startDate),
         lte(journalEntries.postingDate, endDate),
-        eq(journalLines.locationId, locationId) // Filter by location at line level
+        eq(journalLines.locationId, locationId), // Filter by location at line level
       )
     : and(
         eq(journalEntries.id, journalLines.journalEntryId),
         eq(journalEntries.tenantId, ctx.tenantId),
         eq(journalEntries.status, 'posted'),
         gte(journalEntries.postingDate, startDate),
-        lte(journalEntries.postingDate, endDate)
+        lte(journalEntries.postingDate, endDate),
       );
 
   const lines = await db

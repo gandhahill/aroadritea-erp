@@ -10,7 +10,13 @@ interface Props {
   locationFilterLabel: string;
 }
 
-export function StockLocationFilter({ outlets, selectedId, kind, allLocationsLabel, locationFilterLabel }: Props) {
+export function StockLocationFilter({
+  outlets,
+  selectedId,
+  kind,
+  allLocationsLabel,
+  locationFilterLabel,
+}: Props) {
   const router = useRouter();
 
   return (
@@ -28,7 +34,9 @@ export function StockLocationFilter({ outlets, selectedId, kind, allLocationsLab
       >
         <option value="">{allLocationsLabel}</option>
         {outlets.map((o) => (
-          <option key={o.id} value={o.id}>{o.label}</option>
+          <option key={o.id} value={o.id}>
+            {o.label}
+          </option>
         ))}
       </select>
     </div>

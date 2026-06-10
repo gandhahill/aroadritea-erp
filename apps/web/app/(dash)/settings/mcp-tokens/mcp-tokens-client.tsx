@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { ConfirmDialog } from '@/components/confirm-dialog';
+import { toast } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { toast } from '@erp/ui';
-import { ConfirmDialog } from '@/components/confirm-dialog';
+import { useState, useTransition } from 'react';
 import { createMcpTokenAction, revokeMcpTokenAction } from './actions';
 
 interface McpToken {
@@ -18,7 +18,11 @@ interface McpToken {
 
 function fmt(d: Date | string | null): string {
   if (!d) return '';
-  return new Date(d).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
+  return new Date(d).toLocaleDateString('id-ID', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
 }
 
 export function McpTokensClient({ tokens }: { tokens: McpToken[] }) {
@@ -145,9 +149,13 @@ export function McpTokensClient({ tokens }: { tokens: McpToken[] }) {
                   <tr key={token.id} className="hover:bg-brand-cream-2/50">
                     <td className="px-4 py-3 font-medium text-brand-ink">{token.name}</td>
                     <td className="px-4 py-3 text-brand-ink-2">{fmt(token.createdAt)}</td>
-                    <td className="px-4 py-3 text-brand-ink-2">{token.lastUsedAt ? fmt(token.lastUsedAt) : t('never')}</td>
+                    <td className="px-4 py-3 text-brand-ink-2">
+                      {token.lastUsedAt ? fmt(token.lastUsedAt) : t('never')}
+                    </td>
                     <td className="px-4 py-3">
-                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${status.cls}`}>
+                      <span
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${status.cls}`}
+                      >
                         {status.label}
                       </span>
                     </td>

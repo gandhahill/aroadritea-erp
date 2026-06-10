@@ -74,6 +74,7 @@
       "out",
       "coverage",
       ".agents",
+      ".antigravitycli",
       ".claude",
       "packages/db/migrations/meta",
       "*.min.js",

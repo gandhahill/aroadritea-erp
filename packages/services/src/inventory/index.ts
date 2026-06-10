@@ -114,7 +114,12 @@ export {
   type ImportError,
 } from './import-service';
 
-export { getLowStockItems, getExpiringStock, type LowStockItem, type ExpiringStockItem } from './stock-alert-service';
+export {
+  getLowStockItems,
+  getExpiringStock,
+  type LowStockItem,
+  type ExpiringStockItem,
+} from './stock-alert-service';
 export * from './uom-service';
 export * from './ledger-service';
 export * from './stock-depletion-service';

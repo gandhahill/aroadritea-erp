@@ -19,7 +19,11 @@
 import type { AuditContext } from '@erp/shared/types';
 import { z } from 'zod';
 import { createDraft } from '../drafts';
-import { resolveOcrLineItems, type ResolvedLineItem, type UnresolvedLineItem } from './resolve-line-items';
+import {
+  type ResolvedLineItem,
+  type UnresolvedLineItem,
+  resolveOcrLineItems,
+} from './resolve-line-items';
 import { type LocationCandidate, findLocationCandidates } from './resolve-location';
 
 const DisplayLineItemSchema = z.object({
@@ -87,11 +91,16 @@ export const CreateManualSaleDraftInputSchema = z.object({
   /** Raw line items (e.g. typed by the user or from OCR) where the productId is unknown.
    *  The system will automatically fuzzy-match these against the product catalog and
    *  move successful matches into line_items so BOM deduction works. */
-  raw_line_items: z.array(z.object({
-    name: z.string().min(1).max(200),
-    qty: z.number().positive().max(999),
-    amount: z.string().regex(/^\d+$/),
-  })).max(50).optional(),
+  raw_line_items: z
+    .array(
+      z.object({
+        name: z.string().min(1).max(200),
+        qty: z.number().positive().max(999),
+        amount: z.string().regex(/^\d+$/),
+      }),
+    )
+    .max(50)
+    .optional(),
   /** Whether to automatically deduct BOM stock for matched items. Defaults to true. */
   deduct_bom: z.boolean().optional().default(true),
 });
@@ -190,8 +199,8 @@ export async function createManualSaleDraftTool(
     }
   }
 
-  let finalLineItems = input.line_items ? [...input.line_items] : [];
-  let finalDisplayItems = input.display_line_items ? [...input.display_line_items] : [];
+  const finalLineItems = input.line_items ? [...input.line_items] : [];
+  const finalDisplayItems = input.display_line_items ? [...input.display_line_items] : [];
 
   if (input.raw_line_items && input.raw_line_items.length > 0) {
     const resolvedItems = await resolveOcrLineItems(input.raw_line_items, ctx);

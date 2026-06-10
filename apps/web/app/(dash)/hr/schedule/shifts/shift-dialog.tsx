@@ -1,8 +1,8 @@
 'use client';
 
-import { useTranslations, useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
-import { upsertShiftDefinition, type ShiftDefinitionData } from './actions';
+import { type ShiftDefinitionData, upsertShiftDefinition } from './actions';
 
 interface Props {
   initialData?: ShiftDefinitionData;
@@ -26,20 +26,24 @@ export function ShiftDialog({ initialData, locationId, onClose, onSaved }: Props
     breakEnd: initialData?.breakEnd ?? '',
   });
 
-  const [dayOverrides, setDayOverrides] = useState<{ day: number; startTime: string; endTime: string }[]>(
+  const [dayOverrides, setDayOverrides] = useState<
+    { day: number; startTime: string; endTime: string }[]
+  >(
     Object.entries(initialData?.overrides?.dayOfWeek ?? {}).map(([day, val]) => ({
       day: Number(day),
       startTime: val.startTime,
       endTime: val.endTime,
-    }))
+    })),
   );
 
-  const [dateOverrides, setDateOverrides] = useState<{ date: string; startTime: string; endTime: string }[]>(
+  const [dateOverrides, setDateOverrides] = useState<
+    { date: string; startTime: string; endTime: string }[]
+  >(
     Object.entries(initialData?.overrides?.date ?? {}).map(([date, val]) => ({
       date,
       startTime: val.startTime,
       endTime: val.endTime,
-    }))
+    })),
   );
 
   function handleSubmit(e: React.FormEvent) {
@@ -57,14 +61,20 @@ export function ShiftDialog({ initialData, locationId, onClose, onSaved }: Props
       breakEnd: form.breakEnd || null,
       isActive: initialData?.isActive ?? true,
       overrides: {
-        dayOfWeek: dayOverrides.reduce((acc, curr) => {
-          acc[curr.day] = { startTime: curr.startTime, endTime: curr.endTime };
-          return acc;
-        }, {} as Record<number, { startTime: string; endTime: string }>),
-        date: dateOverrides.reduce((acc, curr) => {
-          acc[curr.date] = { startTime: curr.startTime, endTime: curr.endTime };
-          return acc;
-        }, {} as Record<string, { startTime: string; endTime: string }>),
+        dayOfWeek: dayOverrides.reduce(
+          (acc, curr) => {
+            acc[curr.day] = { startTime: curr.startTime, endTime: curr.endTime };
+            return acc;
+          },
+          {} as Record<number, { startTime: string; endTime: string }>,
+        ),
+        date: dateOverrides.reduce(
+          (acc, curr) => {
+            acc[curr.date] = { startTime: curr.startTime, endTime: curr.endTime };
+            return acc;
+          },
+          {} as Record<string, { startTime: string; endTime: string }>,
+        ),
       },
     };
 
@@ -95,7 +105,7 @@ export function ShiftDialog({ initialData, locationId, onClose, onSaved }: Props
         <h2 className="text-base font-semibold text-brand-ink">
           {initialData ? t('dialog.editTitle') : t('dialog.addTitle')}
         </h2>
-        
+
         {err && (
           <div className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
             {err}
@@ -183,13 +193,19 @@ export function ShiftDialog({ initialData, locationId, onClose, onSaved }: Props
           </div>
 
           <div className="mt-6 border-t border-brand-cream-3 pt-4">
-            <h3 className="mb-2 text-xs font-semibold text-brand-ink">{t('form.overridesByDay')}</h3>
+            <h3 className="mb-2 text-xs font-semibold text-brand-ink">
+              {t('form.overridesByDay')}
+            </h3>
             {dayOverrides.map((ov, i) => (
               <div key={i} className="mb-2 flex items-center gap-2">
                 <select
                   value={ov.day}
                   onChange={(e) => {
-                    setDayOverrides(dayOverrides.map((o, idx) => idx === i ? { ...o, day: Number(e.target.value) } : o));
+                    setDayOverrides(
+                      dayOverrides.map((o, idx) =>
+                        idx === i ? { ...o, day: Number(e.target.value) } : o,
+                      ),
+                    );
                   }}
                   className="rounded-md border border-brand-cream-3 bg-transparent px-2 py-1 text-xs text-brand-ink outline-none focus:border-brand-red"
                 >
@@ -206,7 +222,11 @@ export function ShiftDialog({ initialData, locationId, onClose, onSaved }: Props
                   required
                   value={ov.startTime}
                   onChange={(e) => {
-                    setDayOverrides(dayOverrides.map((o, idx) => idx === i ? { ...o, startTime: e.target.value } : o));
+                    setDayOverrides(
+                      dayOverrides.map((o, idx) =>
+                        idx === i ? { ...o, startTime: e.target.value } : o,
+                      ),
+                    );
                   }}
                   className="rounded-md border border-brand-cream-3 bg-transparent px-2 py-1 text-xs text-brand-ink outline-none focus:border-brand-red"
                 />
@@ -216,7 +236,11 @@ export function ShiftDialog({ initialData, locationId, onClose, onSaved }: Props
                   required
                   value={ov.endTime}
                   onChange={(e) => {
-                    setDayOverrides(dayOverrides.map((o, idx) => idx === i ? { ...o, endTime: e.target.value } : o));
+                    setDayOverrides(
+                      dayOverrides.map((o, idx) =>
+                        idx === i ? { ...o, endTime: e.target.value } : o,
+                      ),
+                    );
                   }}
                   className="rounded-md border border-brand-cream-3 bg-transparent px-2 py-1 text-xs text-brand-ink outline-none focus:border-brand-red"
                 />
@@ -231,7 +255,9 @@ export function ShiftDialog({ initialData, locationId, onClose, onSaved }: Props
             ))}
             <button
               type="button"
-              onClick={() => setDayOverrides([...dayOverrides, { day: 1, startTime: '09:00', endTime: '17:00' }])}
+              onClick={() =>
+                setDayOverrides([...dayOverrides, { day: 1, startTime: '09:00', endTime: '17:00' }])
+              }
               className="mt-1 text-xs font-semibold text-brand-red hover:underline"
             >
               {t('form.addDayOverride')}
@@ -239,7 +265,9 @@ export function ShiftDialog({ initialData, locationId, onClose, onSaved }: Props
           </div>
 
           <div className="mt-4 border-t border-brand-cream-3 pt-4">
-            <h3 className="mb-2 text-xs font-semibold text-brand-ink">{t('form.overridesByDate')}</h3>
+            <h3 className="mb-2 text-xs font-semibold text-brand-ink">
+              {t('form.overridesByDate')}
+            </h3>
             {dateOverrides.map((ov, i) => (
               <div key={i} className="mb-2 flex items-center gap-2">
                 <input
@@ -247,7 +275,11 @@ export function ShiftDialog({ initialData, locationId, onClose, onSaved }: Props
                   required
                   value={ov.date}
                   onChange={(e) => {
-                    setDateOverrides(dateOverrides.map((o, idx) => idx === i ? { ...o, date: e.target.value } : o));
+                    setDateOverrides(
+                      dateOverrides.map((o, idx) =>
+                        idx === i ? { ...o, date: e.target.value } : o,
+                      ),
+                    );
                   }}
                   className="rounded-md border border-brand-cream-3 bg-transparent px-2 py-1 text-xs text-brand-ink outline-none focus:border-brand-red"
                 />
@@ -256,7 +288,11 @@ export function ShiftDialog({ initialData, locationId, onClose, onSaved }: Props
                   required
                   value={ov.startTime}
                   onChange={(e) => {
-                    setDateOverrides(dateOverrides.map((o, idx) => idx === i ? { ...o, startTime: e.target.value } : o));
+                    setDateOverrides(
+                      dateOverrides.map((o, idx) =>
+                        idx === i ? { ...o, startTime: e.target.value } : o,
+                      ),
+                    );
                   }}
                   className="rounded-md border border-brand-cream-3 bg-transparent px-2 py-1 text-xs text-brand-ink outline-none focus:border-brand-red"
                 />
@@ -266,7 +302,11 @@ export function ShiftDialog({ initialData, locationId, onClose, onSaved }: Props
                   required
                   value={ov.endTime}
                   onChange={(e) => {
-                    setDateOverrides(dateOverrides.map((o, idx) => idx === i ? { ...o, endTime: e.target.value } : o));
+                    setDateOverrides(
+                      dateOverrides.map((o, idx) =>
+                        idx === i ? { ...o, endTime: e.target.value } : o,
+                      ),
+                    );
                   }}
                   className="rounded-md border border-brand-cream-3 bg-transparent px-2 py-1 text-xs text-brand-ink outline-none focus:border-brand-red"
                 />
@@ -281,7 +321,16 @@ export function ShiftDialog({ initialData, locationId, onClose, onSaved }: Props
             ))}
             <button
               type="button"
-              onClick={() => setDateOverrides([...dateOverrides, { date: new Date().toISOString().slice(0,10), startTime: '09:00', endTime: '17:00' }])}
+              onClick={() =>
+                setDateOverrides([
+                  ...dateOverrides,
+                  {
+                    date: new Date().toISOString().slice(0, 10),
+                    startTime: '09:00',
+                    endTime: '17:00',
+                  },
+                ])
+              }
               className="mt-1 text-xs font-semibold text-brand-red hover:underline"
             >
               {t('form.addDateOverride')}

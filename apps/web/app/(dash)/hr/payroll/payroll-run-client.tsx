@@ -261,7 +261,9 @@ export function PayrollRunClient({
                           {employee.baseSalary ? formatMoney(employee.baseSalary) : '—'}
                         </td>
                         <td className="px-3 py-2 text-brand-ink-2">
-                          {deductions.length > 0 ? deductions.join(', ') : t('form.previewNoneStatutory')}
+                          {deductions.length > 0
+                            ? deductions.join(', ')
+                            : t('form.previewNoneStatutory')}
                         </td>
                       </tr>
                     );
@@ -297,7 +299,10 @@ export function PayrollRunClient({
               {selectedEmployees.map((employee) => {
                 const rows = bonusRowsByEmployeeId[employee.id] ?? [];
                 return (
-                  <div key={employee.id} className="rounded-lg border border-brand-cream-3 bg-card p-3">
+                  <div
+                    key={employee.id}
+                    className="rounded-lg border border-brand-cream-3 bg-card p-3"
+                  >
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs font-medium text-brand-ink-2">{employee.name}</span>
                       <button
@@ -323,7 +328,10 @@ export function PayrollRunClient({
                             onChange={(e) =>
                               setBonusRowsByEmployeeId((c) => {
                                 const list = [...(c[employee.id] ?? [])];
-                                list[idx] = { ...list[idx]!, amount: e.target.value.replace(/\D/g, '') };
+                                list[idx] = {
+                                  ...list[idx]!,
+                                  amount: e.target.value.replace(/\D/g, ''),
+                                };
                                 return { ...c, [employee.id]: list };
                               })
                             }
@@ -389,7 +397,10 @@ export function PayrollRunClient({
               {selectedEmployees.map((employee) => {
                 const rows = deductionRowsByEmployeeId[employee.id] ?? [];
                 return (
-                  <div key={employee.id} className="rounded-lg border border-brand-cream-3 bg-card p-3">
+                  <div
+                    key={employee.id}
+                    className="rounded-lg border border-brand-cream-3 bg-card p-3"
+                  >
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs font-medium text-brand-ink-2">{employee.name}</span>
                       <button
@@ -415,7 +426,10 @@ export function PayrollRunClient({
                             onChange={(e) =>
                               setDeductionRowsByEmployeeId((c) => {
                                 const list = [...(c[employee.id] ?? [])];
-                                list[idx] = { ...list[idx]!, amount: e.target.value.replace(/\D/g, '') };
+                                list[idx] = {
+                                  ...list[idx]!,
+                                  amount: e.target.value.replace(/\D/g, ''),
+                                };
                                 return { ...c, [employee.id]: list };
                               })
                             }

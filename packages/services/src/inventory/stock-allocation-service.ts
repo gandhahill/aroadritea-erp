@@ -15,7 +15,8 @@ export async function allocateStock(
   },
   ctx: AuditContext,
 ): Promise<Result<void>> {
-  if (input.qtyToAllocate <= 0) return err(AppError.validation('inventory.allocation.qtyMustBePositive'));
+  if (input.qtyToAllocate <= 0)
+    return err(AppError.validation('inventory.allocation.qtyMustBePositive'));
   if (!ctx.userId) return err(AppError.unauthenticated('auth.required'));
 
   const conditions = [
@@ -42,7 +43,7 @@ export async function allocateStock(
   // Update allocation
   const newAllocated = Number(existing.allocatedQty) + input.qtyToAllocate;
   const newAvailable = Number(existing.qtyAvailable) - input.qtyToAllocate;
-  
+
   if (newAvailable < 0) {
     return err(AppError.conflict('inventory.allocation.insufficientStock'));
   }
@@ -78,7 +79,8 @@ export async function deallocateStock(
   },
   ctx: AuditContext,
 ): Promise<Result<void>> {
-  if (input.qtyToDeallocate <= 0) return err(AppError.validation('inventory.allocation.qtyMustBePositive'));
+  if (input.qtyToDeallocate <= 0)
+    return err(AppError.validation('inventory.allocation.qtyMustBePositive'));
   if (!ctx.userId) return err(AppError.unauthenticated('auth.required'));
 
   const conditions = [
@@ -107,7 +109,7 @@ export async function deallocateStock(
   // Only add back the actually deallocated amount
   const actualDeallocated = Number(existing.allocatedQty) - newAllocated;
   const newAvailable = Number(existing.qtyAvailable) + actualDeallocated;
-  
+
   await db
     .update(stockLevels)
     .set({

@@ -1,13 +1,9 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { and, desc, eq, inArray, isNull, sql, db } from '@erp/db';
+import { and, db, desc, eq, inArray, isNull, sql } from '@erp/db';
 import { locations, users } from '@erp/db/schema/auth';
-import {
-  products,
-  stockTransferLines,
-  stockTransfers,
-} from '@erp/db/schema/inventory';
+import { products, stockTransferLines, stockTransfers } from '@erp/db/schema/inventory';
 import {
   cancelTransfer,
   createTransferDraft,
@@ -31,7 +27,7 @@ async function getAuditContext(): Promise<AuditContext | null> {
   };
 }
 
-function pickName(name: unknown, locale: string, fallback: string = ''): string {
+function pickName(name: unknown, locale: string, fallback = ''): string {
   if (!name || typeof name !== 'object') return fallback;
   const value = name as Record<string, string | undefined>;
   return value[locale] ?? value.id ?? value.en ?? value.zh ?? fallback;
@@ -50,10 +46,7 @@ export async function fetchTransferList(
 
   const offset = (Math.max(1, page) - 1) * pageSize;
 
-  const conditions = [
-    eq(stockTransfers.tenantId, ctx.tenantId),
-    isNull(stockTransfers.deletedAt),
-  ];
+  const conditions = [eq(stockTransfers.tenantId, ctx.tenantId), isNull(stockTransfers.deletedAt)];
   if (locationId) {
     conditions.push(
       sql`${stockTransfers.fromLocationId} = ${locationId} OR ${stockTransfers.toLocationId} = ${locationId}`,
@@ -98,18 +91,12 @@ export async function fetchTransferList(
       .from(locations)
       .where(and(eq(locations.tenantId, ctx.tenantId), inArray(locations.id, locIds)));
     const locale = await getLocale();
-    locMap = new Map(
-      locs.map((l) => [l.id, pickName(l.name, locale, l.code)]),
-    );
+    locMap = new Map(locs.map((l) => [l.id, pickName(l.name, locale, l.code)]));
   }
 
   // Fetch user display names for createdBy / updatedBy
   const userIds = [
-    ...new Set(
-      rows
-        .flatMap((r) => [r.createdBy, r.updatedBy])
-        .filter((id): id is string => !!id),
-    ),
+    ...new Set(rows.flatMap((r) => [r.createdBy, r.updatedBy]).filter((id): id is string => !!id)),
   ];
   let userMap = new Map<string, string>();
   if (userIds.length > 0) {
@@ -129,11 +116,9 @@ export async function fetchTransferList(
       status: r.status,
       fromLocationName: locMap.get(r.fromLocationId) || 'Unknown',
       toLocationName: locMap.get(r.toLocationId) || 'Unknown',
-      createdByName: r.createdBy ? (userMap.get(r.createdBy) || null) : null,
+      createdByName: r.createdBy ? userMap.get(r.createdBy) || null : null,
       updatedByName:
-        r.updatedBy && r.updatedBy !== r.createdBy
-          ? (userMap.get(r.updatedBy) || null)
-          : null,
+        r.updatedBy && r.updatedBy !== r.createdBy ? userMap.get(r.updatedBy) || null : null,
     })),
   };
 }
@@ -170,9 +155,7 @@ export async function fetchTransferDetail(transferId: string) {
       .from(products)
       .where(and(eq(products.tenantId, ctx.tenantId), inArray(products.id, productIds)));
     const locale = await getLocale();
-    productMap = new Map(
-      prods.map((p) => [p.id, pickName(p.name, locale, p.sku)]),
-    );
+    productMap = new Map(prods.map((p) => [p.id, pickName(p.name, locale, p.sku)]));
   }
 
   // Fetch locations
@@ -182,7 +165,10 @@ export async function fetchTransferDetail(transferId: string) {
     .where(eq(locations.tenantId, ctx.tenantId));
   const locale = await getLocale();
   const locMap = new Map(
-    locs.map((l) => [l.id, (l.name as Record<string, string>)[locale] || (l.name as Record<string, string>).id]),
+    locs.map((l) => [
+      l.id,
+      (l.name as Record<string, string>)[locale] || (l.name as Record<string, string>).id,
+    ]),
   );
 
   return {
@@ -338,7 +324,11 @@ export async function shipTransferAction(transferId: string, version: number) {
   return { ok: true, message: t('shipSuccess') };
 }
 
-export async function receiveTransferAction(transferId: string, version: number, lines: Array<{ lineId: string; qtyReceived: string }>) {
+export async function receiveTransferAction(
+  transferId: string,
+  version: number,
+  lines: Array<{ lineId: string; qtyReceived: string }>,
+) {
   const ctx = await getAuditContext();
   if (!ctx) return { error: 'Unauthenticated' };
   const t = await getTranslations('inventory.transfer');

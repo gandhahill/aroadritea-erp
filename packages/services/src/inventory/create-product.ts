@@ -13,18 +13,18 @@
 
 import { db } from '@erp/db';
 import { productCategories, products } from '@erp/db/schema/inventory';
+import { stockLevels, stockMovements } from '@erp/db/schema/inventory';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq } from 'drizzle-orm';
+import { resolveAccountIdsByCodes } from '../accounting/account-resolver';
+import { createJournal } from '../accounting/create-journal';
+import { getPostingAccountCodes } from '../accounting/posting-accounts';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { type CreateProductInput, CreateProductInputSchema } from './schemas';
-import { stockLevels, stockMovements } from '@erp/db/schema/inventory';
-import { createJournal } from '../accounting/create-journal';
-import { getPostingAccountCodes } from '../accounting/posting-accounts';
-import { resolveAccountIdsByCodes } from '../accounting/account-resolver';
 
 // --- Return type ---
 

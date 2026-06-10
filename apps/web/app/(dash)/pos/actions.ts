@@ -18,9 +18,9 @@ import {
   products,
   stockLevels,
 } from '@erp/db/schema/inventory';
+import { memberVouchers } from '@erp/db/schema/member';
 import { posSettings, salesOrders, shifts } from '@erp/db/schema/pos';
 import { promotions } from '@erp/db/schema/promotion';
-import { memberVouchers } from '@erp/db/schema/member';
 import { requirePermission } from '@erp/services/iam';
 import { type MemberLookupResult, findMemberByPhone } from '@erp/services/member';
 import { closeShift, createSale, openShift, refundSale, voidSale } from '@erp/services/pos';
@@ -34,8 +34,13 @@ import type {
   RefundSaleInput,
   VoidSaleInput,
 } from '@erp/services/pos/schemas';
+import {
+  type Cart,
+  type EvaluationResult,
+  evaluatePromotions,
+  listActivePromotionsForSale,
+} from '@erp/services/promotion';
 import { getLocale } from 'next-intl/server';
-import { evaluatePromotions, type Cart, listActivePromotionsForSale, type EvaluationResult } from '@erp/services/promotion';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -588,7 +593,7 @@ export async function evaluateCartPromotionsAction(params: {
   lines: { productId: string; qty: number; unitPrice: string }[];
 }): Promise<EvaluationResult> {
   const ctx = await getAuditContext();
-  
+
   const activePromotions = await listActivePromotionsForSale({
     tenantId: ctx.tenantId,
     locationId: ctx.locationId,
@@ -642,7 +647,9 @@ export async function applyVoucherAction(params: {
   const voucher = await db
     .select()
     .from(memberVouchers)
-    .where(and(eq(memberVouchers.tenantId, ctx.tenantId), eq(memberVouchers.code, params.voucherCode)))
+    .where(
+      and(eq(memberVouchers.tenantId, ctx.tenantId), eq(memberVouchers.code, params.voucherCode)),
+    )
     .then((r) => r[0]);
 
   if (!voucher) {

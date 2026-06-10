@@ -21,9 +21,9 @@ import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
+import { resolveAccountIdsByCodes } from './account-resolver';
 import { createJournal } from './create-journal';
 import { postJournal } from './post-journal';
-import { resolveAccountIdsByCodes } from './account-resolver';
 
 // COA codes per the seeded chart of accounts (Appendix A).
 const HPP_ACCOUNT_CODE = '5-0000'; // Harga Pokok Penjualan (COGS)
@@ -169,14 +169,34 @@ export async function postHppAdjustment(
         }
         if (hppAmount > 0n) {
           lines.push(
-            { accountId: hppAccountId, description: 'HPP penyesuaian persediaan', debit: hppAmount.toString(), credit: '0' },
-            { accountId: invAccountId, description: 'Penyesuaian persediaan bahan baku', debit: '0', credit: hppAmount.toString() },
+            {
+              accountId: hppAccountId,
+              description: 'HPP penyesuaian persediaan',
+              debit: hppAmount.toString(),
+              credit: '0',
+            },
+            {
+              accountId: invAccountId,
+              description: 'Penyesuaian persediaan bahan baku',
+              debit: '0',
+              credit: hppAmount.toString(),
+            },
           );
         } else {
           const abs = -hppAmount;
           lines.push(
-            { accountId: invAccountId, description: 'Penyesuaian persediaan bahan baku', debit: abs.toString(), credit: '0' },
-            { accountId: hppAccountId, description: 'HPP penyesuaian persediaan', debit: '0', credit: abs.toString() },
+            {
+              accountId: invAccountId,
+              description: 'Penyesuaian persediaan bahan baku',
+              debit: abs.toString(),
+              credit: '0',
+            },
+            {
+              accountId: hppAccountId,
+              description: 'HPP penyesuaian persediaan',
+              debit: '0',
+              credit: abs.toString(),
+            },
           );
         }
       }
@@ -191,14 +211,34 @@ export async function postHppAdjustment(
         }
         if (supplyAmount > 0n) {
           lines.push(
-            { accountId: supExpId, description: 'Beban perlengkapan penyesuaian', debit: supplyAmount.toString(), credit: '0' },
-            { accountId: supInvId, description: 'Penyesuaian perlengkapan', debit: '0', credit: supplyAmount.toString() },
+            {
+              accountId: supExpId,
+              description: 'Beban perlengkapan penyesuaian',
+              debit: supplyAmount.toString(),
+              credit: '0',
+            },
+            {
+              accountId: supInvId,
+              description: 'Penyesuaian perlengkapan',
+              debit: '0',
+              credit: supplyAmount.toString(),
+            },
           );
         } else {
           const abs = -supplyAmount;
           lines.push(
-            { accountId: supInvId, description: 'Penyesuaian perlengkapan', debit: abs.toString(), credit: '0' },
-            { accountId: supExpId, description: 'Beban perlengkapan penyesuaian', debit: '0', credit: abs.toString() },
+            {
+              accountId: supInvId,
+              description: 'Penyesuaian perlengkapan',
+              debit: abs.toString(),
+              credit: '0',
+            },
+            {
+              accountId: supExpId,
+              description: 'Beban perlengkapan penyesuaian',
+              debit: '0',
+              credit: abs.toString(),
+            },
           );
         }
       }

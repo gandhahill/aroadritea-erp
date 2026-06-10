@@ -252,9 +252,7 @@ export function ProductForm({ mode, categories, product, defaultKind, locations 
       {mode === 'create' && locations && locations.length > 0 && (
         <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
           <h2 className="text-base font-semibold text-brand-ink">{f('initialStockSection')}</h2>
-          <p className="mt-1 text-sm text-brand-ink-3">
-            {f('initialStockHint')}
-          </p>
+          <p className="mt-1 text-sm text-brand-ink-3">{f('initialStockHint')}</p>
           <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {locations.map((loc) => (
               <Field key={loc.id} label={loc.label}>

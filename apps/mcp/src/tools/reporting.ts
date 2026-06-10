@@ -16,6 +16,7 @@ import { can } from '@erp/services/iam';
 import {
   balanceSheet,
   cashFlow,
+  financialStatementNotes,
   getDailySummary,
   getDonationReport,
   getHourlySales,
@@ -27,6 +28,7 @@ import type {
   CashFlowInput,
   DailySummaryParams,
   DonationReportParams,
+  FinancialStatementNotesInput,
   HourlySalesParams,
   ProfitLossInput,
   TrialBalanceInput,
@@ -80,6 +82,16 @@ export const TrialBalanceSchema = z.object({
   locale: z.enum(['id', 'en', 'zh']).optional().default('id'),
 });
 
+export const FinancialStatementNotesSchema = z.object({
+  period_start: z.string(),
+  period_end: z.string(),
+  reporting_date: z.string(),
+  location_id: z.string().min(1, 'location_id is required for MCP access'),
+  first_sak_ep_financial_statements: z.boolean().optional().default(false),
+  previous_framework: z.string().optional(),
+  locale: z.enum(['id', 'en', 'zh']).optional().default('id'),
+});
+
 export const DailySummarySchema = z.object({
   location_id: z.string(),
   start_date: z.string(),
@@ -108,6 +120,13 @@ export const reportingTools = [
   { name: 'reporting.cash_flow', schema: CashFlowSchema, handler: cashFlowHandler },
   { name: 'reporting.general_ledger', schema: GeneralLedgerSchema, handler: generalLedgerHandler },
   { name: 'reporting.trial_balance', schema: TrialBalanceSchema, handler: trialBalanceHandler },
+  {
+    name: 'reporting.financial_statement_notes',
+    schema: FinancialStatementNotesSchema,
+    handler: financialStatementNotesHandler,
+    description:
+      'Get SAK EP notes/CALK baseline, required statement checklist, and compliance warnings. SD §21.2.',
+  },
   {
     name: 'reporting.get_daily_summary',
     schema: DailySummarySchema,
@@ -275,6 +294,30 @@ async function trialBalanceHandler(input: z.infer<typeof TrialBalanceSchema>, ct
     userId: ctx.userId,
     tenantId: ctx.tenantId,
     locationId: input.location_id ?? 'system',
+  });
+
+  return serializeResult(result);
+}
+
+async function financialStatementNotesHandler(
+  input: z.infer<typeof FinancialStatementNotesSchema>,
+  ctx: McpContext,
+) {
+  const permitted = await checkPermission(ctx, 'reporting.view', input.location_id);
+  if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: reporting.view');
+
+  const params: FinancialStatementNotesInput = {
+    periodStart: input.period_start,
+    periodEnd: input.period_end,
+    reportingDate: input.reporting_date,
+    locationId: input.location_id,
+    firstSakEpFinancialStatements: input.first_sak_ep_financial_statements,
+    previousFramework: input.previous_framework,
+  };
+  const result = await financialStatementNotes(params, {
+    userId: ctx.userId,
+    tenantId: ctx.tenantId,
+    locationId: input.location_id,
   });
 
   return serializeResult(result);

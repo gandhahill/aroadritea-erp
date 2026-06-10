@@ -2,10 +2,10 @@
 
 import { getSession } from '@/lib/auth';
 import { authorizedLocationIdsForTenant } from '@/lib/authz';
+import { and, db, eq, isNull } from '@erp/db';
+import { employees } from '@erp/db/schema/hr';
 import { approveOvertime, listOvertimes, recordOvertime, rejectOvertime } from '@erp/services/hr';
 import type { AuditContext } from '@erp/shared/types';
-import { db, eq, and, isNull } from '@erp/db';
-import { employees } from '@erp/db/schema/hr';
 import { getTranslations } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
 
@@ -68,7 +68,12 @@ export async function fetchOvertimePage(
   };
 }
 
-export async function recordOvertimeAction(employeeId: string, workDate: string, hours: number, reason: string) {
+export async function recordOvertimeAction(
+  employeeId: string,
+  workDate: string,
+  hours: number,
+  reason: string,
+) {
   const ctx = await getCtx();
   if (!ctx) return { error: 'Unauthenticated' };
   const t = await getTranslations('hr.overtime');

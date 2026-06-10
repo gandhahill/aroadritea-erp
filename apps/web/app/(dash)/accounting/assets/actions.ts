@@ -8,11 +8,11 @@ import {
   type FixedAssetCategoryItem,
   type FixedAssetListItem,
   createFixedAsset,
+  disposeFixedAsset,
   listFixedAssetCategories,
   listFixedAssets,
   runFixedAssetDepreciation,
   updateFixedAssetCategory,
-  disposeFixedAsset,
 } from '@erp/services/accounting';
 import type { AuditContext } from '@erp/shared/types';
 import { getLocale } from 'next-intl/server';
@@ -90,12 +90,15 @@ export async function fetchAssetPageData(input?: {
   if (!ctx) return { assets: [], total: 0, categories: [], locations: [], accountOptions: [] };
   const locale = (await getLocale().catch(() => 'id')) as 'id' | 'en' | 'zh';
   const [assetResult, categoryResult, locations] = await Promise.all([
-    listFixedAssets({
-      locationId: input?.locationId,
-      status: input?.status,
-      limit: input?.limit,
-      offset: input?.offset,
-    }, ctx),
+    listFixedAssets(
+      {
+        locationId: input?.locationId,
+        status: input?.status,
+        limit: input?.limit,
+        offset: input?.offset,
+      },
+      ctx,
+    ),
     listFixedAssetCategories(ctx),
     getActiveLocationOptions({ tenantId: ctx.tenantId, locale }),
   ]);

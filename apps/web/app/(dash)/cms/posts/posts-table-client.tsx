@@ -2,8 +2,8 @@
 
 import { FilterBar, FilterField } from '@/components/filter-bar';
 import { Input, Select, TableBody, TableCell, TableHead } from '@erp/ui';
-import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -12,8 +12,6 @@ const STATUS_COLORS: Record<string, string> = {
   published: 'bg-brand-jade/10 text-brand-jade',
   archived: 'bg-brand-ink/5 text-brand-ink-3',
 };
-
-
 
 export interface PostRow {
   id: string;

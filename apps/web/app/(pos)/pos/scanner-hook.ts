@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react';
  */
 export function useBarcodeScanner(
   onScan: (barcode: string) => void,
-  options = { timeout: 50, minLength: 3 }
+  options = { timeout: 50, minLength: 3 },
 ) {
   const [buffer, setBuffer] = useState('');
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);

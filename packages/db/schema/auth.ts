@@ -52,12 +52,12 @@ export const locations = pgTable(
     gpsLat: text('gps_lat'),
     gpsLng: text('gps_lng'),
     gpsRadiusM: integer('gps_radius_m'),
-    
+
     // T-0259: Public site info
     openingHours: jsonb('opening_hours'), // e.g. { "monday": "09:00-22:00", ... }
     deliveryLink: text('delivery_link'), // e.g. GoFood / GrabFood link
     mapEmbedUrl: text('map_embed_url'),
-    
+
     ...auditCols,
     ...versionCol,
   },
@@ -241,20 +241,17 @@ export const mcpTokens = pgTable(
     tokenHash: text('token_hash').notNull(), // argon2 hash of the token
 
     scope: jsonb('scope').$type<string[]>().notNull().default([]), // specific permissions for this token
-    
+
     expiresAt: timestamp('expires_at', { withTimezone: true }),
     lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
-    
+
     isRevoked: boolean('is_revoked').notNull().default(false),
 
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     createdBy: text('created_by'),
     updatedAt: timestamp('updated_at', { withTimezone: true }),
   },
-  (t) => [
-    index('mcp_tokens_user_idx').on(t.userId),
-    index('mcp_tokens_tenant_idx').on(t.tenantId),
-  ]
+  (t) => [index('mcp_tokens_user_idx').on(t.userId), index('mcp_tokens_tenant_idx').on(t.tenantId)],
 );
 
 export const loginAttempts = pgTable(

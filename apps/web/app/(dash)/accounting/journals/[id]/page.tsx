@@ -6,12 +6,12 @@
 import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
 import { fetchJournalDetail } from '../actions';
 import { fetchJournalAttachments } from '../attachments/actions';
 import { JournalAttachmentsList } from './attachments-list';
 import { JournalActionsUI } from './journal-actions-ui';
-import { getTranslations } from 'next-intl/server';
 
 export const metadata: Metadata = {
   title: 'Journal Detail',
@@ -68,7 +68,9 @@ export default async function JournalDetailPage({
           <div>
             <PageHeader title={journal.number} />
             <div className="mt-2 flex items-center gap-3">
-              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${style.bg} ${style.text}`}>
+              <span
+                className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${style.bg} ${style.text}`}
+              >
                 <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${style.dot}`} />
                 {journal.status.toUpperCase()}
               </span>
@@ -76,10 +78,10 @@ export default async function JournalDetailPage({
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <JournalActionsUI 
-              journalId={id} 
-              status={journal.status} 
-              defaultDate={new Date().toISOString().split('T')[0]!} 
+            <JournalActionsUI
+              journalId={id}
+              status={journal.status}
+              defaultDate={new Date().toISOString().split('T')[0]!}
             />
             <a
               href={`/accounting/journals/${id}/print`}
@@ -227,8 +229,12 @@ export default async function JournalDetailPage({
 
       {/* Audit info */}
       <div className="flex items-center gap-6 text-xs text-brand-ink-3">
-        <span>{t('detail.created')}: {new Date(journal.createdAt).toLocaleString('id-ID')}</span>
-        <span>{t('detail.updated')}: {new Date(journal.updatedAt).toLocaleString('id-ID')}</span>
+        <span>
+          {t('detail.created')}: {new Date(journal.createdAt).toLocaleString('id-ID')}
+        </span>
+        <span>
+          {t('detail.updated')}: {new Date(journal.updatedAt).toLocaleString('id-ID')}
+        </span>
       </div>
     </div>
   );

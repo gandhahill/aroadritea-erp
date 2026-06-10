@@ -11,11 +11,11 @@ import { createHash, randomFillSync } from 'node:crypto';
 import { db } from '@erp/db';
 import { apiTokens } from '@erp/db/schema/auth';
 import { AppError } from '@erp/shared/errors';
+import { generateId } from '@erp/shared/id';
 import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
-import { generateId } from '@erp/shared/id';
 import { auditRecord } from '../audit';
 
 /** SHA-256 hex hash of a raw token. Must match apps/mcp/src/auth.ts. */
@@ -44,7 +44,9 @@ export async function mintApiToken(
 ): Promise<Result<{ id: string; token: string }>> {
   const parsed = MintApiTokenSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('settings.mcpTokens.errors.invalid', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('settings.mcpTokens.errors.invalid', { issues: parsed.error.issues }),
+    );
   }
   return tryCatch(
     async () => {
@@ -68,7 +70,8 @@ export async function mintApiToken(
       });
       return { id, token: raw };
     },
-    (e) => (e instanceof AppError ? e : AppError.internal('settings.mcpTokens.errors.mintFailed', e)),
+    (e) =>
+      e instanceof AppError ? e : AppError.internal('settings.mcpTokens.errors.mintFailed', e),
   );
 }
 
@@ -115,6 +118,7 @@ export async function revokeApiToken(
       }
       return { id: tokenId };
     },
-    (e) => (e instanceof AppError ? e : AppError.internal('settings.mcpTokens.errors.revokeFailed', e)),
+    (e) =>
+      e instanceof AppError ? e : AppError.internal('settings.mcpTokens.errors.revokeFailed', e),
   );
 }

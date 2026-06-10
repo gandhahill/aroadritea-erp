@@ -1,7 +1,7 @@
 /**
  * Tax rate seed data — SD §19.1, §19.3.2
  *
- * Seed tarif: PB1, PPN_OUT, PPN_IN, PPH21, PPH23, PPH25
+ * Seed tarif: PB1, PPN_OUT, PPN_IN, PPH21, PPH23, PPH25, PPH_FINAL_UMKM
  * Posting account IDs reference COA codes (resolved at seed time).
  *
  * NOTE: These use COA codes (not IDs) because IDs are generated at seed time.
@@ -29,11 +29,13 @@ export const TAX_RATES_SEED = [
   {
     code: 'PPN_OUT',
     name: {
-      id: 'PPN Keluaran (11%)',
-      en: 'VAT Out (11%)',
+      id: 'PPN Keluaran (efektif 11%)',
+      en: 'VAT Out (effective 11%)',
       zh: '销项增值税 (11%)',
     },
-    rateBps: 1100, // 11%
+    // Current non-lux VAT uses the 11% effective rate. From 2025 this is
+    // statutory 12% multiplied by deemed DPP 11/12 under PMK 131/2024.
+    rateBps: 1100,
     calculation: 'exclusive' as const,
     postingAccountCode: '2-2300', // PPN Keluaran (Vat Out)
     isActive: true,
@@ -42,11 +44,12 @@ export const TAX_RATES_SEED = [
   {
     code: 'PPN_IN',
     name: {
-      id: 'PPN Masukan (11%)',
-      en: 'VAT In (11%)',
+      id: 'PPN Masukan (efektif 11%)',
+      en: 'VAT In (effective 11%)',
       zh: '进项增值税 (11%)',
     },
-    rateBps: 1100, // 11%
+    // Keep the effective 11% rate for ordinary non-luxury input VAT.
+    rateBps: 1100,
     calculation: 'exclusive' as const,
     postingAccountCode: '1-4100', // PPN Masukan (Vat In)
     isActive: true,
@@ -85,9 +88,24 @@ export const TAX_RATES_SEED = [
       en: 'Income Tax Art. 25 (Monthly Installment)',
       zh: '第25条所得税（月度分期）',
     },
-    rateBps: 50, // 0.5% (default for UMKM PP 55/2022)
+    // PPh 25 is an installment amount derived from annual tax, not a fixed rate.
+    // The 0.5% final UMKM rate is seeded separately as PPH_FINAL_UMKM.
+    rateBps: 0,
     calculation: 'exclusive' as const,
     postingAccountCode: '1-2600', // Prepaid Final Tax
+    isActive: true,
+    effectiveFrom: '2024-01-01',
+  },
+  {
+    code: 'PPH_FINAL_UMKM',
+    name: {
+      id: 'PPh Final UMKM (0,5%)',
+      en: 'Final MSME Income Tax (0.5%)',
+      zh: 'Final MSME Income Tax (0.5%)',
+    },
+    rateBps: 50, // 0.5% of qualifying monthly gross turnover.
+    calculation: 'exclusive' as const,
+    postingAccountCode: '2-1700', // Final Income Tax Payable
     isActive: true,
     effectiveFrom: '2024-01-01',
   },

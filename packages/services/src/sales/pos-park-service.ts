@@ -13,7 +13,10 @@ export const ParkSaleInputSchema = z.object({
 
 export type ParkSaleInput = z.infer<typeof ParkSaleInputSchema>;
 
-export async function parkSale(input: ParkSaleInput, ctx: AuditContext): Promise<Result<{ id: string }>> {
+export async function parkSale(
+  input: ParkSaleInput,
+  ctx: AuditContext,
+): Promise<Result<{ id: string }>> {
   const parsed = ParkSaleInputSchema.safeParse(input);
   if (!parsed.success) return err(AppError.validation(parsed.error.message));
 
@@ -23,7 +26,8 @@ export async function parkSale(input: ParkSaleInput, ctx: AuditContext): Promise
     .where(and(eq(salesOrders.id, input.saleId), eq(salesOrders.tenantId, ctx.tenantId)));
 
   if (!sale) return err(AppError.notFound('sales.errors.sale_not_found'));
-  if (sale.status !== 'open') return err(AppError.businessRule('sales.errors.cannot_park_non_open_sale'));
+  if (sale.status !== 'open')
+    return err(AppError.businessRule('sales.errors.cannot_park_non_open_sale'));
 
   await db
     .update(salesOrders)
@@ -39,14 +43,18 @@ export async function parkSale(input: ParkSaleInput, ctx: AuditContext): Promise
   return ok({ id: sale.id });
 }
 
-export async function recallSale(saleId: string, ctx: AuditContext): Promise<Result<{ id: string }>> {
+export async function recallSale(
+  saleId: string,
+  ctx: AuditContext,
+): Promise<Result<{ id: string }>> {
   const [sale] = await db
     .select()
     .from(salesOrders)
     .where(and(eq(salesOrders.id, saleId), eq(salesOrders.tenantId, ctx.tenantId)));
 
   if (!sale) return err(AppError.notFound('sales.errors.sale_not_found'));
-  if (sale.status !== 'parked') return err(AppError.businessRule('sales.errors.cannot_recall_non_parked_sale'));
+  if (sale.status !== 'parked')
+    return err(AppError.businessRule('sales.errors.cannot_recall_non_parked_sale'));
 
   await db
     .update(salesOrders)

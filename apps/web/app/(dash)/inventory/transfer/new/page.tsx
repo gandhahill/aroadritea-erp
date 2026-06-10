@@ -1,5 +1,5 @@
-import { can } from '@erp/services/iam';
 import { getSession } from '@/lib/auth';
+import { can } from '@erp/services/iam';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { fetchLocationOptions, fetchProductOptions } from '../actions';
@@ -17,10 +17,7 @@ export default async function NewTransferPage() {
   const perm = await can(user.id, 'inventory.transfer');
   if (!perm) redirect('/dashboard');
 
-  const [locations, products] = await Promise.all([
-    fetchLocationOptions(),
-    fetchProductOptions(),
-  ]);
+  const [locations, products] = await Promise.all([fetchLocationOptions(), fetchProductOptions()]);
 
   return (
     <NewTransferForm

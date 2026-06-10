@@ -5,7 +5,7 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { forgiveLate, listAttendance, createAbsenceDispensation } from '@erp/services/hr';
+import { createAbsenceDispensation, forgiveLate, listAttendance } from '@erp/services/hr';
 import type { ListAttendanceInput } from '@erp/services/hr';
 import type { AuditContext } from '@erp/shared/types';
 import { getTranslations } from 'next-intl/server';
@@ -82,7 +82,7 @@ export async function revokeDispensationAction(
     tenantId: String(user.tenantId ?? 'default'),
     locationId: String(user.locationId ?? ''),
   };
-  
+
   const { revokeAbsenceDispensation } = await import('@erp/services/hr');
   const result = await revokeAbsenceDispensation({ employeeId, dates }, ctx);
   if (!result.ok) {
@@ -92,7 +92,9 @@ export async function revokeDispensationAction(
   return { ok: true };
 }
 
-export async function revokeFaceDataAction(employeeId: string): Promise<{ ok: boolean; error?: string }> {
+export async function revokeFaceDataAction(
+  employeeId: string,
+): Promise<{ ok: boolean; error?: string }> {
   const session = await getSession();
   if (!session?.user) return { ok: false, error: 'Unauthenticated' };
   const user = session.user as Record<string, unknown>;
@@ -104,7 +106,7 @@ export async function revokeFaceDataAction(employeeId: string): Promise<{ ok: bo
 
   const { revokeFaceTemplate } = await import('@erp/services/hr');
   const result = await revokeFaceTemplate(employeeId, ctx);
-  
+
   if (!result.ok) {
     return { ok: false, error: result.error?.message ?? 'Failed to revoke face template' };
   }

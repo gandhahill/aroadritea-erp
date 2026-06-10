@@ -48,7 +48,7 @@ export async function updateEmployeeLogin(
             eq(employees.id, data.employeeId),
             eq(employees.tenantId, ctx.tenantId),
             isNull(employees.deletedAt),
-          )
+          ),
         )
         .limit(1);
 
@@ -69,13 +69,13 @@ export async function updateEmployeeLogin(
       const email = decryptPii(emp.email, 'employees.email');
       if (!email) throw AppError.internal('hr.employee.updateFailed', new Error('Missing email'));
 
-      let [user] = await db
+      const [user] = await db
         .select()
         .from(users)
         .where(and(eq(users.tenantId, ctx.tenantId), eq(users.email, email)))
         .limit(1);
 
-      let [role] = await db
+      const [role] = await db
         .select({ id: roles.id })
         .from(roles)
         .where(and(eq(roles.tenantId, ctx.tenantId), eq(roles.code, data.roleCode ?? '')))
@@ -120,7 +120,7 @@ export async function updateEmployeeLogin(
             .update(users)
             .set({ passwordHash: hash, requirePasswordChange: data.requirePasswordChange })
             .where(eq(users.id, user.id));
-          
+
           await db
             .update(authAccounts)
             .set({ password: hash })
@@ -130,14 +130,16 @@ export async function updateEmployeeLogin(
         // User does not exist, provision a new one
         const userId = generateId();
         const hash = await hashPassword(data.password);
-        
+
         await db.insert(users).values({
           id: userId,
           tenantId: ctx.tenantId,
           email: email,
           passwordHash: hash,
           displayName: emp.name,
-          phone: emp.phone ? encryptPii(decryptPii(emp.phone, 'employees.phone'), 'users.phone') : null,
+          phone: emp.phone
+            ? encryptPii(decryptPii(emp.phone, 'employees.phone'), 'users.phone')
+            : null,
           locale: 'id',
           status: 'active',
           emailVerified: new Date(),

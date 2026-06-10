@@ -6,7 +6,7 @@
  */
 
 import { db } from '@erp/db';
-import { roles, userRoles, users, authAccounts } from '@erp/db/schema/auth';
+import { authAccounts, roles, userRoles, users } from '@erp/db/schema/auth';
 import { employees, employmentContracts } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
@@ -58,7 +58,7 @@ export async function createEmployee(
             eq(employees.tenantId, ctx.tenantId),
             eq(employees.email, encryptedEmail),
             isNull(employees.deletedAt),
-          )
+          ),
         )
         .limit(1);
 
@@ -116,7 +116,10 @@ export async function createEmployee(
         employeeId: emp.id,
         contractType: data.contractType,
         startDate: new Date(data.hireDate),
-        endDate: data.contractType === 'pkwt' && data.probationEndDate ? new Date(data.probationEndDate) : null,
+        endDate:
+          data.contractType === 'pkwt' && data.probationEndDate
+            ? new Date(data.probationEndDate)
+            : null,
         isActive: true,
         baseSalary: BigInt(data.baseSalary),
         createdBy: ctx.userId,

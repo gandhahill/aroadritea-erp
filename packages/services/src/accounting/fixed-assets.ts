@@ -21,14 +21,14 @@ import {
   type CreateFixedAssetInput,
   CreateFixedAssetSchema,
   type DepreciationMethod,
+  type DisposeFixedAssetInput,
+  DisposeFixedAssetSchema,
   type ListFixedAssetsInput,
   ListFixedAssetsSchema,
   type RunFixedAssetDepreciationInput,
   RunFixedAssetDepreciationSchema,
   type UpdateFixedAssetCategoryInput,
   UpdateFixedAssetCategorySchema,
-  type DisposeFixedAssetInput,
-  DisposeFixedAssetSchema,
 } from './schemas';
 
 type FixedAssetRow = typeof fixedAssets.$inferSelect;
@@ -530,7 +530,8 @@ export async function runFixedAssetDepreciation(
           referenceId: runId,
           lines: journalLines,
         },
-        ctx, { skipPermissionCheck: true }
+        ctx,
+        { skipPermissionCheck: true },
       );
       if (!journalResult.ok) throw journalResult.error;
 
@@ -1093,7 +1094,8 @@ export async function disposeFixedAsset(
           referenceType: 'manual',
           lines,
         },
-        ctx, { skipPermissionCheck: true }
+        ctx,
+        { skipPermissionCheck: true },
       );
 
       if (!journalResult.ok) throw journalResult.error;

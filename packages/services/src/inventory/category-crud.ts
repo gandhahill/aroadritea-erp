@@ -161,7 +161,9 @@ export async function updateCategory(
     const [existingCode] = await db
       .select({ id: productCategories.id })
       .from(productCategories)
-      .where(and(eq(productCategories.tenantId, ctx.tenantId), eq(productCategories.code, data.code)))
+      .where(
+        and(eq(productCategories.tenantId, ctx.tenantId), eq(productCategories.code, data.code)),
+      )
       .limit(1);
 
     if (existingCode) {
@@ -170,7 +172,11 @@ export async function updateCategory(
   }
 
   if (existing.version !== data.version) {
-    return err(AppError.conflict('inventory.category.versionConflict', { message: 'Category was modified by someone else' }));
+    return err(
+      AppError.conflict('inventory.category.versionConflict', {
+        message: 'Category was modified by someone else',
+      }),
+    );
   }
 
   const updates: Record<string, unknown> = {

@@ -1,5 +1,9 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { claimIdempotency, saveIdempotency, releaseIdempotencyClaim } from '../src/shared/idempotency';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  claimIdempotency,
+  releaseIdempotencyClaim,
+  saveIdempotency,
+} from '../src/shared/idempotency';
 
 let selectRows: any[] = [];
 let inserts: any[] = [];
@@ -11,10 +15,10 @@ vi.mock('@erp/db', () => ({
       from: () => {
         const chain = {
           where: () => chain,
-          then: (resolve: any) => resolve(selectRows)
+          then: (resolve: any) => resolve(selectRows),
         };
         return chain;
-      }
+      },
     }),
     insert: () => ({
       values: (val: any) => {
@@ -24,23 +28,23 @@ vi.mock('@erp/db', () => ({
             returning: () => {
               if (selectRows.length > 0) return Promise.resolve([]); // Simulate conflict
               return Promise.resolve([{ id: val.id }]);
-            }
+            },
           }),
-          onConflictDoUpdate: () => Promise.resolve()
+          onConflictDoUpdate: () => Promise.resolve(),
         };
-      }
+      },
     }),
     update: () => ({
       set: (val: any) => {
         updates.push(val);
         return {
-          where: () => Promise.resolve()
+          where: () => Promise.resolve(),
         };
-      }
+      },
     }),
   },
   eq: () => undefined,
-  and: () => undefined
+  and: () => undefined,
 }));
 
 describe('Idempotency System (Mocked DB)', () => {
@@ -93,10 +97,10 @@ describe('Idempotency System (Mocked DB)', () => {
         values: (val: any) => {
           inserts.push(val);
           return {
-            onConflictDoUpdate: () => Promise.resolve()
+            onConflictDoUpdate: () => Promise.resolve(),
           };
-        }
-      })
+        },
+      }),
     };
     await saveIdempotency(tx, 'loc-1', 'idem-1', 200, { saleId: '123' });
     expect(inserts.length).toBe(1);

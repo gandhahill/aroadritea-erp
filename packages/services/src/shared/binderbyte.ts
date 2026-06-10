@@ -48,7 +48,7 @@ export async function fetchBinderByteTracking(
     const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'api_key': apiKey,
+        api_key: apiKey,
       },
       signal: AbortSignal.timeout(10_000),
     });

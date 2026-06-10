@@ -169,12 +169,18 @@ function wibDayBounds(referenceDate: Date): { start: Date; end: Date } {
   return { start, end };
 }
 
-export function resolveShiftTime(shiftDef: any, referenceDate: Date): { startTime: string; endTime: string } {
-  const overrides = shiftDef.overrides as {
-    date?: Record<string, { startTime: string; endTime: string }>;
-    dayOfWeek?: Record<number, { startTime: string; endTime: string }>;
-  } | null | undefined;
-  
+export function resolveShiftTime(
+  shiftDef: any,
+  referenceDate: Date,
+): { startTime: string; endTime: string } {
+  const overrides = shiftDef.overrides as
+    | {
+        date?: Record<string, { startTime: string; endTime: string }>;
+        dayOfWeek?: Record<number, { startTime: string; endTime: string }>;
+      }
+    | null
+    | undefined;
+
   if (!overrides) {
     return { startTime: shiftDef.startTime, endTime: shiftDef.endTime };
   }
@@ -183,11 +189,11 @@ export function resolveShiftTime(shiftDef: any, referenceDate: Date): { startTim
   const dateStr = `${wibDate.getUTCFullYear()}-${String(wibDate.getUTCMonth() + 1).padStart(2, '0')}-${String(wibDate.getUTCDate()).padStart(2, '0')}`;
   const dayOfWeek = wibDate.getUTCDay();
 
-  if (overrides.date && overrides.date[dateStr]) {
+  if (overrides.date?.[dateStr]) {
     return overrides.date[dateStr];
   }
 
-  if (overrides.dayOfWeek && overrides.dayOfWeek[dayOfWeek]) {
+  if (overrides.dayOfWeek?.[dayOfWeek]) {
     return overrides.dayOfWeek[dayOfWeek];
   }
 
@@ -739,7 +745,9 @@ export async function checkIn(
         .limit(1);
 
       if (existing) {
-        throw AppError.conflict('hr.attendance.alreadyCheckedIn', { employeeId: resolvedEmployeeId });
+        throw AppError.conflict('hr.attendance.alreadyCheckedIn', {
+          employeeId: resolvedEmployeeId,
+        });
       }
 
       // 3. GPS verification (if GPS method)
@@ -891,7 +899,13 @@ export async function checkOut(
       const [existing] = await db
         .select()
         .from(attendance)
-        .where(and(eq(attendance.id, data.attendanceId), eq(attendance.tenantId, ctx.tenantId), isNull(attendance.deletedAt)))
+        .where(
+          and(
+            eq(attendance.id, data.attendanceId),
+            eq(attendance.tenantId, ctx.tenantId),
+            isNull(attendance.deletedAt),
+          ),
+        )
         .limit(1);
 
       if (!existing) {
@@ -1049,8 +1063,12 @@ export async function listAttendance(
       if (input.employeeId) conditions.push(eq(attendance.employeeId, input.employeeId));
       // checkInAt is timestamptz. Bare date strings cast to midnight UTC, not
       // WIB — append +07:00 so PostgreSQL compares in WIB.
-      if (input.dateFrom) conditions.push(sql`${attendance.checkInAt} >= ${`${input.dateFrom}T00:00:00+07:00`}`);
-      if (input.dateTo) conditions.push(sql`${attendance.checkInAt} < ${`${input.dateTo}T00:00:00+07:00`}::timestamptz + interval '1 day'`);
+      if (input.dateFrom)
+        conditions.push(sql`${attendance.checkInAt} >= ${`${input.dateFrom}T00:00:00+07:00`}`);
+      if (input.dateTo)
+        conditions.push(
+          sql`${attendance.checkInAt} < ${`${input.dateTo}T00:00:00+07:00`}::timestamptz + interval '1 day'`,
+        );
 
       const whereClause = and(...conditions);
       const limit = Math.min(input.limit ?? 50, 200);
@@ -1135,7 +1153,13 @@ export async function forgiveLate(
           employeeId: attendance.employeeId,
         })
         .from(attendance)
-        .where(and(eq(attendance.id, input.attendanceId), eq(attendance.tenantId, ctx.tenantId), isNull(attendance.deletedAt)))
+        .where(
+          and(
+            eq(attendance.id, input.attendanceId),
+            eq(attendance.tenantId, ctx.tenantId),
+            isNull(attendance.deletedAt),
+          ),
+        )
         .limit(1);
       if (!row) {
         throw AppError.notFound('hr.attendance.notFound');
@@ -1233,8 +1257,12 @@ export async function listMyAttendance(
       ];
       // checkInAt is timestamptz. Bare date strings cast to midnight UTC, not
       // WIB — append +07:00 so PostgreSQL compares in WIB.
-      if (input.dateFrom) conditions.push(sql`${attendance.checkInAt} >= ${`${input.dateFrom}T00:00:00+07:00`}`);
-      if (input.dateTo) conditions.push(sql`${attendance.checkInAt} < ${`${input.dateTo}T00:00:00+07:00`}::timestamptz + interval '1 day'`);
+      if (input.dateFrom)
+        conditions.push(sql`${attendance.checkInAt} >= ${`${input.dateFrom}T00:00:00+07:00`}`);
+      if (input.dateTo)
+        conditions.push(
+          sql`${attendance.checkInAt} < ${`${input.dateTo}T00:00:00+07:00`}::timestamptz + interval '1 day'`,
+        );
       const limit = Math.min(input.limit ?? 100, 365);
 
       const rows = await db
@@ -1284,8 +1312,8 @@ export async function hasValidFaceTemplate(tenantId: string, employeeId: string)
         eq(employeeFaceTemplates.tenantId, tenantId),
         eq(employeeFaceTemplates.employeeId, employeeId),
         eq(employeeFaceTemplates.status, 'active'),
-        isNull(employeeFaceTemplates.deletedAt)
-      )
+        isNull(employeeFaceTemplates.deletedAt),
+      ),
     );
 
   for (const row of rows) {
@@ -1303,7 +1331,10 @@ export async function hasValidFaceTemplate(tenantId: string, employeeId: string)
   return false;
 }
 
-export async function revokeFaceTemplate(employeeId: string, ctx: AuditContext): Promise<Result<{ ok: true }>> {
+export async function revokeFaceTemplate(
+  employeeId: string,
+  ctx: AuditContext,
+): Promise<Result<{ ok: true }>> {
   const permCheck = await requirePermission(ctx.userId, 'hr.manage_attendance', {
     locationId: ctx.locationId,
   });
@@ -1317,7 +1348,7 @@ export async function revokeFaceTemplate(employeeId: string, ctx: AuditContext):
       and(
         eq(employeeFaceTemplates.tenantId, ctx.tenantId),
         eq(employeeFaceTemplates.employeeId, employeeId),
-      )
+      ),
     );
 
   await auditRecord({

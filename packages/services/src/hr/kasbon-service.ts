@@ -1,14 +1,14 @@
 import { db } from '@erp/db';
 import { cashAdvances, employees, employmentContracts } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
+import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { generateId } from '@erp/shared/id';
 import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
-import { requirePermission } from '../iam';
 import { createJournal } from '../accounting/create-journal';
 import { auditRecord } from '../audit';
+import { requirePermission } from '../iam';
 import { notifyByPermission } from '../notification';
 
 export const RequestKasbonInputSchema = z.object({
@@ -32,14 +32,25 @@ export interface KasbonListItem {
   createdAt: string;
 }
 
-export async function requestKasbon(input: RequestKasbonInput, ctx: AuditContext): Promise<Result<{ id: string }>> {
+export async function requestKasbon(
+  input: RequestKasbonInput,
+  ctx: AuditContext,
+): Promise<Result<{ id: string }>> {
   const parsed = RequestKasbonInputSchema.safeParse(input);
-  if (!parsed.success) return err(AppError.validation('common.errors.validationFailed', { issues: parsed.error.issues }));
+  if (!parsed.success)
+    return err(
+      AppError.validation('common.errors.validationFailed', { issues: parsed.error.issues }),
+    );
 
   const [contract] = await db
     .select()
     .from(employmentContracts)
-    .where(and(eq(employmentContracts.employeeId, input.employeeId), eq(employmentContracts.isActive, true)));
+    .where(
+      and(
+        eq(employmentContracts.employeeId, input.employeeId),
+        eq(employmentContracts.isActive, true),
+      ),
+    );
 
   if (!contract) return err(AppError.businessRule('hr.kasbon.no_active_contract'));
 
@@ -84,7 +95,12 @@ export async function requestKasbon(input: RequestKasbonInput, ctx: AuditContext
   return ok({ id });
 }
 
-export async function approveKasbon(kasbonId: string, accountIdCash: string, accountIdKasbon: string, ctx: AuditContext): Promise<Result<{ id: string }>> {
+export async function approveKasbon(
+  kasbonId: string,
+  accountIdCash: string,
+  accountIdKasbon: string,
+  ctx: AuditContext,
+): Promise<Result<{ id: string }>> {
   const [kasbon] = await db
     .select()
     .from(cashAdvances)
@@ -93,7 +109,9 @@ export async function approveKasbon(kasbonId: string, accountIdCash: string, acc
   if (!kasbon) return err(AppError.notFound('hr.kasbon.not_found'));
   if (kasbon.status !== 'pending') return err(AppError.businessRule('hr.kasbon.not_pending'));
 
-  const permCheck = await requirePermission(ctx.userId, 'hr.payroll.write', { locationId: kasbon.locationId });
+  const permCheck = await requirePermission(ctx.userId, 'hr.payroll.write', {
+    locationId: kasbon.locationId,
+  });
   if (!permCheck.ok) return permCheck;
 
   const jeResult = await createJournal(
@@ -120,7 +138,8 @@ export async function approveKasbon(kasbonId: string, accountIdCash: string, acc
         },
       ],
     },
-    ctx, { skipPermissionCheck: true }
+    ctx,
+    { skipPermissionCheck: true },
   );
 
   if (!jeResult.ok) return jeResult;
@@ -162,7 +181,9 @@ export async function rejectKasbon(
   if (!kasbon) return err(AppError.notFound('hr.kasbon.not_found'));
   if (kasbon.status !== 'pending') return err(AppError.businessRule('hr.kasbon.not_pending'));
 
-  const permCheck = await requirePermission(ctx.userId, 'hr.payroll.write', { locationId: kasbon.locationId });
+  const permCheck = await requirePermission(ctx.userId, 'hr.payroll.write', {
+    locationId: kasbon.locationId,
+  });
   if (!permCheck.ok) return permCheck;
 
   await db
@@ -188,7 +209,14 @@ export async function rejectKasbon(
 }
 
 export async function listKasbon(
-  input: { status?: string; employeeId?: string; locationId?: string; locationIds?: string[]; page?: number; pageSize?: number },
+  input: {
+    status?: string;
+    employeeId?: string;
+    locationId?: string;
+    locationIds?: string[];
+    page?: number;
+    pageSize?: number;
+  },
   ctx: AuditContext,
 ): Promise<Result<{ items: KasbonListItem[]; total: number }>> {
   const permCheck = await requirePermission(ctx.userId, 'hr.payroll.read', {

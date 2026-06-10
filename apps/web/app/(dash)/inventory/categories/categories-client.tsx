@@ -4,12 +4,8 @@ import { Button, Input, TableCell, TableHead } from '@erp/ui';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { type CategoryWithCount, deleteCategoryAction, updateCategoryAction } from './actions';
 import { CategoryForm } from './category-form';
-import {
-  type CategoryWithCount,
-  deleteCategoryAction,
-  updateCategoryAction,
-} from './actions';
 
 export function CategoriesClient({ categories }: { categories: CategoryWithCount[] }) {
   const router = useRouter();
@@ -128,27 +124,56 @@ export function CategoriesClient({ categories }: { categories: CategoryWithCount
                   return (
                     <tr key={cat.id} className="hover:bg-brand-cream/50">
                       <TableCell colSpan={4} className="px-4 py-3">
-                        <form onSubmit={(e) => saveEdit(e, cat.id)} className="flex flex-col gap-4 lg:flex-row lg:items-end">
+                        <form
+                          onSubmit={(e) => saveEdit(e, cat.id)}
+                          className="flex flex-col gap-4 lg:flex-row lg:items-end"
+                        >
                           <label className="flex-1 space-y-1.5">
                             <span className="text-sm font-medium text-brand-ink">{t('code')}</span>
-                            <Input value={editingCode} onChange={e => setEditingCode(e.target.value)} required placeholder={t('codePlaceholder')} />
+                            <Input
+                              value={editingCode}
+                              onChange={(e) => setEditingCode(e.target.value)}
+                              required
+                              placeholder={t('codePlaceholder')}
+                            />
                           </label>
                           <label className="flex-[1.5] space-y-1.5">
-                            <span className="text-sm font-medium text-brand-ink">{t('nameId')}</span>
-                            <Input value={editingNameId} onChange={e => setEditingNameId(e.target.value)} required placeholder={t('namePlaceholderId')} />
+                            <span className="text-sm font-medium text-brand-ink">
+                              {t('nameId')}
+                            </span>
+                            <Input
+                              value={editingNameId}
+                              onChange={(e) => setEditingNameId(e.target.value)}
+                              required
+                              placeholder={t('namePlaceholderId')}
+                            />
                           </label>
                           <label className="flex-[1.5] space-y-1.5">
-                            <span className="text-sm font-medium text-brand-ink">{t('nameEn')}</span>
-                            <Input value={editingNameEn} onChange={e => setEditingNameEn(e.target.value)} placeholder={t('namePlaceholderEn')} />
+                            <span className="text-sm font-medium text-brand-ink">
+                              {t('nameEn')}
+                            </span>
+                            <Input
+                              value={editingNameEn}
+                              onChange={(e) => setEditingNameEn(e.target.value)}
+                              placeholder={t('namePlaceholderEn')}
+                            />
                           </label>
                           <label className="flex-[1.5] space-y-1.5">
-                            <span className="text-sm font-medium text-brand-ink">{t('nameZh')}</span>
-                            <Input value={editingNameZh} onChange={e => setEditingNameZh(e.target.value)} placeholder={t('namePlaceholderZh')} />
+                            <span className="text-sm font-medium text-brand-ink">
+                              {t('nameZh')}
+                            </span>
+                            <Input
+                              value={editingNameZh}
+                              onChange={(e) => setEditingNameZh(e.target.value)}
+                              placeholder={t('namePlaceholderZh')}
+                            />
                           </label>
                           <div className="flex gap-2">
                             <button
                               type="submit"
-                              disabled={isSavingEdit || !editingCode.trim() || !editingNameId.trim()}
+                              disabled={
+                                isSavingEdit || !editingCode.trim() || !editingNameId.trim()
+                              }
                               className="rounded-lg bg-brand-ember-5 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-ember-6 disabled:opacity-50"
                             >
                               {isSavingEdit ? t('saving') : tCommon('actions.save')}

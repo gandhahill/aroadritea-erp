@@ -1,9 +1,19 @@
 'use client';
 
-import { FilterBar, FilterField } from '@/components/filter-bar';
 import { ConfirmDialog, InlineAlert } from '@/components/confirm-dialog';
+import { FilterBar, FilterField } from '@/components/filter-bar';
 import { Pagination } from '@/components/pagination';
-import { Button, Input, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@erp/ui';
+import {
+  Button,
+  Input,
+  Select,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useState, useTransition } from 'react';
@@ -36,7 +46,11 @@ function formatMoney(amount: string): string {
 
 function formatDate(iso: string): string {
   if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+  return new Date(iso).toLocaleDateString('id-ID', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
 }
 
 export function KasbonClient({ data, employees, searchParams }: Props) {
@@ -83,11 +97,16 @@ export function KasbonClient({ data, employees, searchParams }: Props) {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'pending': return t('statusPending');
-      case 'approved': return t('statusApproved');
-      case 'rejected': return t('statusRejected');
-      case 'deducted': return t('statusDeducted');
-      default: return status;
+      case 'pending':
+        return t('statusPending');
+      case 'approved':
+        return t('statusApproved');
+      case 'rejected':
+        return t('statusRejected');
+      case 'deducted':
+        return t('statusDeducted');
+      default:
+        return status;
     }
   };
 
@@ -134,12 +153,16 @@ export function KasbonClient({ data, employees, searchParams }: Props) {
     });
   };
 
-  const page = parseInt(searchParams.page || '1', 10);
+  const page = Number.parseInt(searchParams.page || '1', 10);
 
   return (
     <div className="space-y-4">
-      {errorMsg && <InlineAlert message={errorMsg} tone="error" onDismiss={() => setErrorMsg(null)} />}
-      {successMsg && <InlineAlert message={successMsg} tone="success" onDismiss={() => setSuccessMsg(null)} />}
+      {errorMsg && (
+        <InlineAlert message={errorMsg} tone="error" onDismiss={() => setErrorMsg(null)} />
+      )}
+      {successMsg && (
+        <InlineAlert message={successMsg} tone="success" onDismiss={() => setSuccessMsg(null)} />
+      )}
 
       {/* Filters + new request */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -165,7 +188,9 @@ export function KasbonClient({ data, employees, searchParams }: Props) {
             >
               <option value="">{t('allEmployees')}</option>
               {employees.map((e) => (
-                <option key={e.id} value={e.id}>{e.name}</option>
+                <option key={e.id} value={e.id}>
+                  {e.name}
+                </option>
               ))}
             </Select>
           </FilterField>
@@ -181,16 +206,28 @@ export function KasbonClient({ data, employees, searchParams }: Props) {
           <h3 className="mb-4 text-sm font-semibold text-brand-ink">{t('newRequest')}</h3>
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-brand-ink-3">{t('employee')}</label>
-              <Select value={formEmployee} onChange={(e) => setFormEmployee(e.target.value)} required>
-                <option value="" disabled>{tCommon('actions.select')}</option>
+              <label className="mb-1.5 block text-xs font-medium text-brand-ink-3">
+                {t('employee')}
+              </label>
+              <Select
+                value={formEmployee}
+                onChange={(e) => setFormEmployee(e.target.value)}
+                required
+              >
+                <option value="" disabled>
+                  {tCommon('actions.select')}
+                </option>
                 {employees.map((e) => (
-                  <option key={e.id} value={e.id}>{e.name}</option>
+                  <option key={e.id} value={e.id}>
+                    {e.name}
+                  </option>
                 ))}
               </Select>
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-brand-ink-3">{t('amount')}</label>
+              <label className="mb-1.5 block text-xs font-medium text-brand-ink-3">
+                {t('amount')}
+              </label>
               <Input
                 type="number"
                 min="1"
@@ -201,7 +238,9 @@ export function KasbonClient({ data, employees, searchParams }: Props) {
               <p className="mt-1 text-[11px] text-brand-ink-3">{t('maxLimit')}</p>
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-brand-ink-3">{t('reason')}</label>
+              <label className="mb-1.5 block text-xs font-medium text-brand-ink-3">
+                {t('reason')}
+              </label>
               <Input
                 placeholder={t('reasonPlaceholder')}
                 value={formReason}
@@ -210,8 +249,13 @@ export function KasbonClient({ data, employees, searchParams }: Props) {
             </div>
           </div>
           <div className="mt-4 flex justify-end gap-2">
-            <Button variant="secondary" onClick={() => setShowForm(false)}>{tCommon('actions.cancel')}</Button>
-            <Button onClick={handleSubmitRequest} disabled={isPending || !formEmployee || !formAmount || !formReason}>
+            <Button variant="secondary" onClick={() => setShowForm(false)}>
+              {tCommon('actions.cancel')}
+            </Button>
+            <Button
+              onClick={handleSubmitRequest}
+              disabled={isPending || !formEmployee || !formAmount || !formReason}
+            >
               {isPending ? tCommon('actions.saving') : t('submitRequest')}
             </Button>
           </div>
@@ -255,7 +299,9 @@ export function KasbonClient({ data, employees, searchParams }: Props) {
                   </TableCell>
                   <TableCell className="text-brand-ink-2">{formatDate(row.createdAt)}</TableCell>
                   <TableCell>
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusBadge(row.status)}`}>
+                    <span
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusBadge(row.status)}`}
+                    >
                       {getStatusLabel(row.status)}
                     </span>
                   </TableCell>
@@ -272,7 +318,10 @@ export function KasbonClient({ data, employees, searchParams }: Props) {
                         </button>
                         <button
                           type="button"
-                          onClick={() => { setRejectId(row.id); setRejectReason(''); }}
+                          onClick={() => {
+                            setRejectId(row.id);
+                            setRejectReason('');
+                          }}
                           disabled={isPending}
                           className="rounded-md border border-rose-200 px-2.5 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50"
                         >
@@ -318,8 +367,14 @@ export function KasbonClient({ data, employees, searchParams }: Props) {
               className="mt-3 h-24 w-full rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
             />
             <div className="mt-4 flex justify-end gap-2">
-              <Button variant="secondary" onClick={() => setRejectId(null)}>{tCommon('actions.cancel')}</Button>
-              <Button variant="danger" onClick={handleReject} disabled={isPending || rejectReason.trim().length < 3}>
+              <Button variant="secondary" onClick={() => setRejectId(null)}>
+                {tCommon('actions.cancel')}
+              </Button>
+              <Button
+                variant="danger"
+                onClick={handleReject}
+                disabled={isPending || rejectReason.trim().length < 3}
+              >
                 {isPending ? tCommon('actions.saving') : t('reject')}
               </Button>
             </div>

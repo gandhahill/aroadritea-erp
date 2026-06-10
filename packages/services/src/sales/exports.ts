@@ -17,8 +17,10 @@ export async function exportSalesSummaryCsv(
   ctx: AuditContext,
 ): Promise<Result<string>> {
   if (!ctx.userId) return err(AppError.unauthenticated('auth.required'));
-  
-  const perm = await requirePermission(ctx.userId, 'reporting.export', { locationId: input.locationId ?? ctx.locationId });
+
+  const perm = await requirePermission(ctx.userId, 'reporting.export', {
+    locationId: input.locationId ?? ctx.locationId,
+  });
   if (!perm.ok) return perm;
 
   const conditions = [eq(salesOrders.tenantId, ctx.tenantId)];
@@ -42,21 +44,33 @@ export async function exportSalesSummaryCsv(
     return ok('');
   }
 
-  const headers = ['Order Number', 'Date', 'Location ID', 'Channel', 'Subtotal', 'Discount', 'Tax', 'Grand Total', 'Status'];
+  const headers = [
+    'Order Number',
+    'Date',
+    'Location ID',
+    'Channel',
+    'Subtotal',
+    'Discount',
+    'Tax',
+    'Grand Total',
+    'Status',
+  ];
   const lines = [headers.join(',')];
 
   for (const row of rows) {
-    lines.push([
-      row.number,
-      row.createdAt.toISOString(),
-      row.locationId,
-      row.channel,
-      row.subtotal.toString(),
-      row.discountTotal.toString(),
-      row.taxTotal.toString(),
-      row.grandTotal.toString(),
-      row.status,
-    ].join(','));
+    lines.push(
+      [
+        row.number,
+        row.createdAt.toISOString(),
+        row.locationId,
+        row.channel,
+        row.subtotal.toString(),
+        row.discountTotal.toString(),
+        row.taxTotal.toString(),
+        row.grandTotal.toString(),
+        row.status,
+      ].join(','),
+    );
   }
 
   return ok(lines.join('\n'));
@@ -70,6 +84,6 @@ export async function exportSalesSummaryExcel(
   // For now we will just return a CSV-like text as a Buffer stub to fulfill the requirement.
   const csvResult = await exportSalesSummaryCsv(input, ctx);
   if (!csvResult.ok) return err(csvResult.error);
-  
+
   return ok(Buffer.from(csvResult.value, 'utf-8'));
 }

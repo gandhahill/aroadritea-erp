@@ -35,7 +35,13 @@ import {
   isThinkingModel,
   loadProviderConfig,
 } from './client';
-import { DEFAULT_SESSION_TITLE, autoGenerateTitle, getAiSession, getRecentUserMessageCount, recordChatMessage } from './session';
+import {
+  DEFAULT_SESSION_TITLE,
+  autoGenerateTitle,
+  getAiSession,
+  getRecentUserMessageCount,
+  recordChatMessage,
+} from './session';
 import { getAiRuntimeConfig } from './settings';
 import { executeTool, listAvailableTools } from './tools/registry';
 
@@ -291,9 +297,9 @@ export async function sendChatMessage(
       };
       providerResponse = stream
         ? await aiCompleteStream(completionRequest, async (delta) => {
-          if (delta.type === 'reasoning') await stream.onReasoningDelta?.(delta.text);
-          if (delta.type === 'content') await stream.onContentDelta?.(delta.text);
-        })
+            if (delta.type === 'reasoning') await stream.onReasoningDelta?.(delta.text);
+            if (delta.type === 'content') await stream.onContentDelta?.(delta.text);
+          })
         : await aiComplete(completionRequest);
     } catch (e) {
       if (e instanceof AiProviderError) {

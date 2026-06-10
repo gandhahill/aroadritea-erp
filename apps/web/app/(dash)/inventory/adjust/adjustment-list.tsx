@@ -107,7 +107,9 @@ export function AdjustmentList({ rows }: { rows: AdjustmentRow[] }) {
                     {row.createdByName}
                   </td>
                   <td className="whitespace-nowrap px-4 py-3">
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${style?.bg ?? ''} ${style?.text ?? ''}`}>
+                    <span
+                      className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${style?.bg ?? ''} ${style?.text ?? ''}`}
+                    >
                       {t(`status.${row.status}`)}
                     </span>
                   </td>

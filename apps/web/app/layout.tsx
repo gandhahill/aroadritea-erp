@@ -3,8 +3,8 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { Montserrat } from 'next/font/google';
 import './globals.css';
-import RegisterPWA from './register-pwa';
 import { Toaster } from '@erp/ui';
+import RegisterPWA from './register-pwa';
 
 // Brand wordmark "Aroadri Tea" uses Montserrat ExtraBold (BRAND.md).
 const montserrat = Montserrat({

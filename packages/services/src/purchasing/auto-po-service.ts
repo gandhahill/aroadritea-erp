@@ -1,12 +1,12 @@
 import { db } from '@erp/db';
-import { purchaseOrders, purchaseOrderLines } from '@erp/db/schema/purchasing';
-import { stockLevels, products } from '@erp/db/schema/inventory';
 import { partners } from '@erp/db/schema/accounting';
+import { products, stockLevels } from '@erp/db/schema/inventory';
+import { purchaseOrderLines, purchaseOrders } from '@erp/db/schema/purchasing';
 import { AppError } from '@erp/shared/errors';
+import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { generateId } from '@erp/shared/id';
-import { eq, and, lt } from 'drizzle-orm';
+import { and, eq, lt } from 'drizzle-orm';
 import { z } from 'zod';
 import { requirePermission } from '../iam';
 
@@ -25,7 +25,9 @@ export async function generateAutoPO(
   if (!parsed.success) return err(AppError.validation(parsed.error.message));
   const { locationId, orderDate } = parsed.data;
 
-  const permCheck = await requirePermission(ctx.userId, 'purchasing.po.create' as any, { locationId });
+  const permCheck = await requirePermission(ctx.userId, 'purchasing.po.create' as any, {
+    locationId,
+  });
   if (!permCheck.ok) return permCheck;
 
   // 1. Find all stock levels where qtyOnHand < minStock
@@ -34,10 +36,10 @@ export async function generateAutoPO(
   // We will group everything under a generic supplier for now, or just create one PO per location.
   // Let's create a single PO for all low stock items for simplicity if no supplier mapping exists,
   // or group by a 'primary supplier' if we had one.
-  
+
   // For now, let's fetch low stock items
   // Note: minStock and maxStock are in stockLevels
-  
+
   // In our DB schema, minStock is numeric, so we can't do direct `<` in JS safely without parsing,
   // but we can query it via Drizzle.
   // However, Drizzle's typed operations on numeric might be tricky, so let's fetch and filter in JS for now.
@@ -58,11 +60,11 @@ export async function generateAutoPO(
       and(
         eq(stockLevels.tenantId, ctx.tenantId),
         eq(stockLevels.locationId, locationId),
-        eq(products.isPurchasable, true)
-      )
+        eq(products.isPurchasable, true),
+      ),
     );
 
-  const lowStockItems = allStock.filter(s => {
+  const lowStockItems = allStock.filter((s) => {
     if (!s.minStock) return false;
     return Number(s.qtyOnHand) <= Number(s.minStock);
   });
@@ -76,7 +78,13 @@ export async function generateAutoPO(
   const [supplier] = await db
     .select({ id: partners.id })
     .from(partners)
-    .where(and(eq(partners.tenantId, ctx.tenantId), eq(partners.kind, 'supplier'), eq(partners.isActive, true)))
+    .where(
+      and(
+        eq(partners.tenantId, ctx.tenantId),
+        eq(partners.kind, 'supplier'),
+        eq(partners.isActive, true),
+      ),
+    )
     .limit(1);
 
   if (!supplier) {
@@ -104,9 +112,11 @@ export async function generateAutoPO(
   // Create Lines
   const lines = lowStockItems.map((item, idx) => {
     // Order up to maxStock, or a default amount if not set
-    const qtyToOrder = item.maxStock ? Math.max(0, Number(item.maxStock) - Number(item.qtyOnHand)) : 10;
+    const qtyToOrder = item.maxStock
+      ? Math.max(0, Number(item.maxStock) - Number(item.qtyOnHand))
+      : 10;
     const subtotal = item.defaultCostPrice * BigInt(Math.ceil(qtyToOrder));
-    
+
     return {
       id: generateId(),
       purchaseOrderId: poId,

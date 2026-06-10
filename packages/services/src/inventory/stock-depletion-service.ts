@@ -46,7 +46,9 @@ export async function depleteStock(
 ): Promise<Result<DepleteStockResult>> {
   const parsed = DepleteStockInputSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('common.errors.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('common.errors.validationFailed', { issues: parsed.error.issues }),
+    );
   }
 
   const execute = async (client: any): Promise<DepleteStockResult> => {

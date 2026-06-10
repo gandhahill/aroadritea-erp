@@ -1,15 +1,22 @@
 import { db } from '@erp/db';
-import { payrolls, payrollLines, employmentContracts, attendance, cashAdvances, salaryComponents } from '@erp/db/schema/hr';
 import { accountingPeriods } from '@erp/db/schema/accounting';
 import { accounts } from '@erp/db/schema/accounting';
+import {
+  attendance,
+  cashAdvances,
+  employmentContracts,
+  payrollLines,
+  payrolls,
+  salaryComponents,
+} from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
+import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { generateId } from '@erp/shared/id';
-import { eq, and, sql, isNull, inArray } from 'drizzle-orm';
+import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
-import { requirePermission } from '../iam';
 import { createJournal } from '../accounting/create-journal';
+import { requirePermission } from '../iam';
 
 export const RunPayrollInputSchema = z.object({
   locationId: z.string().min(1),
@@ -20,18 +27,31 @@ export const RunPayrollInputSchema = z.object({
 
 export type RunPayrollInput = z.infer<typeof RunPayrollInputSchema>;
 
-export async function generatePayrollRun(input: RunPayrollInput, ctx: AuditContext): Promise<Result<{ id: string }>> {
+export async function generatePayrollRun(
+  input: RunPayrollInput,
+  ctx: AuditContext,
+): Promise<Result<{ id: string }>> {
   const parsed = RunPayrollInputSchema.safeParse(input);
-  if (!parsed.success) return err(AppError.validation('common.errors.validationFailed', { issues: parsed.error.issues }));
+  if (!parsed.success)
+    return err(
+      AppError.validation('common.errors.validationFailed', { issues: parsed.error.issues }),
+    );
 
-  const permCheck = await requirePermission(ctx.userId, 'hr.payroll.write', { locationId: input.locationId });
+  const permCheck = await requirePermission(ctx.userId, 'hr.payroll.write', {
+    locationId: input.locationId,
+  });
   if (!permCheck.ok) return permCheck;
 
   // Find active contracts in location
   const contracts = await db
     .select()
     .from(employmentContracts)
-    .where(and(eq(employmentContracts.locationId, input.locationId), eq(employmentContracts.isActive, true)));
+    .where(
+      and(
+        eq(employmentContracts.locationId, input.locationId),
+        eq(employmentContracts.isActive, true),
+      ),
+    );
 
   if (contracts.length === 0) return err(AppError.businessRule('hr.payroll.no_employees'));
 
@@ -39,7 +59,9 @@ export async function generatePayrollRun(input: RunPayrollInput, ctx: AuditConte
   const [baseComponent] = await db
     .select()
     .from(salaryComponents)
-    .where(and(eq(salaryComponents.code, 'SALARY_BASE'), eq(salaryComponents.tenantId, ctx.tenantId)));
+    .where(
+      and(eq(salaryComponents.code, 'SALARY_BASE'), eq(salaryComponents.tenantId, ctx.tenantId)),
+    );
 
   const baseComponentId = baseComponent ? baseComponent.id : 'base-salary-comp-id';
 
@@ -81,10 +103,10 @@ export async function generatePayrollRun(input: RunPayrollInput, ctx: AuditConte
           eq(attendance.employeeId, contract.employeeId),
           sql`${attendance.checkInAt} >= ${new Date(input.periodStart)}`,
           sql`${attendance.checkInAt} <= ${new Date(input.periodEnd)}`,
-          eq(attendance.lateForgiven, false)
-        )
+          eq(attendance.lateForgiven, false),
+        ),
       );
-    
+
     let totalLateMin = 0;
     for (const r of attRecords) totalLateMin += r.lateMinutes;
 
@@ -110,7 +132,9 @@ export async function generatePayrollRun(input: RunPayrollInput, ctx: AuditConte
     const pendingKasbons = await db
       .select()
       .from(cashAdvances)
-      .where(and(eq(cashAdvances.employeeId, contract.employeeId), eq(cashAdvances.status, 'approved')));
+      .where(
+        and(eq(cashAdvances.employeeId, contract.employeeId), eq(cashAdvances.status, 'approved')),
+      );
 
     for (const kasbon of pendingKasbons) {
       employeeDeduction += kasbon.amount;
@@ -160,7 +184,12 @@ export async function generatePayrollRun(input: RunPayrollInput, ctx: AuditConte
   return ok({ id: payrollId });
 }
 
-export async function approvePayroll(payrollId: string, expenseAccountId: string, cashAccountId: string, ctx: AuditContext): Promise<Result<{ id: string }>> {
+export async function approvePayroll(
+  payrollId: string,
+  expenseAccountId: string,
+  cashAccountId: string,
+  ctx: AuditContext,
+): Promise<Result<{ id: string }>> {
   const [payroll] = await db
     .select()
     .from(payrolls)
@@ -169,7 +198,9 @@ export async function approvePayroll(payrollId: string, expenseAccountId: string
   if (!payroll) return err(AppError.notFound('hr.payroll.not_found'));
   if (payroll.status !== 'draft') return err(AppError.businessRule('hr.payroll.not_draft'));
 
-  const permCheck = await requirePermission(ctx.userId, 'hr.payroll.write', { locationId: payroll.locationId });
+  const permCheck = await requirePermission(ctx.userId, 'hr.payroll.write', {
+    locationId: payroll.locationId,
+  });
   if (!permCheck.ok) return permCheck;
 
   // Auto-journal
@@ -199,16 +230,21 @@ export async function approvePayroll(payrollId: string, expenseAccountId: string
         // to balance the journal (totalEarnings = totalNet + totalDeductions).
         // Since we are mocking the deduction accounts for now, we just add the deduction to cash account for simplicity
         // In real world, we'd iterate payroll lines and group by component account.
-        ...(payroll.totalDeductions > 0n ? [{
-          accountId: 'kasbon-receivable-account', // placeholder
-          locationId: payroll.locationId,
-          description: `Payroll Deductions`,
-          debit: '0',
-          credit: payroll.totalDeductions.toString(),
-        }] : []),
+        ...(payroll.totalDeductions > 0n
+          ? [
+              {
+                accountId: 'kasbon-receivable-account', // placeholder
+                locationId: payroll.locationId,
+                description: `Payroll Deductions`,
+                debit: '0',
+                credit: payroll.totalDeductions.toString(),
+              },
+            ]
+          : []),
       ],
     },
-    ctx, { skipPermissionCheck: true }
+    ctx,
+    { skipPermissionCheck: true },
   );
 
   if (!jeResult.ok) return jeResult;
@@ -223,37 +259,54 @@ export async function approvePayroll(payrollId: string, expenseAccountId: string
       updatedBy: ctx.userId,
     })
     .where(eq(payrolls.id, payrollId));
-    
+
   // Update kasbon status
   const lines = await db.select().from(payrollLines).where(eq(payrollLines.payrollId, payrollId));
   for (const line of lines) {
-    if (line.salaryComponentId === 'kasbon-deduction-comp-id' && line.notes?.includes('Kasbon deduction')) {
+    if (
+      line.salaryComponentId === 'kasbon-deduction-comp-id' &&
+      line.notes?.includes('Kasbon deduction')
+    ) {
       const kasbonId = line.notes.replace('Kasbon deduction ', '');
-      await db.update(cashAdvances).set({ status: 'deducted' }).where(eq(cashAdvances.id, kasbonId));
+      await db
+        .update(cashAdvances)
+        .set({ status: 'deducted' })
+        .where(eq(cashAdvances.id, kasbonId));
     }
   }
 
   return ok({ id: payrollId });
 }
 
-export async function cancelPayroll(payrollId: string, ctx: AuditContext): Promise<Result<{ id: string }>> {
+export async function cancelPayroll(
+  payrollId: string,
+  ctx: AuditContext,
+): Promise<Result<{ id: string }>> {
   const [payroll] = await db
     .select()
     .from(payrolls)
     .where(and(eq(payrolls.id, payrollId), eq(payrolls.tenantId, ctx.tenantId)));
 
   if (!payroll) return err(AppError.notFound('hr.payroll.not_found'));
-  if (payroll.status === 'cancelled') return err(AppError.businessRule('hr.payroll.already_cancelled'));
+  if (payroll.status === 'cancelled')
+    return err(AppError.businessRule('hr.payroll.already_cancelled'));
 
-  const permCheck = await requirePermission(ctx.userId, 'hr.payroll.write', { locationId: payroll.locationId });
+  const permCheck = await requirePermission(ctx.userId, 'hr.payroll.write', {
+    locationId: payroll.locationId,
+  });
   if (!permCheck.ok) return permCheck;
 
   // Check if accounting period is open
   const [period] = await db
     .select()
     .from(accountingPeriods)
-    .where(and(eq(accountingPeriods.code, payroll.periodCode), eq(accountingPeriods.tenantId, ctx.tenantId)));
-    
+    .where(
+      and(
+        eq(accountingPeriods.code, payroll.periodCode),
+        eq(accountingPeriods.tenantId, ctx.tenantId),
+      ),
+    );
+
   if (period && period.status !== 'open') {
     return err(AppError.businessRule('hr.payroll.period_closed'));
   }

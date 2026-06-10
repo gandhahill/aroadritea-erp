@@ -17,10 +17,7 @@ export async function resolveEmployeeForUser(tenantId: string, userId: string) {
   if (!requester?.email) return null;
 
   const { encryptPiiForLookup } = await import('../security/pii');
-  const encryptedRequester = encryptPiiForLookup(
-    requester.email.toLowerCase(),
-    'employees.email',
-  );
+  const encryptedRequester = encryptPiiForLookup(requester.email.toLowerCase(), 'employees.email');
 
   const [emp] = await db
     .select()

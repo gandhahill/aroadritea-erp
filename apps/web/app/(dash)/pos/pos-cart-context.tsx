@@ -5,8 +5,16 @@
 
 'use client';
 
-import { type ReactNode, createContext, useCallback, useContext, useEffect, useState, useRef } from 'react';
-import { evaluateCartPromotionsAction, applyVoucherAction } from './actions';
+import {
+  type ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import { applyVoucherAction, evaluateCartPromotionsAction } from './actions';
 
 export interface CartLine {
   id: string;
@@ -188,7 +196,14 @@ export function PosCartProvider({
   }, []);
 
   const clearCart = useCallback(() => {
-    setState((s) => ({ ...s, lines: [], payments: [], customer: null, notes: '', voucherCode: '' }));
+    setState((s) => ({
+      ...s,
+      lines: [],
+      payments: [],
+      customer: null,
+      notes: '',
+      voucherCode: '',
+    }));
     setAppliedVoucherDiscount(BigInt(0));
   }, []);
 
@@ -202,11 +217,11 @@ export function PosCartProvider({
     BigInt(0),
   );
   const subtotalAfterDiscount = subtotal - totalDiscount;
-  
+
   let finalGrandTotal = subtotalAfterDiscount - autoDiscountTotal - appliedVoucherDiscount;
   if (finalGrandTotal < BigInt(0)) finalGrandTotal = BigInt(0);
   const grandTotal = finalGrandTotal;
-  
+
   const totalPaid = state.payments.reduce((sum, p) => sum + BigInt(p.amount), BigInt(0));
   const remainingBalance = grandTotal - totalPaid > BigInt(0) ? grandTotal - totalPaid : BigInt(0);
 
@@ -215,7 +230,7 @@ export function PosCartProvider({
       setAutoDiscountTotal(BigInt(0));
       return;
     }
-    
+
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
       try {

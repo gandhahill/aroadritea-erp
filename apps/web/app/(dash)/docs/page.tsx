@@ -1,8 +1,8 @@
-import type { PermissionCode } from '@erp/shared/types';
 import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import { getSetting } from '@erp/services/cms';
 import { can } from '@erp/services/iam';
+import type { PermissionCode } from '@erp/shared/types';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import Link from 'next/link';

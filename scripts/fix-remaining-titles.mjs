@@ -35,16 +35,16 @@ for (const [relPath, titlePrefix] of Object.entries(MAP)) {
 
     const metadataRegex = /(export\s+const\s+metadata[\s\S]*?title:\s*)['"](.*?)['"]/;
     const metadataRegex2 = /(metadata\s*=\s*\{[^}]*?title:\s*)['"](.*?)['"]/;
-    
+
     let match = content.match(metadataRegex) || content.match(metadataRegex2);
-    
+
     if (!match) {
       // sometimes it's just `title: '...'` inside an object without `metadata = ` around it
       // like `export const metadata = { title: '...' }` but split across lines
       const fallbackRegex = /(title:\s*)['"](.*?)['"]/;
       const m = content.match(fallbackRegex);
       if (m && !m[0].includes('ReactNode') && !m[0].includes('string')) {
-          match = m;
+        match = m;
       }
     }
 
@@ -53,9 +53,9 @@ for (const [relPath, titlePrefix] of Object.entries(MAP)) {
       fs.writeFileSync(fullPath, content, 'utf-8');
       console.log(`UPDATED: ${relPath} -> ${fullTitle}`);
     } else {
-       console.log(`COULD NOT MATCH: ${relPath}`);
+      console.log(`COULD NOT MATCH: ${relPath}`);
     }
   } else {
-     console.log(`NOT FOUND: ${relPath}`);
+    console.log(`NOT FOUND: ${relPath}`);
   }
 }

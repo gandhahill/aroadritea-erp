@@ -1,17 +1,19 @@
 import 'dotenv/config';
-process.env.DATABASE_URL = 'postgresql://aroadritea:local_erp_s3cr3t_2026@103.93.162.50:5432/aroadritea_erp';
+process.env.DATABASE_URL =
+  'postgresql://aroadritea:local_erp_s3cr3t_2026@103.93.162.50:5432/aroadritea_erp';
+import { inArray } from 'drizzle-orm';
 import { db } from '../packages/db/index';
 import { products, stockLevels, stockMovements } from '../packages/db/schema/inventory';
-import { inArray } from 'drizzle-orm';
 
 async function main() {
   console.log('Fetching supplies...');
   const supplies = await db.query.products.findMany({
-    where: (p, { inArray }) => inArray(p.kind, ['raw_material', 'consumable', 'merchandise', 'service']),
+    where: (p, { inArray }) =>
+      inArray(p.kind, ['raw_material', 'consumable', 'merchandise', 'service']),
     columns: { id: true },
   });
 
-  const ids = supplies.map(s => s.id);
+  const ids = supplies.map((s) => s.id);
 
   if (ids.length === 0) {
     console.log('No supplies found.');

@@ -10,7 +10,7 @@
  * reporter sees them too.
  */
 
-import { index, jsonb, pgTable, text, timestamp, boolean, integer } from 'drizzle-orm/pg-core';
+import { boolean, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 import { auditCols, pk, tenantCol } from './common';
 
 export const helpdeskTickets = pgTable(
@@ -49,7 +49,7 @@ export const helpdeskTickets = pgTable(
     closedAt: timestamp('closed_at', { withTimezone: true }),
     resolvedAt: timestamp('resolved_at', { withTimezone: true }),
     firstResponseAt: timestamp('first_response_at', { withTimezone: true }),
-    
+
     // T-0262: SLA and escalation
     slaDueDate: timestamp('sla_due_date', { withTimezone: true }),
     isSlaBreached: boolean('is_sla_breached').notNull().default(false),

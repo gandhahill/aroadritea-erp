@@ -1,10 +1,10 @@
 import { db } from '@erp/db';
 import { partners } from '@erp/db/schema/accounting';
 import { salesOrders } from '@erp/db/schema/pos';
-import { type Result, ok, err } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
-import { eq, and, sql } from 'drizzle-orm';
+import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, eq, sql } from 'drizzle-orm';
 
 export const TIER_THRESHOLDS = {
   bronze: 0,

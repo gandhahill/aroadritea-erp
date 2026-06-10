@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
 import { toast } from '@erp/ui';
-import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
-import { createInvoiceAction } from '../actions';
 import { Button } from '@erp/ui';
+import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { createInvoiceAction } from '../actions';
 
 interface Partner {
   id: string;
@@ -114,8 +114,7 @@ export function InvoiceForm({
     setTermsMode('dropdown');
     const option = TERMS_OPTIONS.find((o) => o.value === value);
     const baseDate = formData.date || new Date().toISOString().slice(0, 10);
-    const newDueDate =
-      option?.days != null ? addDays(baseDate, option.days) : '';
+    const newDueDate = option?.days != null ? addDays(baseDate, option.days) : '';
     setFormData((prev) => ({
       ...prev,
       paymentTerms: value,
@@ -125,8 +124,7 @@ export function InvoiceForm({
 
   const handleDateChange = (newDate: string) => {
     const option = TERMS_OPTIONS.find((o) => o.value === formData.paymentTerms);
-    const newDueDate =
-      option?.days != null ? addDays(newDate, option.days) : formData.dueDate;
+    const newDueDate = option?.days != null ? addDays(newDate, option.days) : formData.dueDate;
     setFormData((prev) => ({ ...prev, date: newDate, dueDate: newDueDate }));
   };
 
@@ -147,10 +145,7 @@ export function InvoiceForm({
     setLines(lines.filter((_, i) => i !== index));
   };
 
-  const subtotal = lines.reduce(
-    (sum, line) => sum + line.quantity * Number(line.unitPrice),
-    0,
-  );
+  const subtotal = lines.reduce((sum, line) => sum + line.quantity * Number(line.unitPrice), 0);
   const totalTax = lines.reduce((sum, line) => {
     const lineSubtotal = line.quantity * Number(line.unitPrice);
     return sum + Math.floor((lineSubtotal * line.taxRate) / 10000);
@@ -288,7 +283,9 @@ export function InvoiceForm({
 
         {/* Partner Address */}
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-brand-ink-3">{t('new.partnerAddress')}</label>
+          <label className="text-sm font-semibold text-brand-ink-3">
+            {t('new.partnerAddress')}
+          </label>
           <input
             type="text"
             className="w-full rounded-lg border border-brand-cream-3 px-4 py-2"

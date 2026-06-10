@@ -140,9 +140,7 @@ export async function getDailySummary(
   const startDateTime = new Date(`${params.startDate}T00:00:00+07:00`);
   const endDateUtc = new Date(`${params.endDate}T00:00:00Z`);
   endDateUtc.setUTCDate(endDateUtc.getUTCDate() + 1);
-  const endDateTime = new Date(
-    `${endDateUtc.toISOString().slice(0, 10)}T00:00:00+07:00`,
-  );
+  const endDateTime = new Date(`${endDateUtc.toISOString().slice(0, 10)}T00:00:00+07:00`);
 
   // ── Paid sales in range ──────────────────────────────────────────────────────
   const paidSaleRows = await db
@@ -219,7 +217,9 @@ export async function getDailySummary(
       const channel = deliveryChannels.get(sale.channel);
       if (!channel?.enabled) return sum;
       // For manual sales, net = grossSales − discountTotal
-      return sum + ((sale.grossSales - sale.discountTotal) * BigInt(channel.commissionBps)) / 10000n;
+      return (
+        sum + ((sale.grossSales - sale.discountTotal) * BigInt(channel.commissionBps)) / 10000n
+      );
     }, 0n);
   const netRevenue = netSales - commissionDelivery;
 
@@ -267,12 +267,14 @@ export async function getDailySummary(
   const shiftRows = await db
     .select()
     .from(shifts)
-    .where(and(
-      eq(shifts.locationId, params.locationId),
-      eq(shifts.tenantId, ctx.tenantId),
-      gte(shifts.openedAt, startDateTime),
-      lt(shifts.openedAt, endDateTime)
-    ))
+    .where(
+      and(
+        eq(shifts.locationId, params.locationId),
+        eq(shifts.tenantId, ctx.tenantId),
+        gte(shifts.openedAt, startDateTime),
+        lt(shifts.openedAt, endDateTime),
+      ),
+    )
     .orderBy(shifts.openedAt);
 
   const shiftsInRange = shiftRows;
@@ -280,13 +282,13 @@ export async function getDailySummary(
   const shiftSummary: ShiftSummaryRow[] = shiftsInRange.map((shift) => {
     const shiftSales = paidSaleRows.filter((s) => s.shiftId === shift.id);
     const manualSales = manualSaleRows.filter((s) => s.shiftId === shift.id);
-    
+
     // PB1 is inclusive: grossSales − discountTotal already contains the tax.
     // Adding taxTotal again would double-count it.
     const txTotal =
       shiftSales.reduce((s, r) => s + r.grandTotal, 0n) +
       manualSales.reduce((s, r) => s + (r.grossSales - r.discountTotal), 0n);
-      
+
     return {
       shiftId: shift.id,
       openedAt: shift.openedAt.toISOString(),
@@ -296,7 +298,8 @@ export async function getDailySummary(
       actualCash: shift.actualCash?.toString() ?? null,
       variance: shift.variance?.toString() ?? null,
       cashierName: shift.openedBy,
-      txCount: shiftSales.length + manualSales.reduce((acc, m) => acc + (m.transactionCount ?? 1), 0),
+      txCount:
+        shiftSales.length + manualSales.reduce((acc, m) => acc + (m.transactionCount ?? 1), 0),
       txTotal: txTotal.toString(),
     };
   });
@@ -308,7 +311,12 @@ export async function getDailySummary(
   // Process manual sale products
   for (const manual of manualSaleRows) {
     if (!manual.lineItemsJson || !Array.isArray(manual.lineItemsJson)) continue;
-    const items = manual.lineItemsJson as Array<{ productId?: string, name?: string, qty?: number, total?: string }>;
+    const items = manual.lineItemsJson as Array<{
+      productId?: string;
+      name?: string;
+      qty?: number;
+      total?: string;
+    }>;
     for (const item of items) {
       if (!item.productId) continue;
       const key = `${item.productId}_${manual.channel}`;
@@ -325,7 +333,9 @@ export async function getDailySummary(
       } else {
         const existing = combinedProducts.get(key)!;
         existing.qty += Number(item.qty || 0);
-        existing.nominal = (BigInt(existing.nominal) + (item.total ? BigInt(item.total) : 0n)).toString();
+        existing.nominal = (
+          BigInt(existing.nominal) + (item.total ? BigInt(item.total) : 0n)
+        ).toString();
       }
     }
   }
@@ -353,7 +363,7 @@ export async function getDailySummary(
       const nameField = row.productName as Record<string, string> | null;
       const resolvedName = nameField?.id ?? nameField?.en ?? nameField?.zh ?? row.productId;
       const key = `${row.productId}_${row.channel}`;
-      
+
       if (combinedProducts.has(key)) {
         const existing = combinedProducts.get(key)!;
         existing.qty += Number(row.qty);
@@ -373,15 +383,14 @@ export async function getDailySummary(
       }
     }
   }
-  
+
   topProducts = Array.from(combinedProducts.values())
     .sort((a, b) => (BigInt(b.nominal) < BigInt(a.nominal) ? -1 : 1))
     .slice(0, 10)
     .map((p, idx) => ({ ...p, rank: idx + 1 }));
 
   const totalOrderCount =
-    paidSaleRows.length +
-    manualSaleRows.reduce((sum, m) => sum + (m.transactionCount ?? 1), 0);
+    paidSaleRows.length + manualSaleRows.reduce((sum, m) => sum + (m.transactionCount ?? 1), 0);
 
   return ok({
     period: { start: params.startDate, end: params.endDate },

@@ -9,12 +9,12 @@
 
 import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
+import { and, db, eq, sql } from '@erp/db';
+import { shiftAssignments } from '@erp/db/schema/hr';
 import { listMyAttendance } from '@erp/services/hr';
 import { resolveEmployeeForUser } from '@erp/services/hr';
 import { getDispensedDetailsForPeriod } from '@erp/services/hr';
 import type { AuditContext } from '@erp/shared/types';
-import { db, and, eq, sql } from '@erp/db';
-import { shiftAssignments } from '@erp/db/schema/hr';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
@@ -164,17 +164,23 @@ export default async function MyAttendancePage({
       {/* Summary cards */}
       <div className="grid gap-3 sm:grid-cols-4">
         <Card label={t('totalDays')} value={String(totalDays)} />
-        <Card label={t('absentDays')} value={String(absentDays)} tone={absentDays > 0 ? 'rose' : null} />
+        <Card
+          label={t('absentDays')}
+          value={String(absentDays)}
+          tone={absentDays > 0 ? 'rose' : null}
+        />
         <Card label={t('lateDays')} value={String(lateDays)} tone={lateDays > 0 ? 'rose' : null} />
         <Card
           label={t('totalWorked')}
           value={checkedOutItems.length > 0 ? fmtMinutes(totalWorked) : '—'}
-          subtitle={checkedOutItems.length < totalDays && totalDays > 0
-            ? t('workedNote', {
-                checked: checkedOutItems.length,
-                total: totalDays,
-              })
-            : undefined}
+          subtitle={
+            checkedOutItems.length < totalDays && totalDays > 0
+              ? t('workedNote', {
+                  checked: checkedOutItems.length,
+                  total: totalDays,
+                })
+              : undefined
+          }
         />
       </div>
 

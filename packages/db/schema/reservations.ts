@@ -1,7 +1,6 @@
 import { boolean, index, integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { auditCols, locationCol, pk, tenantCol } from './common';
 
-
 export const reservations = pgTable(
   'reservations',
   {

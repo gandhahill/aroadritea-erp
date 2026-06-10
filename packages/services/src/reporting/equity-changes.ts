@@ -1,7 +1,7 @@
 /**
  * reporting.equityChanges — SD §21.2
  *
- * Generates a Statement of Changes in Equity (Laporan Perubahan Ekuitas - SAK ETAP)
+ * Generates a Statement of Changes in Equity (Laporan Perubahan Ekuitas - SAK EP)
  * for a given date range.
  *
  * Permission: accounting.view / reporting.consolidated
@@ -10,10 +10,10 @@
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { requirePermission } from '../iam';
-import { type TrialBalanceLine, trialBalance } from './trial-balance';
-import { profitLoss } from './profit-loss';
 import dayjs from 'dayjs';
+import { requirePermission } from '../iam';
+import { profitLoss } from './profit-loss';
+import { type TrialBalanceLine, trialBalance } from './trial-balance';
 
 export interface EquityChangesInput {
   startDate: string;
@@ -70,7 +70,7 @@ export async function equityChanges(
           // Modal (credit normal) -> balance is credit - debit
           // Dividen (debit normal) -> balance is debit - credit
           if (line.accountCode === '3-1100') beginningCapital += line.balance;
-          else if (line.accountCode === '3-1200') beginningDividends += line.balance; 
+          else if (line.accountCode === '3-1200') beginningDividends += line.balance;
           else if (line.accountCode === '3-1300' || line.accountCode === '3-1400') {
             beginningRetainedEarnings += line.balance;
           }
@@ -81,7 +81,7 @@ export async function equityChanges(
           else historicalIncome -= line.balance;
         }
       }
-      
+
       // Retained earnings includes all unclosed historical net income
       beginningRetainedEarnings += historicalIncome;
       // Subtract dividends (since they reduce equity, but dividends are debit normal so their balance is positive)
@@ -90,7 +90,10 @@ export async function equityChanges(
       const totalBeginningEquity = beginningCapital + beginningRetainedEarnings;
 
       // 2. Get current period trial balance to find changes
-      const tbEndRes = await trialBalance({ asOf: input.endDate, locationId: input.locationId }, ctx);
+      const tbEndRes = await trialBalance(
+        { asOf: input.endDate, locationId: input.locationId },
+        ctx,
+      );
       if (!tbEndRes.ok) throw tbEndRes.error;
       const tbEnd = tbEndRes.value;
 
@@ -106,7 +109,10 @@ export async function equityChanges(
       const dividends = endingDividends - beginningDividends;
 
       // 3. Get net income for the current period
-      const plRes = await profitLoss({ from: input.startDate, to: input.endDate, locationId: input.locationId }, ctx);
+      const plRes = await profitLoss(
+        { from: input.startDate, to: input.endDate, locationId: input.locationId },
+        ctx,
+      );
       if (!plRes.ok) throw plRes.error;
       const netIncome = plRes.value.netIncome;
 

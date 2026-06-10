@@ -15,7 +15,12 @@ import {
   updateProduct,
   updateVariant,
 } from '@erp/services/inventory';
-import type { CategoryResult, ProductDetailResult, ProductListItem, Sheet1MasterRow } from '@erp/services/inventory';
+import type {
+  CategoryResult,
+  ProductDetailResult,
+  ProductListItem,
+  Sheet1MasterRow,
+} from '@erp/services/inventory';
 import type { AuditContext } from '@erp/shared/types';
 import { revalidatePath } from 'next/cache';
 
@@ -453,14 +458,26 @@ function parseCsvRows(csvText: string): string[][] {
   for (let i = 0; i < csvText.length; i++) {
     const ch = csvText[i];
     const next = csvText[i + 1];
-    if (ch === '"' && inQuotes && next === '"') { cell += '"'; i++; continue; }
-    if (ch === '"') { inQuotes = !inQuotes; continue; }
-    if (ch === ',' && !inQuotes) { row.push(cell); cell = ''; continue; }
+    if (ch === '"' && inQuotes && next === '"') {
+      cell += '"';
+      i++;
+      continue;
+    }
+    if (ch === '"') {
+      inQuotes = !inQuotes;
+      continue;
+    }
+    if (ch === ',' && !inQuotes) {
+      row.push(cell);
+      cell = '';
+      continue;
+    }
     if ((ch === '\n' || ch === '\r') && !inQuotes) {
       if (ch === '\r' && next === '\n') i++;
       row.push(cell);
       if (row.some((v) => v.trim().length > 0)) rows.push(row);
-      row = []; cell = '';
+      row = [];
+      cell = '';
       continue;
     }
     cell += ch;

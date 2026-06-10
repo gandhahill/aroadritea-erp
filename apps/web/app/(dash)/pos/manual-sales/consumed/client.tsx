@@ -103,7 +103,9 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
   const [state, submitAction, isPending] = useActionState(createConsumedIngredientsAction, null);
   const [referenceId, setReferenceId] = useState<string | null>(null);
   const [editLocationId, setEditLocationId] = useState(defaultLocationId);
-  const [entryDate, setEntryDate] = useState(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' }));
+  const [entryDate, setEntryDate] = useState(
+    new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' }),
+  );
   const [entryNotes, setEntryNotes] = useState('');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -324,7 +326,11 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
             <input
               type="hidden"
               name="consumedIngredientsJson"
-              value={JSON.stringify(consumedIngredients.filter((i) => i.ingredientId && i.qty).map(i => ({ ...i, qty: i.qty || 1 })))}
+              value={JSON.stringify(
+                consumedIngredients
+                  .filter((i) => i.ingredientId && i.qty)
+                  .map((i) => ({ ...i, qty: i.qty || 1 })),
+              )}
             />
           </div>
 
@@ -388,7 +394,9 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
               >
                 <option value="">{t('allLocations')}</option>
                 {data.locations.map((loc) => (
-                  <option key={loc.id} value={loc.id}>{loc.label}</option>
+                  <option key={loc.id} value={loc.id}>
+                    {loc.label}
+                  </option>
                 ))}
               </Select>
             </label>
@@ -412,71 +420,72 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
                   const dateStr = toWibDate(item.occurredAt);
                   if (historyDateFrom && dateStr < historyDateFrom) return false;
                   if (historyDateTo && dateStr > historyDateTo) return false;
-                  if (historyLocationFilter && item.locationId !== historyLocationFilter) return false;
+                  if (historyLocationFilter && item.locationId !== historyLocationFilter)
+                    return false;
                   return true;
                 });
                 return filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-brand-ink-3">
-                    {t('emptyConsumedHistory')}
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((item) => (
-                  <tr key={item.id} className="text-brand-ink hover:bg-brand-cream/50">
-                    <Td>{toWibDate(item.occurredAt)}</Td>
-                    <Td>{item.locationLabel || '-'}</Td>
-                    <Td>
-                      <div className="text-sm font-medium text-brand-ink">
-                        {t('itemCountSummary', { count: item.itemCount })}
-                      </div>
-                      <ExpandableItemList
-                        items={item.items}
-                        formatQty={formatHistoryQty}
-                        moreLabel={(count: number) => t('moreItems', { count })}
-                        collapseLabel={t('showLess', { defaultValue: 'Lebih sedikit' })}
-                      />
-                    </Td>
-                    <Td>
-                      {item.notes ? (
-                        <span className="text-sm text-brand-ink-2">{item.notes}</span>
-                      ) : (
-                        <span className="text-brand-ink-3">—</span>
-                      )}
-                    </Td>
-                    <Td>
-                      {item.createdByName || '-'}
-                      {item.updatedByName && item.updatedByName !== item.createdByName ? (
-                        <span className="mt-0.5 block text-[11px] text-brand-ink-3">
-                          {t('editedBy', { name: item.updatedByName })}
-                        </span>
-                      ) : null}
-                    </Td>
-                    <Td align="right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          disabled={loadingDetailId === item.id}
-                          onClick={() => startEdit(item.id)}
-                        >
-                          {loadingDetailId === item.id ? t('loadingDetail') : t('edit')}
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="text-brand-red"
-                          onClick={() => setDeleteConfirmId(item.id)}
-                        >
-                          {t('delete')}
-                        </Button>
-                      </div>
-                    </Td>
+                  <tr>
+                    <td colSpan={6} className="px-4 py-8 text-center text-brand-ink-3">
+                      {t('emptyConsumedHistory')}
+                    </td>
                   </tr>
-                ))
-              );
+                ) : (
+                  filtered.map((item) => (
+                    <tr key={item.id} className="text-brand-ink hover:bg-brand-cream/50">
+                      <Td>{toWibDate(item.occurredAt)}</Td>
+                      <Td>{item.locationLabel || '-'}</Td>
+                      <Td>
+                        <div className="text-sm font-medium text-brand-ink">
+                          {t('itemCountSummary', { count: item.itemCount })}
+                        </div>
+                        <ExpandableItemList
+                          items={item.items}
+                          formatQty={formatHistoryQty}
+                          moreLabel={(count: number) => t('moreItems', { count })}
+                          collapseLabel={t('showLess', { defaultValue: 'Lebih sedikit' })}
+                        />
+                      </Td>
+                      <Td>
+                        {item.notes ? (
+                          <span className="text-sm text-brand-ink-2">{item.notes}</span>
+                        ) : (
+                          <span className="text-brand-ink-3">—</span>
+                        )}
+                      </Td>
+                      <Td>
+                        {item.createdByName || '-'}
+                        {item.updatedByName && item.updatedByName !== item.createdByName ? (
+                          <span className="mt-0.5 block text-[11px] text-brand-ink-3">
+                            {t('editedBy', { name: item.updatedByName })}
+                          </span>
+                        ) : null}
+                      </Td>
+                      <Td align="right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            disabled={loadingDetailId === item.id}
+                            onClick={() => startEdit(item.id)}
+                          >
+                            {loadingDetailId === item.id ? t('loadingDetail') : t('edit')}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="text-brand-red"
+                            onClick={() => setDeleteConfirmId(item.id)}
+                          >
+                            {t('delete')}
+                          </Button>
+                        </div>
+                      </Td>
+                    </tr>
+                  ))
+                );
               })()}
             </TableBody>
           </Table>

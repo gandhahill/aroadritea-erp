@@ -2,7 +2,7 @@
 
 import { Button } from '@erp/ui';
 import { useTranslations } from 'next-intl';
-import { useState, useRef } from 'react';
+import { useRef, useState } from 'react';
 
 export function MediaLibraryModal({
   open,
@@ -59,7 +59,12 @@ export function MediaLibraryModal({
       <div className="w-full max-w-md rounded-lg bg-card shadow-lg p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-brand-ink">{t('mediaLibrary.title')}</h2>
-          <button onClick={() => onOpenChange(false)} className="text-brand-ink-3 hover:text-brand-ink">&times;</button>
+          <button
+            onClick={() => onOpenChange(false)}
+            className="text-brand-ink-3 hover:text-brand-ink"
+          >
+            &times;
+          </button>
         </div>
         <div className="py-8 flex flex-col items-center justify-center border-2 border-dashed border-brand-cream-3 rounded-lg bg-brand-cream-1/30">
           <input

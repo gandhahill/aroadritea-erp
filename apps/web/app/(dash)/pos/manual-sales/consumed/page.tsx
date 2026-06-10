@@ -1,6 +1,6 @@
 import { getSession } from '@/lib/auth';
-import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { redirect } from 'next/navigation';
 import { fetchConsumedIngredientsData } from './actions';
 import { ConsumedClient } from './client';
 
@@ -24,7 +24,5 @@ export default async function ConsumedIngredientsPage({
   const data = await fetchConsumedIngredientsData(page, pageSize);
   const defaultLocationId = user.locationId || data.locations[0]?.id || '';
 
-  return (
-    <ConsumedClient data={data} defaultLocationId={defaultLocationId} />
-  );
+  return <ConsumedClient data={data} defaultLocationId={defaultLocationId} />;
 }

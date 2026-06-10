@@ -22,7 +22,6 @@
  */
 
 import { db } from '@erp/db';
-import type { PermissionCode } from '@erp/shared/types';
 import { accountingPeriods, accounts, taxRates } from '@erp/db/schema/accounting';
 import { products, stockLevels, stockMovements } from '@erp/db/schema/inventory';
 import {
@@ -34,6 +33,7 @@ import {
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
+import type { PermissionCode } from '@erp/shared/types';
 import type { AuditContext } from '@erp/shared/types';
 import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
@@ -557,7 +557,7 @@ export async function postPurchaseReturn(
 
     // Pre-fetch tax rates for posting accounts
     const allTaxRates = await db.select().from(taxRates).where(eq(taxRates.isActive, true));
-    const taxRateMap = new Map(allTaxRates.map(tr => [tr.code, tr.postingAccountId]));
+    const taxRateMap = new Map(allTaxRates.map((tr) => [tr.code, tr.postingAccountId]));
 
     const inventoryValueByAccount = new Map<string, bigint>();
     const taxValueByAccount = new Map<string, bigint>();
@@ -571,19 +571,23 @@ export async function postPurchaseReturn(
         }
         inventoryValueByAccount.set(
           invAccountId,
-          (inventoryValueByAccount.get(invAccountId) ?? 0n) + line.lineSubtotal
+          (inventoryValueByAccount.get(invAccountId) ?? 0n) + line.lineSubtotal,
         );
       }
-      
+
       // Tax
       if (line.lineTax > 0n && line.taxCode) {
         const taxAccountId = taxRateMap.get(line.taxCode);
         if (!taxAccountId) {
-          return err(AppError.businessRule('purchasing.errors.tax_account_not_found', { code: line.taxCode }));
+          return err(
+            AppError.businessRule('purchasing.errors.tax_account_not_found', {
+              code: line.taxCode,
+            }),
+          );
         }
         taxValueByAccount.set(
           taxAccountId,
-          (taxValueByAccount.get(taxAccountId) ?? 0n) + line.lineTax
+          (taxValueByAccount.get(taxAccountId) ?? 0n) + line.lineTax,
         );
       }
     }
@@ -637,7 +641,8 @@ export async function postPurchaseReturn(
         referenceId: row.id,
         lines: jeLines,
       },
-      ctx, { skipPermissionCheck: true }
+      ctx,
+      { skipPermissionCheck: true },
     );
     if (!jeResult.ok) {
       await db

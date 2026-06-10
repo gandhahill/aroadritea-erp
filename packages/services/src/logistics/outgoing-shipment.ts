@@ -1,6 +1,10 @@
 import { db } from '@erp/db';
-import { outgoingShipmentLines, outgoingShipmentTrackingRequests, outgoingShipments } from '@erp/db/schema/logistics';
 import { stockLevels, stockMovements } from '@erp/db/schema/inventory';
+import {
+  outgoingShipmentLines,
+  outgoingShipmentTrackingRequests,
+  outgoingShipments,
+} from '@erp/db/schema/logistics';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
@@ -22,15 +26,17 @@ export const CreateOutgoingShipmentSchema = z.object({
   shippingCourierCode: z.string().optional(),
   shippingAwb: z.string().optional(),
   shippingPhoneLast5: z.string().optional(),
-  lines: z.array(
-    z.object({
-      productId: z.string().min(1),
-      variantId: z.string().nullable().optional(),
-      qty: z.number().positive(),
-      uom: z.string().min(1),
-      notes: z.string().optional(),
-    })
-  ).default([]),
+  lines: z
+    .array(
+      z.object({
+        productId: z.string().min(1),
+        variantId: z.string().nullable().optional(),
+        qty: z.number().positive(),
+        uom: z.string().min(1),
+        notes: z.string().optional(),
+      }),
+    )
+    .default([]),
 });
 export type CreateOutgoingShipmentInput = z.infer<typeof CreateOutgoingShipmentSchema>;
 
@@ -107,21 +113,26 @@ export async function createOutgoingShipment(
               updatedBy: ctx.userId,
             });
 
-            const variantFilter = line.variantId ? eq(stockLevels.variantId, line.variantId) : sql`variant_id IS NULL`;
+            const variantFilter = line.variantId
+              ? eq(stockLevels.variantId, line.variantId)
+              : sql`variant_id IS NULL`;
 
-            const [currentLevel] = await tx.select({
-              id: stockLevels.id,
-              qtyOnHand: stockLevels.qtyOnHand,
-              stockLocationId: stockLevels.stockLocationId,
-            }).from(stockLevels)
+            const [currentLevel] = await tx
+              .select({
+                id: stockLevels.id,
+                qtyOnHand: stockLevels.qtyOnHand,
+                stockLocationId: stockLevels.stockLocationId,
+              })
+              .from(stockLevels)
               .where(
                 and(
                   eq(stockLevels.tenantId, ctx.tenantId),
                   eq(stockLevels.locationId, data.locationId),
                   eq(stockLevels.productId, line.productId),
-                  variantFilter
-                )
-              ).limit(1);
+                  variantFilter,
+                ),
+              )
+              .limit(1);
 
             if (!currentLevel) {
               throw AppError.businessRule('logistics.outgoingShipment.insufficientStock', {
@@ -137,12 +148,15 @@ export async function createOutgoingShipment(
               });
             }
 
-            await tx.update(stockLevels).set({
-              qtyOnHand: sql`${stockLevels.qtyOnHand} - ${line.qty.toString()}::numeric`,
-              qtyAvailable: sql`${stockLevels.qtyAvailable} - ${line.qty.toString()}::numeric`,
-              updatedBy: ctx.userId,
-              lastMovementAt: new Date(),
-            }).where(eq(stockLevels.id, currentLevel.id));
+            await tx
+              .update(stockLevels)
+              .set({
+                qtyOnHand: sql`${stockLevels.qtyOnHand} - ${line.qty.toString()}::numeric`,
+                qtyAvailable: sql`${stockLevels.qtyAvailable} - ${line.qty.toString()}::numeric`,
+                updatedBy: ctx.userId,
+                lastMovementAt: new Date(),
+              })
+              .where(eq(stockLevels.id, currentLevel.id));
 
             await tx.insert(stockMovements).values({
               id: generateId(),
@@ -367,7 +381,9 @@ export async function deleteOutgoingShipment(
             movement.stockLocationId
               ? eq(stockLevels.stockLocationId, movement.stockLocationId)
               : isNull(stockLevels.stockLocationId),
-            movement.batchNo ? eq(stockLevels.batchNo, movement.batchNo) : isNull(stockLevels.batchNo),
+            movement.batchNo
+              ? eq(stockLevels.batchNo, movement.batchNo)
+              : isNull(stockLevels.batchNo),
           ];
 
           await tx
@@ -408,7 +424,10 @@ export async function deleteOutgoingShipment(
             .where(
               and(
                 eq(stockMovements.tenantId, ctx.tenantId),
-                inArray(stockMovements.id, movements.map((movement) => movement.id)),
+                inArray(
+                  stockMovements.id,
+                  movements.map((movement) => movement.id),
+                ),
               ),
             );
         }
@@ -489,7 +508,9 @@ export async function trackOutgoingShipment(
   const [shipment] = await db
     .select()
     .from(outgoingShipments)
-    .where(and(eq(outgoingShipments.tenantId, ctx.tenantId), eq(outgoingShipments.id, data.shipmentId)))
+    .where(
+      and(eq(outgoingShipments.tenantId, ctx.tenantId), eq(outgoingShipments.id, data.shipmentId)),
+    )
     .limit(1);
   if (!shipment) return err(AppError.notFound('logistics.outgoingShipment.notFound'));
 
@@ -568,7 +589,9 @@ export async function trackOutgoingShipment(
           updatedBy: ctx.userId,
           version: shipment.version + 1,
         })
-        .where(and(eq(outgoingShipments.tenantId, ctx.tenantId), eq(outgoingShipments.id, shipment.id)));
+        .where(
+          and(eq(outgoingShipments.tenantId, ctx.tenantId), eq(outgoingShipments.id, shipment.id)),
+        );
 
       await auditRecord({
         action: 'update',

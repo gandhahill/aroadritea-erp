@@ -1,7 +1,7 @@
 'use client';
 
-import { PageHeader } from '@/components/page-header';
 import { InlineAlert } from '@/components/confirm-dialog';
+import { PageHeader } from '@/components/page-header';
 import { Button, Input, IntegerInput, Select } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
@@ -26,7 +26,14 @@ export function NewTransferForm({ locations, products, defaultLocationId }: Prop
   const [transferDate, setTransferDate] = useState(new Date().toISOString().slice(0, 10));
   const [notes, setNotes] = useState('');
   const [lines, setLines] = useState<
-    Array<{ productId: string; name: string; qty: number; uom: string; batchNo?: string; expiryDate?: string }>
+    Array<{
+      productId: string;
+      name: string;
+      qty: number;
+      uom: string;
+      batchNo?: string;
+      expiryDate?: string;
+    }>
   >([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -55,10 +62,7 @@ export function NewTransferForm({ locations, products, defaultLocationId }: Prop
 
   return (
     <div className="h-full w-full overflow-y-auto space-y-6 pb-24 px-4 pt-4">
-      <PageHeader
-        title={<>{t('new')}</>}
-        description={<>{t('subtitle')}</>}
-      />
+      <PageHeader title={<>{t('new')}</>} description={<>{t('subtitle')}</>} />
 
       <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
         {errorMsg && (
@@ -79,7 +83,9 @@ export function NewTransferForm({ locations, products, defaultLocationId }: Prop
                 onChange={(e) => setFromLocationId(e.target.value)}
                 required
               >
-                <option value="" disabled>{tCommon('actions.select')} {t('fromLocation')}</option>
+                <option value="" disabled>
+                  {tCommon('actions.select')} {t('fromLocation')}
+                </option>
                 {locations.map((loc) => (
                   <option key={loc.id} value={loc.id}>
                     {loc.name} ({loc.code})
@@ -97,7 +103,9 @@ export function NewTransferForm({ locations, products, defaultLocationId }: Prop
                 onChange={(e) => setToLocationId(e.target.value)}
                 required
               >
-                <option value="" disabled>{tCommon('actions.select')} {t('toLocation')}</option>
+                <option value="" disabled>
+                  {tCommon('actions.select')} {t('toLocation')}
+                </option>
                 {locations.map((loc) => (
                   <option key={loc.id} value={loc.id}>
                     {loc.name} ({loc.code})
@@ -160,7 +168,9 @@ export function NewTransferForm({ locations, products, defaultLocationId }: Prop
                         setLines(newLines);
                       }}
                     >
-                      <option value="" disabled>{tCommon('actions.select')} {tCommon('labels.product')}</option>
+                      <option value="" disabled>
+                        {tCommon('actions.select')} {tCommon('labels.product')}
+                      </option>
                       {products.map((p) => (
                         <option key={p.id} value={p.id}>
                           {p.name}
@@ -169,9 +179,7 @@ export function NewTransferForm({ locations, products, defaultLocationId }: Prop
                     </Select>
                   </div>
                   <div className="w-24">
-                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
-                      Qty
-                    </span>
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">Qty</span>
                     <IntegerInput
                       min="1"
                       value={line.qty}
@@ -184,9 +192,7 @@ export function NewTransferForm({ locations, products, defaultLocationId }: Prop
                     />
                   </div>
                   <div className="w-24">
-                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
-                      UoM
-                    </span>
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">UoM</span>
                     <Input type="text" readOnly value={line.uom} className="bg-brand-cream/50" />
                   </div>
                   <div className="w-32">
@@ -243,10 +249,16 @@ export function NewTransferForm({ locations, products, defaultLocationId }: Prop
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-brand-cream-3">
-            <Link href="/inventory/transfer" className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-red disabled:pointer-events-none disabled:opacity-50 border border-brand-cream-3 bg-card hover:bg-brand-cream-2 text-brand-ink h-9 px-4 py-2">
+            <Link
+              href="/inventory/transfer"
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-red disabled:pointer-events-none disabled:opacity-50 border border-brand-cream-3 bg-card hover:bg-brand-cream-2 text-brand-ink h-9 px-4 py-2"
+            >
               {tCommon('actions.cancel')}
             </Link>
-            <Button type="submit" disabled={isPending || lines.filter(l => l.productId).length === 0}>
+            <Button
+              type="submit"
+              disabled={isPending || lines.filter((l) => l.productId).length === 0}
+            >
               {isPending ? tCommon('actions.saving') : tCommon('actions.create')}
             </Button>
           </div>

@@ -1,7 +1,7 @@
 import { db } from '@erp/db';
 import { products, stockMovements } from '@erp/db/schema/inventory';
-import { type Result, err, ok } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
+import { type Result, err, ok } from '@erp/shared/result';
 import { and, desc, eq, gte, lte } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -30,7 +30,9 @@ export async function getStockLedger(
 ): Promise<Result<StockLedgerRow[]>> {
   const parsed = GetStockLedgerInputSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('common.errors.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('common.errors.validationFailed', { issues: parsed.error.issues }),
+    );
   }
 
   const conditions = [

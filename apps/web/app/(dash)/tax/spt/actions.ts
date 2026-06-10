@@ -1,11 +1,17 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { calculateSptMasa, getVatLedger, exportSptMasaCsv, type SptMasaSummary, type VatLedgerRow } from '@erp/services/tax';
-import type { AuditContext } from '@erp/shared/types';
 import { db } from '@erp/db';
+import { and, desc, eq, isNull } from '@erp/db';
 import { accountingPeriods } from '@erp/db/schema/accounting';
-import { desc, eq, and, isNull } from '@erp/db';
+import {
+  type SptMasaSummary,
+  type VatLedgerRow,
+  calculateSptMasa,
+  exportSptMasaCsv,
+  getVatLedger,
+} from '@erp/services/tax';
+import type { AuditContext } from '@erp/shared/types';
 
 async function getAuditContext(): Promise<AuditContext | null> {
   const session = await getSession();
@@ -28,20 +34,17 @@ export interface PeriodOption {
 export async function fetchPeriodsAction(): Promise<PeriodOption[]> {
   const ctx = await getAuditContext();
   if (!ctx) return [];
-  const rows = await db.select({
-    id: accountingPeriods.id,
-    code: accountingPeriods.code,
-    status: accountingPeriods.status,
-  }).from(accountingPeriods)
-    .where(
-      and(
-        eq(accountingPeriods.tenantId, ctx.tenantId),
-        isNull(accountingPeriods.deletedAt)
-      )
-    )
+  const rows = await db
+    .select({
+      id: accountingPeriods.id,
+      code: accountingPeriods.code,
+      status: accountingPeriods.status,
+    })
+    .from(accountingPeriods)
+    .where(and(eq(accountingPeriods.tenantId, ctx.tenantId), isNull(accountingPeriods.deletedAt)))
     .orderBy(desc(accountingPeriods.startDate));
 
-  return rows.map(r => ({
+  return rows.map((r) => ({
     id: r.id,
     code: r.code,
     name: r.code,

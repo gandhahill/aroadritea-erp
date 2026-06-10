@@ -17,14 +17,14 @@ const translations = {
           paymentTerms: 'Payment Terms',
           paymentTermsPlaceholder: 'e.g. Net 30',
           notesLabel: 'Notes',
-          noTax: 'No Tax'
-        }
-      }
+          noTax: 'No Tax',
+        },
+      },
     },
     nav: {
       companySettings: 'Company Info',
       accountingSettings: 'Accounting',
-      outgoingShipments: 'Outgoing Shipments'
+      outgoingShipments: 'Outgoing Shipments',
     },
     settings: {
       company: {
@@ -38,7 +38,7 @@ const translations = {
         companyNpwpHelp: 'Tax identification number.',
         companyPhone: 'Phone Number',
         saved: 'Company info saved successfully.',
-        saveAction: 'Save Changes'
+        saveAction: 'Save Changes',
       },
       accounting: {
         title: 'Accounting Settings',
@@ -48,13 +48,13 @@ const translations = {
         apAccount: 'Accounts Payable (AP)',
         selectAccount: 'Select AP Account...',
         apAccountHelp: 'This account will be credited when posting a purchase invoice.',
-        saveAction: 'Save Settings'
-      }
+        saveAction: 'Save Settings',
+      },
     },
     logistics: {
       outgoingShipments: 'Outgoing Shipments',
-      outgoingShipmentsSubtitle: 'Manage shipments and track delivery statuses'
-    }
+      outgoingShipmentsSubtitle: 'Manage shipments and track delivery statuses',
+    },
   },
   id: {
     accounting: {
@@ -68,14 +68,14 @@ const translations = {
           paymentTerms: 'Termin Pembayaran',
           paymentTermsPlaceholder: 'Cth: Net 30',
           notesLabel: 'Catatan',
-          noTax: 'Tanpa Pajak'
-        }
-      }
+          noTax: 'Tanpa Pajak',
+        },
+      },
     },
     nav: {
       companySettings: 'Info Perusahaan',
       accountingSettings: 'Akuntansi',
-      outgoingShipments: 'Pengiriman Keluar'
+      outgoingShipments: 'Pengiriman Keluar',
     },
     settings: {
       company: {
@@ -89,7 +89,7 @@ const translations = {
         companyNpwpHelp: 'Nomor Pokok Wajib Pajak.',
         companyPhone: 'Nomor Telepon',
         saved: 'Info perusahaan berhasil disimpan.',
-        saveAction: 'Simpan Perubahan'
+        saveAction: 'Simpan Perubahan',
       },
       accounting: {
         title: 'Pengaturan Akuntansi',
@@ -99,13 +99,13 @@ const translations = {
         apAccount: 'Akun Utang (AP)',
         selectAccount: 'Pilih Akun Utang...',
         apAccountHelp: 'Akun ini akan dikreditkan saat mem-posting invoice pembelian.',
-        saveAction: 'Simpan Pengaturan'
-      }
+        saveAction: 'Simpan Pengaturan',
+      },
     },
     logistics: {
       outgoingShipments: 'Pengiriman Keluar',
-      outgoingShipmentsSubtitle: 'Kelola pengiriman barang dan lacak status pesanan'
-    }
+      outgoingShipmentsSubtitle: 'Kelola pengiriman barang dan lacak status pesanan',
+    },
   },
   zh: {
     accounting: {
@@ -119,14 +119,14 @@ const translations = {
           paymentTerms: '付款条件',
           paymentTermsPlaceholder: '例如：Net 30',
           notesLabel: '备注',
-          noTax: '免税'
-        }
-      }
+          noTax: '免税',
+        },
+      },
     },
     nav: {
       companySettings: '公司信息',
       accountingSettings: '会计',
-      outgoingShipments: '发出货物'
+      outgoingShipments: '发出货物',
     },
     settings: {
       company: {
@@ -140,7 +140,7 @@ const translations = {
         companyNpwpHelp: '税务识别号。',
         companyPhone: '电话号码',
         saved: '公司信息已成功保存。',
-        saveAction: '保存更改'
+        saveAction: '保存更改',
       },
       accounting: {
         title: '会计设置',
@@ -150,14 +150,14 @@ const translations = {
         apAccount: '应付账款 (AP)',
         selectAccount: '选择应付账款...',
         apAccountHelp: '过账采购发票时将贷记此账户。',
-        saveAction: '保存设置'
-      }
+        saveAction: '保存设置',
+      },
     },
     logistics: {
       outgoingShipments: '发出货物',
-      outgoingShipmentsSubtitle: '管理货物发送并跟踪交付状态'
-    }
-  }
+      outgoingShipmentsSubtitle: '管理货物发送并跟踪交付状态',
+    },
+  },
 };
 
 function deepMerge(target, source) {
@@ -177,9 +177,9 @@ for (const lang of locales) {
   if (fs.existsSync(filePath)) {
     data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   }
-  
+
   deepMerge(data, translations[lang]);
-  
+
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2) + '\n');
   console.log(`Updated ${lang}.json`);
 }

@@ -7,6 +7,7 @@
 
 import { getSession } from '@/lib/auth';
 import { and, asc, db, eq, gte, inArray, isNull, lte } from '@erp/db';
+import { locations } from '@erp/db/schema/auth';
 import {
   attendance,
   employeeFaceTemplates,
@@ -14,8 +15,7 @@ import {
   shiftAssignments,
   shiftDefinitions,
 } from '@erp/db/schema/hr';
-import { locations } from '@erp/db/schema/auth';
-import { getLocationGpsConfig, resolveShiftTime, hasValidFaceTemplate } from '@erp/services/hr';
+import { getLocationGpsConfig, hasValidFaceTemplate, resolveShiftTime } from '@erp/services/hr';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { CheckInClient } from './check-in-client';
@@ -138,7 +138,9 @@ export default async function CheckInPage() {
     const nowUtc = new Date();
     const wibMs = nowUtc.getTime() + 7 * 60 * 60 * 1000;
     const wib = new Date(wibMs);
-    const todayStart = new Date(Date.UTC(wib.getUTCFullYear(), wib.getUTCMonth(), wib.getUTCDate(), -7));
+    const todayStart = new Date(
+      Date.UTC(wib.getUTCFullYear(), wib.getUTCMonth(), wib.getUTCDate(), -7),
+    );
     const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000 - 1);
 
     const [open] = await db

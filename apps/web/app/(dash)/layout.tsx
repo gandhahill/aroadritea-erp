@@ -6,6 +6,7 @@
 
 import { ErrorBoundary, GlobalErrorListener } from '@/components/error-reporter';
 import { getSession } from '@/lib/auth';
+import { getUserPermissions } from '@erp/services/iam';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -15,7 +16,6 @@ import { LogoutButton } from './logout-button';
 import { MobileMenuButton } from './mobile-menu-button';
 import { MobileMenuProvider } from './mobile-menu-context';
 import { NotificationBell } from './notification-bell';
-import { getUserPermissions } from '@erp/services/iam';
 import { Sidebar } from './sidebar';
 
 export const dynamic = 'force-dynamic';
@@ -94,11 +94,15 @@ export default async function DashboardLayout({
             data-dashboard-content
             className="min-h-0 flex-1 overflow-y-auto bg-brand-cream p-3 sm:p-6 print:p-0 print:bg-card print:overflow-visible print:h-auto print:block"
           >
-            <ErrorBoundary labels={{
-              title: tErr('boundaryTitle'),
-              message: tErr('boundaryMessage'),
-              reload: tErr('boundaryReload'),
-            }}>{children}</ErrorBoundary>
+            <ErrorBoundary
+              labels={{
+                title: tErr('boundaryTitle'),
+                message: tErr('boundaryMessage'),
+                reload: tErr('boundaryReload'),
+              }}
+            >
+              {children}
+            </ErrorBoundary>
           </main>
         </div>
       </div>

@@ -1,8 +1,8 @@
 'use client';
 
+import { authClient } from '@/lib/auth-client';
 import { Input } from '@erp/ui';
 import { useTranslations } from 'next-intl';
-import { authClient } from '@/lib/auth-client';
 import { type FormEvent, useState } from 'react';
 import { changePasswordAction } from './actions';
 

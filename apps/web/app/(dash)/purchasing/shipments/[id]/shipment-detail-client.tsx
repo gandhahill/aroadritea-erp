@@ -1,12 +1,10 @@
 'use client';
 
+import { COURIERS } from '@erp/shared/binderbyte-couriers';
 import { Input, Select } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { syncPurchaseShipmentAction } from '../../actions';
 import type { ShipmentDetail } from '../../actions';
-import { COURIERS } from '@erp/shared/binderbyte-couriers';
-
-
 
 function pickString(record: Record<string, unknown> | null, key: string): string | null {
   if (!record) return null;

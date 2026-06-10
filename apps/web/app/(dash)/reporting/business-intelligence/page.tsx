@@ -260,7 +260,9 @@ export default async function BusinessIntelligencePage() {
       GROUP BY channel
     `)
     : [];
-  const channelMix = (channelRows as unknown as Array<{ channel: string; gross: string; orders: number }>)
+  const channelMix = (
+    channelRows as unknown as Array<{ channel: string; gross: string; orders: number }>
+  )
     .map((r) => ({
       label: humanChannel(r.channel, t),
       gross: BigInt(r.gross ?? 0),

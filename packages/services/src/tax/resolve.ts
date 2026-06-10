@@ -125,12 +125,7 @@ export async function resolve(
       const rates = await db
         .select()
         .from(taxRates)
-        .where(
-          and(
-            inArray(taxRates.code, taxCodes),
-            eq(taxRates.isActive, true),
-          ),
-        );
+        .where(and(inArray(taxRates.code, taxCodes), eq(taxRates.isActive, true)));
 
       const rateMap = new Map(rates.map((r) => [r.code, r]));
 

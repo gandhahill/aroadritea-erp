@@ -2,7 +2,7 @@
 
 import { getSession } from '@/lib/auth';
 import { authorizedLocationIdsForTenant } from '@/lib/authz';
-import { and, db, eq, gte, inArray, lte, sql, isNull } from '@erp/db';
+import { and, db, eq, gte, inArray, isNull, lte, sql } from '@erp/db';
 import { auditLog } from '@erp/db/schema/audit';
 import { locations } from '@erp/db/schema/auth';
 import {
@@ -232,9 +232,7 @@ export async function fetchRoster(
           eq(shiftDefinitions.tenantId, ctx.tenantId),
           eq(shiftDefinitions.isActive, true),
           isNull(shiftDefinitions.deletedAt),
-          ...(allowedLocationIds
-            ? [inArray(shiftDefinitions.locationId, allowedLocationIds)]
-            : []),
+          ...(allowedLocationIds ? [inArray(shiftDefinitions.locationId, allowedLocationIds)] : []),
         ),
       )
       .orderBy(shiftDefinitions.startTime),
@@ -252,9 +250,7 @@ export async function fetchRoster(
         and(
           eq(employees.tenantId, ctx.tenantId),
           sql`${employees.status} in ('active','probation')`,
-          ...(allowedLocationIds
-            ? [inArray(employees.locationId, allowedLocationIds)]
-            : []),
+          ...(allowedLocationIds ? [inArray(employees.locationId, allowedLocationIds)] : []),
         ),
       )
       .orderBy(employees.name),
@@ -272,9 +268,7 @@ export async function fetchRoster(
         and(
           eq(shiftAssignments.tenantId, ctx.tenantId),
           isNull(shiftAssignments.deletedAt),
-          ...(allowedLocationIds
-            ? [inArray(shiftAssignments.locationId, allowedLocationIds)]
-            : []),
+          ...(allowedLocationIds ? [inArray(shiftAssignments.locationId, allowedLocationIds)] : []),
           gte(shiftAssignments.workDate, startStr),
           lte(shiftAssignments.workDate, endStr),
         ),

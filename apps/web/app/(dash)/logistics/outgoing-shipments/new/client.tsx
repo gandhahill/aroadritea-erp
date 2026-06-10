@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useTranslations, useLocale } from 'next-intl';
-import { createOutgoingShipmentAction, updateOutgoingShipmentAction } from '../actions';
-import { Button, Select, toast } from '@erp/ui';
 import { pickLocalized } from '@/lib/pick-localized';
 import { COURIERS } from '@erp/shared/binderbyte-couriers';
+import { Button, Select, toast } from '@erp/ui';
+import { useLocale, useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { createOutgoingShipmentAction, updateOutgoingShipmentAction } from '../actions';
 
 interface OutgoingShipmentFormProps {
   locations: any[];
@@ -55,9 +55,9 @@ export function OutgoingShipmentForm({
   });
 
   const handlePartnerChange = (partnerId: string) => {
-    const partner = partners.find(p => p.id === partnerId);
+    const partner = partners.find((p) => p.id === partnerId);
     if (partner) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         partnerId,
         recipientName: partner.name,
@@ -65,7 +65,7 @@ export function OutgoingShipmentForm({
         recipientPhone: partner.phone || '',
       }));
     } else {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         partnerId: '',
       }));
@@ -97,11 +97,12 @@ export function OutgoingShipmentForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 rounded-xl border border-brand-cream-3 bg-card p-6 shadow-soft max-w-3xl">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-8 rounded-xl border border-brand-cream-3 bg-card p-6 shadow-soft max-w-3xl"
+    >
       {error && (
-        <div className="rounded-lg bg-brand-red-light p-4 text-sm text-brand-red">
-          {error}
-        </div>
+        <div className="rounded-lg bg-brand-red-light p-4 text-sm text-brand-red">{error}</div>
       )}
 
       <div className="grid grid-cols-2 gap-6">
@@ -112,7 +113,7 @@ export function OutgoingShipmentForm({
             required
             className="w-full rounded-lg border border-brand-cream-3 px-4 py-2 focus:ring-2 focus:ring-brand-red"
             value={formData.number}
-            onChange={e => setFormData({ ...formData, number: e.target.value })}
+            onChange={(e) => setFormData({ ...formData, number: e.target.value })}
           />
         </div>
         <div className="space-y-2">
@@ -120,12 +121,16 @@ export function OutgoingShipmentForm({
           <select
             className="w-full rounded-lg border border-brand-cream-3 px-4 py-2 focus:ring-2 focus:ring-brand-red"
             value={formData.locationId}
-            onChange={e => setFormData({ ...formData, locationId: e.target.value })}
+            onChange={(e) => setFormData({ ...formData, locationId: e.target.value })}
             required
           >
-            <option value="" disabled>{t('selectLocation')}</option>
-            {locations.map(l => (
-              <option key={l.id} value={l.id}>{pickLocalized(l.name, locale, l.code)}</option>
+            <option value="" disabled>
+              {t('selectLocation')}
+            </option>
+            {locations.map((l) => (
+              <option key={l.id} value={l.id}>
+                {pickLocalized(l.name, locale, l.code)}
+              </option>
             ))}
           </select>
         </div>
@@ -137,7 +142,7 @@ export function OutgoingShipmentForm({
             required
             className="w-full rounded-lg border border-brand-cream-3 px-4 py-2 focus:ring-2 focus:ring-brand-red"
             value={formData.subject}
-            onChange={e => setFormData({ ...formData, subject: e.target.value })}
+            onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
             placeholder={t('subjectPlaceholder')}
           />
         </div>
@@ -147,11 +152,13 @@ export function OutgoingShipmentForm({
           <select
             className="w-full rounded-lg border border-brand-cream-3 px-4 py-2 focus:ring-2 focus:ring-brand-red"
             value={formData.partnerId}
-            onChange={e => handlePartnerChange(e.target.value)}
+            onChange={(e) => handlePartnerChange(e.target.value)}
           >
             <option value="">{t('selectPartner')}</option>
-            {partners.map(p => (
-              <option key={p.id} value={p.id}>{p.name}</option>
+            {partners.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
             ))}
           </select>
         </div>
@@ -163,7 +170,7 @@ export function OutgoingShipmentForm({
             required
             className="w-full rounded-lg border border-brand-cream-3 px-4 py-2 focus:ring-2 focus:ring-brand-red"
             value={formData.recipientName}
-            onChange={e => setFormData({ ...formData, recipientName: e.target.value })}
+            onChange={(e) => setFormData({ ...formData, recipientName: e.target.value })}
           />
         </div>
 
@@ -173,7 +180,7 @@ export function OutgoingShipmentForm({
             type="text"
             className="w-full rounded-lg border border-brand-cream-3 px-4 py-2 focus:ring-2 focus:ring-brand-red"
             value={formData.recipientPhone}
-            onChange={e => setFormData({ ...formData, recipientPhone: e.target.value })}
+            onChange={(e) => setFormData({ ...formData, recipientPhone: e.target.value })}
           />
         </div>
 
@@ -184,7 +191,7 @@ export function OutgoingShipmentForm({
             className="w-full rounded-lg border border-brand-cream-3 px-4 py-2 focus:ring-2 focus:ring-brand-red"
             rows={3}
             value={formData.recipientAddress}
-            onChange={e => setFormData({ ...formData, recipientAddress: e.target.value })}
+            onChange={(e) => setFormData({ ...formData, recipientAddress: e.target.value })}
           />
         </div>
 
@@ -195,12 +202,14 @@ export function OutgoingShipmentForm({
               <label className="text-sm font-semibold text-brand-ink-3">{t('courierCode')}</label>
               <Select
                 value={formData.shippingCourierCode}
-                onChange={e => setFormData({ ...formData, shippingCourierCode: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, shippingCourierCode: e.target.value })}
                 className="w-full"
               >
                 <option value="">{t('selectCourier')}</option>
-                {COURIERS.map(c => (
-                  <option key={c.code} value={c.code}>{c.name}</option>
+                {COURIERS.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.name}
+                  </option>
                 ))}
               </Select>
             </div>
@@ -210,7 +219,7 @@ export function OutgoingShipmentForm({
                 type="text"
                 className="w-full rounded-lg border border-brand-cream-3 px-4 py-2 focus:ring-2 focus:ring-brand-red"
                 value={formData.shippingAwb}
-                onChange={e => setFormData({ ...formData, shippingAwb: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, shippingAwb: e.target.value })}
               />
             </div>
           </div>
@@ -218,7 +227,13 @@ export function OutgoingShipmentForm({
       </div>
 
       <div className="flex justify-end gap-3 pt-6 border-t border-brand-cream-2">
-        <Button variant="secondary" size="md" className="rounded-lg" onClick={() => router.back()} type="button">
+        <Button
+          variant="secondary"
+          size="md"
+          className="rounded-lg"
+          onClick={() => router.back()}
+          type="button"
+        >
           {t('cancel')}
         </Button>
         <Button variant="primary" size="lg" className="rounded-lg" type="submit" disabled={loading}>

@@ -8,9 +8,15 @@ export const GRNLineInputSchema = z.object({
   poLineId: z.string().min(1, 'PO line ID is required'),
   productId: z.string().min(1, 'product is required'),
   variantId: z.string().optional(),
-  qtyReceived: z.string().regex(/^\d+(\.\d{1,3})?$/, 'qty must be positive decimal').refine((v) => Number.parseFloat(v) > 0, { message: 'qty must be > 0' }),
+  qtyReceived: z
+    .string()
+    .regex(/^\d+(\.\d{1,3})?$/, 'qty must be positive decimal')
+    .refine((v) => Number.parseFloat(v) > 0, { message: 'qty must be > 0' }),
   /** Quality check: qty rejected (damaged / mismatch). Recorded only. */
-  qtyRejected: z.string().regex(/^\d+(\.\d{1,3})?$/, 'qty must be a decimal').optional(),
+  qtyRejected: z
+    .string()
+    .regex(/^\d+(\.\d{1,3})?$/, 'qty must be a decimal')
+    .optional(),
   rejectReason: z.string().max(500).optional(),
   /** Actual unit price (integer rupiah) captured at receiving. */
   unitPrice: z.string().regex(/^\d+$/, 'unit price must be a non-negative integer').optional(),

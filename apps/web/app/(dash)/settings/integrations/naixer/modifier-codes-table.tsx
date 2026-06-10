@@ -205,9 +205,7 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
                 onChange={(e) => setNewOptionId(e.target.value)}
                 className="w-full rounded border border-brand-cream-3 bg-card px-2.5 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
               >
-                <option value="">
-                  {t('selectModifierOption')}
-                </option>
+                <option value="">{t('selectModifierOption')}</option>
                 {modifierOptions.map((o) => (
                   <option key={o.id} value={o.id}>
                     {o.label}

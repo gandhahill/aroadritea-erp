@@ -11,7 +11,14 @@ import { getSession } from '@/lib/auth';
 import { type LocationOption, getActiveLocationOptions } from '@/lib/location-options';
 import { and, db, eq, isNull } from '@erp/db';
 import { roles } from '@erp/db/schema/auth';
-import { createEmployee, deactivateEmployee, updateEmployee, updateEmployeeLogin, deleteEmployee, hardDeleteEmployee } from '@erp/services/hr';
+import {
+  createEmployee,
+  deactivateEmployee,
+  deleteEmployee,
+  hardDeleteEmployee,
+  updateEmployee,
+  updateEmployeeLogin,
+} from '@erp/services/hr';
 import { getEmployee, listEmployees } from '@erp/services/hr';
 import type {
   CreateEmployeeInput,
@@ -284,7 +291,7 @@ export async function updateEmployeeLoginAction(
 
   const employeeId = text(formData, 'employeeId');
   const roleCode = optionalText(formData, 'roleCode');
-  
+
   const input: UpdateEmployeeLoginInput = {
     employeeId,
     roleCode,
