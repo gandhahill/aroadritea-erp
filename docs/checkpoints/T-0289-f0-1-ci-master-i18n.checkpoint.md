@@ -2,7 +2,7 @@
 
 - **Owner**: Codex
 - **Started**: 2026-06-10 19:51 WIB
-- **Last updated**: 2026-06-10 21:25 WIB
+- **Last updated**: 2026-06-10 21:32 WIB
 - **Status**: IN_PROGRESS
 - **Phase**: F0
 - **Branch**: master
@@ -49,6 +49,7 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 11. [ ] Patch remaining likely typecheck/test drift from partially committed T-0290 tax/reporting files.
 12. [ ] Split CI typecheck steps for package-level observability because GitHub log download is unavailable.
 13. [ ] Remove `tsx` dependency from permission lint script.
+14. [ ] Add missing Node type declarations for `@erp/shared`.
 
 ## Done so far
 
@@ -77,6 +78,8 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 - Split CI typecheck into `Permission lint` plus one step per workspace package so the GitHub Jobs API can identify the failing package without requiring admin log download.
 - Run `27282549593` showed the specific failure is `Permission lint`.
 - Replaced `scripts/check-permissions.ts` with native Node `scripts/check-permissions.mjs` and updated `package.json` so CI no longer depends on `tsx`/esbuild for this guardrail.
+- Run `27282936886` passed permission lint and failed at `Typecheck shared`.
+- GitHub check annotations showed `@erp/shared` could not resolve Node globals/modules (`Buffer`, `process`, `node:crypto`), so `@types/node` must be declared in `packages/shared/package.json` instead of relying on root/dev hoisting.
 - Made `scripts/check-i18n.mjs` resolve `apps/web` from `import.meta.url`, so it works from repo root and from `scripts/`.
 - Made missing i18n references and locale parity gaps set non-zero exit code.
 - Added missing `purchasing.grn.workflowTitle`, `workflowHint`, `submitPo`, and `approvePo` keys in EN/ID/ZH, because the strengthened checker exposed pre-existing unresolved references.
@@ -97,7 +100,7 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 
 ## Next step
 
-Commit and push the native Node permission checker, then poll the latest `master` GitHub Actions run. Use the next failed step name to fix the specific package or close T-0289 if CI is green.
+Commit and push the `@erp/shared` Node type dependency fix, then poll the latest `master` GitHub Actions run. Use the next failed step name to fix the specific package or close T-0289 if CI is green.
 
 ## Test status
 
@@ -123,6 +126,8 @@ Commit and push the native Node permission checker, then poll the latest `master
   - `pnpm lint:permissions`: native Node checker loaded 130 valid permissions and found no mismatches.
 - **Scoped Biome for permission checker**: PASS
   - `node .\node_modules\@biomejs\biome\bin\biome check package.json scripts\check-permissions.mjs --diagnostic-level=error --max-diagnostics=100`
+- **Shared typecheck**: PASS
+  - `pnpm --filter @erp/shared typecheck`
 - **CI**: triggered, first run failed before checks
   - Run `27278419354`: triggered on `master`, failed at `Setup pnpm`; build job skipped.
   - Run `27278815492`: triggered on `master`, failed at `Lint (Biome)` after install; typecheck/test/i18n/build skipped.
@@ -130,6 +135,7 @@ Commit and push the native Node permission checker, then poll the latest `master
   - Run `27281389612`: triggered on `master`, lint passed, failed at `Typecheck`; test/i18n/build skipped. Additional likely cause: strict TS drift in `efaktur.ts`.
   - Run `27281805583`: triggered on `master`, lint passed, failed at monolithic `Typecheck`; test/i18n/build skipped.
   - Run `27282549593`: triggered on `master`, lint passed, failed at `Permission lint`; all package typecheck steps skipped.
+  - Run `27282936886`: triggered on `master`, lint and permission lint passed, failed at `Typecheck shared`.
   - Job logs cannot be downloaded through unauthenticated API: GitHub returned 403 requiring admin rights.
 
 ## Files Touched
@@ -159,6 +165,8 @@ Commit and push the native Node permission checker, then poll the latest `master
 | `scripts/check-permissions.mjs` | add | Native Node permission checker; no `tsx`/esbuild runtime needed |
 | `scripts/check-permissions.ts` | delete | Replaced by `.mjs` equivalent |
 | `package.json` | edit | `lint:permissions` now runs `node scripts/check-permissions.mjs` |
+| `packages/shared/package.json` | edit | Add direct `@types/node` devDependency for Node APIs used by shared package |
+| `pnpm-lock.yaml` | edit | Lockfile update for shared `@types/node` devDependency |
 | Many tracked TS/TSX/JSON files | edit | Safe Biome formatter/import-sorter cleanup, no unsafe fixes |
 
 ## Commits So Far
@@ -171,3 +179,4 @@ Commit and push the native Node permission checker, then poll the latest `master
 | `dfd2785` | `fix: include financial statement notes service` | 2026-06-10 |
 | `987fd17` | `fix: align tax export typecheck fixtures` | 2026-06-10 |
 | `1985b60` | `ci: split typecheck steps by package` | 2026-06-10 |
+| `913d98f` | `ci: run permission lint without tsx` | 2026-06-10 |
