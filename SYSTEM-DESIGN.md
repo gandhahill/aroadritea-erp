@@ -126,6 +126,7 @@ Setiap kali AI hendak menambah dependency baru, fitur baru, atau optimisasi yang
 | P14 | **Tidak ada hardcode role check** | `if (user.role === 'admin')` **dilarang**. Pakai `if (await user.can('action:resource'))`. |
 | P15 | **Migrasi versionable** | Setiap perubahan skema lewat file migrasi (Drizzle). Tidak ada `db.execute(ALTER TABLE)` ad-hoc. |
 | P16 | **Lean dependencies** | Tambah library hanya jika tidak ada implementasi internal yang cukup dalam ≤ 100 baris. |
+| P17 | **Odoo-like configurability, FnB-first** | Setiap modul baru harus memakai kontrak platform untuk custom field, workflow, numbering, import/export, timeline, permission, dan MCP/API parity; domain default tetap FnB Aroadri, bukan marketplace modul generik. |
 
 ---
 
@@ -4180,6 +4181,9 @@ Format: `T-NNNN` (4 digit, pad zero), di-increment global. Sumber:  baris terakh
 
 Target sistem adalah fleksibel untuk operasional Aroadri Tea tanpa harus mengubah source code setiap ada perubahan bisnis. Aturan implementasi:
 
+- Benchmark kapabilitas adalah ERP selengkap dan sefleksibel Odoo, tetapi domain pack bawaan harus tetap FnB Indonesia: outlet, POS offline, menu/modifier, BOM/resep, kitchen/KDS, stok bahan, delivery settlement, PB1/PBJT, absensi shift, payroll, dan kontrol toko.
+- Fleksibilitas utama harus lewat platform services yang dapat diaudit: entity registry, custom fields, workflow/approval gate, document numbering, document timeline, attachments/comments, import/export mapping, saved views, scheduled reports, automation/notification rules, permission/location scope, dan MCP/API parity.
+- Jangan menambahkan runtime plugin berat atau user-supplied scripting. Bila sebuah perubahan proses menyentuh uang, pajak, stok, permission, relasi formal, atau immutable document lifecycle, naikkan menjadi schema + service resmi dengan migrasi dan test.
 - Konfigurasi bisnis yang berubah rutin harus disimpan di database dan dikelola lewat admin UI/seed: pajak, COA, scheduled jobs, workflow, custom field, CMS, lokasi, katalog, role, permission, dan mapping integrasi.
 - Environment variable hanya untuk secret, URL deployment, provider eksternal, dan default bootstrap yang jarang berubah.
 - Source code hanya boleh memuat default aman untuk development dan kontrak validasi. Nilai production harus bisa dioverride.
@@ -4202,6 +4206,7 @@ Contoh yang sudah menjadi konfigurasi UI/DB: POS mengambil kode pajak PB1, akun 
 | 1.8 | 2026-05-13 | Codex | Tambah §38 dan `docs/CONFIGURATION.md`: kebijakan konfigurasi production/kustomisasi tanpa edit source, env wajib, POS posting, pajak, Turnstile, dan OTP email |
 | 1.9 | 2026-05-13 | Codex | Email otomatis diputuskan memakai SMTP mailbox HestiaCP (`SMTP_*`) sesuai ADR-0011 |
 | 2.0 | 2026-05-14 | Codex | Deployment VPS production dialihkan dari Docker Compose ke PM2 + HestiaCP sesuai ADR-0012 |
+| 2.1 | 2026-06-10 | Codex | Tegaskan target Odoo-like configurability yang tetap FnB-first, dengan fleksibilitas lewat konfigurasi database dan platform services ringan |
 
 ---
 

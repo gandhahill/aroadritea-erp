@@ -70,6 +70,7 @@ Opsi lain yang dievaluasi + alasan ditolak.
 | [0015](0015-native-packaging-silent-printing.md) | Native Packaging (Tauri 2) + Silent Printing ESC/POS | Proposed | 2026-06-10 | Shell Tauri 2 (Android+Windows) bungkus POS; builder ESC/POS + adapter transport BT/USB; konfig printer di DB |
 | [0016](0016-sak-ep-and-tax-compliance-baseline.md) | SAK EP and Tax Compliance Baseline | Accepted | 2026-06-10 | SAK EP menggantikan ETAP, CALK wajib, PPh Final UMKM dipisah dari PPh 25, PPN efektif 11% dijelaskan |
 | [0017](0017-public-rest-api-scalar.md) | Public REST API (`/api/v1`) + Scalar Docs | Accepted | 2026-06-10 | REST publik di `apps/mcp` (Hono), auth `api_tokens` + permission engine, rate limit per token, spec OpenAPI 3.1 di kode, Scalar UI via CDN (hindari peer zod v3) |
+| [0018](0018-odoo-like-fnb-erp-platform.md) | Odoo-Like FnB ERP Platform | Accepted | 2026-06-10 | Target fitur dan fleksibilitas setara Odoo, tetap FnB-first; extensibility lewat platform services DB-driven yang ringan dan diaudit |
 
 > Tabel di atas wajib diperbarui setiap kali ADR baru dibuat atau status berubah. Index ini di-render di `CLAUDE.md` sebagai daftar pengingat.
 

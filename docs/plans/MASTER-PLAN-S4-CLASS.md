@@ -1,10 +1,10 @@
-# Master plan: ERP kelas S/4HANA + pelunasan bug fungsional & keamanan
+# Master plan: ERP Odoo-like FnB + kontrol kelas S/4HANA
 
 - **Dibuat**: 2026-06-10 (T-0286)
 - **Pemilik**: Lintang Maulana Zulfan
 - **Status**: AKTIF. Semua agen AI yang bekerja di repo ini wajib mengikuti dokumen ini sampai dicabut.
 - **Kedudukan**: dokumen ini adalah rencana eksekusi. Bila bertentangan dengan `SOURCE-OF-TRUTH.md` (bisnis) atau `SYSTEM-DESIGN.md` (teknis), dua dokumen itu menang. `TASK.md` tetap satu-satunya register task; plan ini memasok isi backlog-nya.
-- **Dasar**: audit kelengkapan fitur `docs/audit/erp-feature-completeness-2026-06-09.md` (T-0283), fondasi approval-gate (T-0284/T-0285), temuan pentest (T-0281), backlog audit 2026-05-29 (T-0211..T-0263, semua selesai).
+- **Dasar**: audit kelengkapan fitur `docs/audit/erp-feature-completeness-2026-06-09.md` (T-0283), ADR-0018 (Odoo-like FnB ERP Platform), fondasi approval-gate (T-0284/T-0285), temuan pentest (T-0281), backlog audit 2026-05-29 (T-0211..T-0263, semua selesai).
 
 ---
 
@@ -80,13 +80,26 @@ Setelah F0.5, satu perintah saja: `pnpm verify`.
 
 ---
 
-## 2. Sasaran: arti "kelas S/4HANA" untuk repo ini
+## 2. Sasaran: arti "Odoo-like FnB + kontrol S/4" untuk repo ini
 
-SAP S/4HANA adalah produk puluhan tahun dengan ribuan modul. Menjiplaknya mentah-mentah di VPS 1 vCPU / 2 GB untuk satu PT dengan beberapa outlet itu mustahil sekaligus tidak berguna. Yang kita kejar adalah **kapabilitas kelasnya**, bukan luas permukaannya: konsep inti yang membuat S/4HANA lengkap dan lentur, diterapkan pada skala FnB Indonesia. Arah produk tetap yang ditetapkan T-0283: platform selentur Odoo dengan paket domain FnB, kini ditarget naik ke standar kontrol dan fleksibilitas S/4.
+Odoo adalah benchmark kelengkapan modul dan fleksibilitas konfigurasi; SAP S/4HANA adalah benchmark kontrol finansial, governance, dan traceability. Menjiplak keduanya mentah-mentah di VPS 1 vCPU / 2 GB untuk satu PT dengan beberapa outlet itu mustahil sekaligus tidak berguna. Yang kita kejar adalah **kapabilitas kelasnya**: platform selentur Odoo dengan paket domain FnB Aroadri, ditambah standar kontrol dan audit yang cukup kuat untuk akuntansi, pajak, stok, HR, dan operasi multi-outlet.
 
-### 2.1 Sepuluh pilar kapabilitas
+Keputusan lintas-modulnya ada di ADR-0018. Setiap kartu fase berikutnya harus memperkuat salah satu dari dua hal: (1) fitur fungsional FnB yang lengkap end-to-end, atau (2) kemampuan konfigurasi lintas-modul yang membuat proses baru bisa ditangani tanpa edit source code.
 
-| # | Konsep S/4HANA | Wujud di ERP ini | Status 2026-06-10 | Fase |
+### 2.1 Pilar Odoo-like FnB
+
+| # | Pilar | Wujud di ERP ini | Fase |
+|---|---|---|---|
+| 1 | Kelengkapan lifecycle dokumen | Draft, submit, approve, post/receive/pay, cancel/reverse, print/export, attachment, timeline, audit | F3, F4 |
+| 2 | Key-user configuration | Custom fields, workflow, numbering, templates, saved views, scheduled reports, policy/effective date | F4, F5 |
+| 3 | FnB operating pack | POS offline, menu/modifier, BOM/resep, kitchen/KDS, stock waste/opname/reorder, delivery settlement, PB1/PBJT, shift/payroll | F3, F7, F5 |
+| 4 | Role workspaces | Kasir, store manager, purchasing, akuntan, HR, direktur punya queue dan KPI yang berbeda | F5 |
+| 5 | Import/export/report builder | Import wizard dry-run, mapping template, XLSX/PDF export, saved report view, scheduled report | F4, F5 |
+| 6 | Automation & integration parity | MCP/API parity, audit parity, idempotency, notification/automation rule, third-party docs | F6, F8 |
+
+### 2.2 Sepuluh pilar kontrol enterprise
+
+| # | Konsep Odoo/S/4HANA | Wujud di ERP ini | Status 2026-06-10 | Fase |
 |---|---|---|---|---|
 | 1 | Universal Journal (ACDOCA): satu sumber kebenaran finansial berdimensi | `journal_lines` + dimensi location, ditambah cost center & profit center, semua laporan turun dari ledger yang sama | Ledger tunggal ada; dimensi CO belum | F5 |
 | 2 | Prinsip dokumen (Beleg): dokumen posted immutable, koreksi lewat reversal | Sudah berlaku di jurnal; perlu ditegakkan di semua dokumen transaksional | Sebagian | F3, F4 |
@@ -99,7 +112,7 @@ SAP S/4HANA adalah produk puluhan tahun dengan ribuan modul. Menjiplaknya mentah
 | 9 | Master Data Governance: deteksi duplikat, merge, riwayat perubahan master | Belum ada | Belum | F5 |
 | 10 | BAPI/OData parity: semua aksi UI tersedia sebagai API/MCP dengan permission sama | MCP luas tetapi belum paritas penuh | Sebagian | F6 |
 
-### 2.2 Di luar lingkup (DILARANG dibangun, siapa pun yang menyuruh)
+### 2.3 Di luar lingkup (DILARANG dibangun, siapa pun yang menyuruh)
 
 Eksekutor yang menemukan task menjurus ke daftar ini wajib BLOCKED dan bertanya:
 

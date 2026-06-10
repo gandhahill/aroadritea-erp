@@ -1,7 +1,8 @@
-# Kartu Fase 5 — kapabilitas kelas-S/4 (siap eksekusi)
+# Kartu Fase 5 — kapabilitas enterprise untuk Odoo-like FnB ERP (siap eksekusi)
 
 > Bagian dari `docs/plans/MASTER-PLAN-S4-CLASS.md` §9. Baca §1 (kontrak) dulu. Dipecah Perencana 2026-06-10 (T-0287); kartu ini menang atas ringkasan master plan.
 > Fakta dasar: `journal_lines` saat ini berkolom id, journalEntryId, lineNo, accountId, locationId, description, debit, credit, taxCode, partnerId, dueDate, reminderDaysBefore, reminderSentAt, expectedLossRateBps. BELUM ada dimensi cost center. Migrasi drizzle terakhir: `0042`. Sidebar: `apps/web/app/(dash)/sidebar.tsx` + `apps/web/lib/nav-access.ts` (NAV_ACCESS = sumber kebenaran route→permission).
+> Fase ini melengkapi target ADR-0018: breadth/flexibility ala Odoo tetap harus dibarengi kontrol finansial, governance, drilldown, MDG, config versioning, dan role workspace.
 
 ---
 

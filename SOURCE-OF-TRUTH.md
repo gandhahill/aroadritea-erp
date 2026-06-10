@@ -855,7 +855,32 @@ User mensyaratkan **keamanan setingkat militer** (non-2FA) dengan komponen berik
   - **Custom field engine** (definisi field via UI → tersimpan di tabel `entity_extension`)
   - **Permission matrix database-driven** (bukan hardcoded role middleware)
   - **Workflow / approval rules database-driven**
-  - Plugin system / module toggle per tenant
+  - Module toggle / configuration pack per tenant atau lokasi (bukan runtime plugin berat)
+
+### 18.7 Arah Produk: Selengkap dan Sefleksibel Odoo, Spesifik FnB
+
+Target produk bukan menyalin Odoo mentah-mentah, tetapi mencapai **kedalaman fitur dan fleksibilitas konfigurasi setara Odoo** dengan paket proses yang fokus pada perusahaan FnB Indonesia. Sistem harus bisa menampung use case baru, variasi proses, dan perubahan kebijakan bisnis yang belum bisa diprediksi sekarang, sejauh perubahan itu wajar ditangani lewat konfigurasi ERP.
+
+ERP Aroadri Tea memiliki dua lapisan:
+
+1. **Lapisan platform ERP generik**
+   - Entity registry dan metadata entitas.
+   - Custom fields pada semua entitas yang layak diperluas.
+   - Workflow/approval engine lintas proses.
+   - Document numbering, template dokumen, komentar, lampiran, timeline, dan audit history.
+   - Import/export mapping, saved views, scheduled reports, automation/rules, notifikasi, RBAC, location scope, MCP/API parity.
+2. **Lapisan operasional FnB**
+   - POS multi-outlet offline-first, refund/void/discount control, shift open/close.
+   - Menu, varian, modifier, resep/BOM, auto-deduct bahan, waste, opname, reorder, transfer, expiry/lot readiness.
+   - Kitchen/KDS/Naixer QR, production queue, customer display, handover shift.
+   - Delivery channel settlement/commission, PB1/PBJT inclusive, pajak Indonesia, payroll berbasis absensi/shift.
+   - Work queue per peran: kasir, store manager, purchasing, accountant, HR, direktur.
+
+Kelengkapan modul dinilai per lifecycle, bukan jumlah halaman. Setiap entitas transaksi penting harus memiliki create/search/filter, detail, edit/amend, submit/approve/post, cancel/reverse bila relevan, print/export, attachment evidence, audit trail, status history/timeline, permission, dan MCP/API action yang setara.
+
+Perubahan proses bisnis di masa depan harus diprioritaskan lewat konfigurasi database: custom fields, workflow, policy/rule, numbering, template, import mapping, saved view, scheduled report, permission, dan konfigurasi per lokasi/effective date. Bila perubahan menyentuh akuntansi, pajak, stok, keamanan, relasi data formal, atau aturan yang wajib diaudit ketat, maka perubahan harus naik menjadi schema/service resmi, bukan hanya custom field.
+
+Batasan tetap berlaku: jangan membangun runtime plugin berat, scripting user-code ala ABAP/Python, atau modul enterprise luas yang tidak relevan dengan FnB Aroadri. Fleksibilitas dicapai lewat konfigurasi yang ringan, teruji, diaudit, dan sesuai constraint VPS 2 GB.
 
 ---
 

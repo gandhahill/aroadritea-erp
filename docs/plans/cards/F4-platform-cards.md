@@ -1,7 +1,8 @@
-# Kartu Fase 4 — fondasi platform extensibility (siap eksekusi)
+# Kartu Fase 4 — fondasi platform Odoo-like extensibility (siap eksekusi)
 
 > Bagian dari `docs/plans/MASTER-PLAN-S4-CLASS.md` §8. Baca §1 (kontrak) dulu. Dipecah Perencana 2026-06-10 (T-0287); kartu ini menang atas ringkasan master plan.
 > Fakta dasar dari inventaris: custom field engine lengkap di `packages/services/src/customfield/index.ts` + schema `customfield.ts` TETAPI belum dirender di form entitas mana pun (hanya halaman Settings). `runApprovalGate` (`packages/services/src/workflow/index.ts:224`) baru dipanggil `accounting/post-journal.ts`. Tidak ada halaman inbox `/approvals`. Numbering sudah ada per-dokumen di `packages/services/src/shared/number-generator.ts` + tabel `sequences` (schema `common.ts`), formatnya hardcode. Direct-DB import di apps/web: 88 file.
+> ADR-0018 menetapkan target Odoo-like FnB ERP Platform: fleksibilitas harus lewat platform services ringan, DB-driven, permission-aware, audited, dan bukan runtime plugin berat.
 
 ---
 
