@@ -65,3 +65,4 @@ Tidak ada — selesai.
 | SHA | Message | Date |
 |-----|---------|------|
 | ddb79b4 | feat(T-0296,T-0297): POS save-as-draft + uom conversions management UI | 2026-06-11 |
+| 427c64c | fix(T-0297): use shared uom dropdown for conversion form to prevent mismatches | 2026-06-11 |
