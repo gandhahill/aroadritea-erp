@@ -76,7 +76,7 @@ Tidak ada — selesai. Commit + push setelah checkpoint ini disimpan.
 
 | SHA | Message | Date |
 |-----|---------|------|
-| _(pending — committing now)_ | | |
+| 7cc689a | feat(T-0298): MCP tools for uom_conversions CRUD | 2026-06-11 |
 
 ## Handoff Notes
 
