@@ -1,6 +1,7 @@
 'use client';
 
-import { Input, SearchableSelect, TableCell, TableHead } from '@erp/ui';
+import { PRODUCT_UOM_OPTIONS } from '@erp/shared/types';
+import { Input, SearchableSelect, Select, TableCell, TableHead } from '@erp/ui';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -14,6 +15,14 @@ function localized(name: unknown, locale: string): string {
   const record = name as Record<string, string> | null | undefined;
   if (!record) return '';
   return record[locale] ?? record.id ?? record.en ?? record.zh ?? '';
+}
+
+/** Same uom dropdown as the product form — plus the current value if it's a legacy unit not in that list. */
+function uomSelectOptions(current: string): readonly string[] {
+  if (current && !(PRODUCT_UOM_OPTIONS as readonly string[]).includes(current)) {
+    return [current, ...PRODUCT_UOM_OPTIONS];
+  }
+  return PRODUCT_UOM_OPTIONS;
 }
 
 export function UomConversionsClient({ data }: { data: UomConversionsPageData }) {
@@ -129,23 +138,29 @@ export function UomConversionsClient({ data }: { data: UomConversionsPageData })
           </label>
           <label className="space-y-1.5">
             <span className="text-sm font-medium text-brand-ink">{t('fromUom')}</span>
-            <Input
-              value={fromUom}
-              onChange={(e) => setFromUom(e.target.value)}
-              required
-              maxLength={32}
-              placeholder={t('fromUomPlaceholder')}
-            />
+            <Select value={fromUom} onChange={(e) => setFromUom(e.target.value)} required>
+              <option value="" disabled>
+                {tCommon('actions.select')}
+              </option>
+              {uomSelectOptions(fromUom).map((uom) => (
+                <option key={uom} value={uom}>
+                  {uom}
+                </option>
+              ))}
+            </Select>
           </label>
           <label className="space-y-1.5">
             <span className="text-sm font-medium text-brand-ink">{t('toUom')}</span>
-            <Input
-              value={toUom}
-              onChange={(e) => setToUom(e.target.value)}
-              required
-              maxLength={32}
-              placeholder={t('toUomPlaceholder')}
-            />
+            <Select value={toUom} onChange={(e) => setToUom(e.target.value)} required>
+              <option value="" disabled>
+                {tCommon('actions.select')}
+              </option>
+              {uomSelectOptions(toUom).map((uom) => (
+                <option key={uom} value={uom}>
+                  {uom}
+                </option>
+              ))}
+            </Select>
           </label>
           <label className="space-y-1.5">
             <span className="text-sm font-medium text-brand-ink">{t('multiplyBy')}</span>

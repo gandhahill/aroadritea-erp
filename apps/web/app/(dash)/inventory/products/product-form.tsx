@@ -1,6 +1,7 @@
 'use client';
 
 import { FileUploadField } from '@/components/file-upload-field';
+import { PRODUCT_UOM_OPTIONS } from '@erp/shared/types';
 import { Button, Input, Select } from '@erp/ui';
 import { useLocale } from 'next-intl';
 import { useTranslations } from 'next-intl';
@@ -113,7 +114,10 @@ export function ProductForm({ mode, categories, product, defaultKind, locations 
           </Field>
           <Field label={f('uom')} required>
             <Select name="uom" required defaultValue={product?.uom ?? 'pcs'}>
-              {['pcs', 'cup', 'botol', 'ml', 'liter', 'gram', 'kg', 'pack', 'box'].map((uom) => (
+              {(product?.uom && !(PRODUCT_UOM_OPTIONS as readonly string[]).includes(product.uom)
+                ? [product.uom, ...PRODUCT_UOM_OPTIONS]
+                : PRODUCT_UOM_OPTIONS
+              ).map((uom) => (
                 <option key={uom} value={uom}>
                   {uom}
                 </option>

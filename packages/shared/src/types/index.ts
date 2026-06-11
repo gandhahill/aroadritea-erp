@@ -66,6 +66,24 @@ export type ProductKind =
   | 'merchandise'
   | 'consumable'
   | 'service';
+
+/**
+ * Canonical unit-of-measure options offered when creating/editing a product
+ * and when registering a uom_conversions row — keeping one shared list
+ * avoids free-text mismatches (e.g. "Pack" vs "pak" vs "pck").
+ */
+export const PRODUCT_UOM_OPTIONS = [
+  'pcs',
+  'cup',
+  'botol',
+  'ml',
+  'liter',
+  'gram',
+  'kg',
+  'pack',
+  'box',
+] as const;
+export type ProductUom = (typeof PRODUCT_UOM_OPTIONS)[number];
 export type TaxCalculation = 'inclusive' | 'exclusive';
 export type NormalBalance = 'debit' | 'credit';
 export type AccountType = 'asset' | 'liability' | 'equity' | 'income' | 'cogs' | 'expense';

@@ -2,7 +2,7 @@
 
 - **Owner**: claude-fable-5
 - **Started**: 2026-06-11 12:41 WIB
-- **Last updated**: 2026-06-11 17:15 WIB
+- **Last updated**: 2026-06-11 18:25 WIB
 - **Status**: 🟩 DONE
 - **Phase**: F3
 - **Branch**: master
@@ -40,11 +40,21 @@ Halaman `/inventory/uom-conversions` untuk mengelola tabel `uom_conversions` (gl
 
 ## Open issues / Follow-up
 
-- MCP tool untuk uom_conversions belum dibuat (CLAUDE.md §6) — kandidat backlog kecil.
+- ~~MCP tool untuk uom_conversions belum dibuat (CLAUDE.md §6)~~ — selesai via T-0298 (`7cc689a`).
+
+## Revisi 2026-06-11 (lanjutan)
+
+Permintaan user: field satuan asal/tujuan di form konversi adalah `<Input>` teks bebas — rawan mismatch ("Pack" vs "pak" vs "pck") terhadap `uom` produk. Revisi: jadikan dropdown yang sama dengan dropdown `uom` di form tambah/edit bahan (`/inventory/products`).
+
+- **Konstanta bersama baru** `PRODUCT_UOM_OPTIONS` di `packages/shared/src/types/index.ts` (`pcs, cup, botol, ml, liter, gram, kg, pack, box`), tipe `ProductUom`, di-export via `@erp/shared/types`.
+- `apps/web/app/(dash)/inventory/products/product-form.tsx`: dropdown `uom` sekarang memakai `PRODUCT_UOM_OPTIONS` (sebelumnya array hardcode inline). Jika nilai produk eksisting tidak ada di daftar (unit lama/legacy), nilai itu di-prepend sebagai opsi tambahan agar tidak hilang saat edit.
+- `apps/web/app/(dash)/inventory/uom-conversions/uom-conversions-client.tsx`: field `fromUom`/`toUom` diganti dari `<Input>` menjadi `<Select>` dengan opsi dari helper `uomSelectOptions()` (sama logic legacy-value seperti di atas), placeholder pakai `common.actions.select` yang sudah ada.
+- i18n: hapus key `fromUomPlaceholder`/`toUomPlaceholder` (sudah tidak terpakai) dari `en.json`, `id.json`, `zh.json`.
+- Verifikasi: `pnpm --filter @erp/shared typecheck` PASS, `pnpm --filter @erp/web typecheck` PASS, `biome check` pada file yang disentuh PASS, `node scripts/check-i18n.mjs` PASS (4729 keys ×3, turun 2 dari penghapusan placeholder key). Tanpa migrasi DB.
 
 ## Next step
 
-Tidak ada — selesai; ikut deploy bersama T-0296.
+Tidak ada — selesai.
 
 ## Test status
 
