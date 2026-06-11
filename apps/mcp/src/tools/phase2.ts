@@ -8,7 +8,7 @@ import type { PermissionCode } from '@erp/shared/types';
 import { can } from '@erp/services/iam';
 import { z } from 'zod';
 import type { McpContext } from '../context';
-import { mcpError, mcpSuccess, serializeResult } from '../helpers';
+import { mcpError, mcpSuccess, requireConfirmation, serializeResult } from '../helpers';
 
 // --- Inventory ---
 
@@ -56,6 +56,29 @@ export const InventoryUpsertCategorySchema = z.object({
 
 export const InventoryDeleteCategorySchema = z.object({
   id: z.string().min(1),
+});
+
+export const InventoryListUomConversionsSchema = z.object({});
+
+export const InventoryUpsertUomConversionSchema = z.object({
+  conversion_id: z.string().min(1).optional(),
+  /** Omit (or null) for a global conversion; set to scope it to one product. */
+  product_id: z.string().min(1).nullable().optional(),
+  from_uom: z.string().min(1).max(32),
+  to_uom: z.string().min(1).max(32),
+  /** from_uom × multiply_by = to_uom; positive decimal string (e.g. "25", "0.001"). */
+  multiply_by: z
+    .string()
+    .regex(/^\d+(\.\d+)?$/, 'multiply_by must be a positive decimal string'),
+});
+
+export const InventoryDeleteUomConversionSchema = z.object({
+  id: z.string().min(1),
+  /**
+   * Must equal `id` (the conversion being deleted). This is a hard delete —
+   * see helpers.requireConfirmation.
+   */
+  confirm: z.string().min(1),
 });
 
 export const inventoryTools = [
@@ -142,6 +165,70 @@ export const inventoryTools = [
           locationId: ctx.locationId ?? '',
         },
       );
+      return serializeResult(result);
+    },
+  },
+  {
+    name: 'inventory.list_uom_conversions',
+    description:
+      'List unit-of-measure conversions (global and per-product). These are the only way GRN, opname, and consumption documents can accept quantities in a unit other than the product master uom.',
+    schema: InventoryListUomConversionsSchema,
+    handler: async (_input: unknown, ctx: McpContext) => {
+      const { listUomConversions } = await import('@erp/services/inventory');
+      const result = await listUomConversions({
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        locationId: ctx.locationId ?? '',
+      });
+      return serializeResult(result);
+    },
+  },
+  {
+    name: 'inventory.upsert_uom_conversion',
+    description:
+      'Create or update a unit-of-measure conversion. from_uom × multiply_by = to_uom. Omit product_id (or pass null) for a global conversion, or set it to scope to one product. Rejects from_uom == to_uom and duplicate pairs (either direction) within the same scope.',
+    schema: InventoryUpsertUomConversionSchema,
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = InventoryUpsertUomConversionSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+
+      const data = parsed.data;
+      const { upsertUomConversion } = await import('@erp/services/inventory');
+      const result = await upsertUomConversion(
+        {
+          conversionId: data.conversion_id,
+          productId: data.product_id,
+          fromUom: data.from_uom,
+          toUom: data.to_uom,
+          multiplyBy: data.multiply_by,
+        },
+        {
+          userId: ctx.userId,
+          tenantId: ctx.tenantId,
+          locationId: ctx.locationId ?? '',
+        },
+      );
+      return serializeResult(result);
+    },
+  },
+  {
+    name: 'inventory.delete_uom_conversion',
+    description:
+      'Permanently delete a unit-of-measure conversion (hard delete; the prior values are preserved in audit_log). Requires confirm equal to id.',
+    schema: InventoryDeleteUomConversionSchema,
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = InventoryDeleteUomConversionSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+
+      const guard = requireConfirmation(parsed.data.id, parsed.data.confirm);
+      if ('error' in guard) return guard.error;
+
+      const { deleteUomConversion } = await import('@erp/services/inventory');
+      const result = await deleteUomConversion(parsed.data.id, {
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        locationId: ctx.locationId ?? '',
+      });
       return serializeResult(result);
     },
   },
