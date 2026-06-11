@@ -159,6 +159,8 @@
 
 | ID | Title | Owner | Completed | Commit | Note |
 |----|-------|-------|-----------|--------|------|
+| T-0296 | POS drafts: save-as-draft + auto-delete on post (manual sales & consumed ingredients) | Claude Fable 5 | 2026-06-11 | `this commit` | Tabel baru `pos_drafts` (migrasi 0043) + service drafts (pos.transact, audit) + `DraftsPanel` bersama di `/pos/manual-sales` dan `/consumed`. Draft tersimpan server-side; posting sukses menghapus draft yang dimuat. Tests 665/665 PASS, typecheck/lint/i18n parity clean. Checkpoint: `docs/checkpoints/T-0296-pos-drafts.checkpoint.md`. |
+| T-0297 | UOM conversions management UI (/inventory/uom-conversions) | Claude Fable 5 | 2026-06-11 | `this commit` | Service CRUD `uom_conversions` (global & per-produk, tolak duplikat dua arah, hard delete + audit) + halaman baru gate `inventory.product` + sidebar/nav-access + i18n ×3. Bonus: `convertQty` kini menormalkan satuan & memfilter `deleted_at`. Tanpa migrasi. Checkpoint: `docs/checkpoints/T-0297-uom-conversions-ui.checkpoint.md`. |
 | T-0050 | Schema products, product_variants, product_modifiers, categories | Antigravity | 2026-05-09 | verified | typecheck clean |
 | T-0051 | Schema stock_locations, stock_movements, stock_levels | Antigravity | 2026-05-09 | included in T-0050 | |
 | T-0052 | Schema BOM + bom_lines + bom_substitutes | Antigravity | 2026-05-09 | included in T-0050 | |

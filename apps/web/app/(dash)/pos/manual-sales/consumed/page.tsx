@@ -1,6 +1,7 @@
 import { getSession } from '@/lib/auth';
 import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
+import { fetchPosDraftsAction } from '../draft-actions';
 import { fetchConsumedIngredientsData } from './actions';
 import { ConsumedClient } from './client';
 
@@ -21,8 +22,11 @@ export default async function ConsumedIngredientsPage({
   const params = await searchParams;
   const page = Number.parseInt(params.page ?? '1', 10);
   const pageSize = Number.parseInt(params.pageSize ?? '10', 10);
-  const data = await fetchConsumedIngredientsData(page, pageSize);
+  const [data, drafts] = await Promise.all([
+    fetchConsumedIngredientsData(page, pageSize),
+    fetchPosDraftsAction('consumed_ingredients'),
+  ]);
   const defaultLocationId = user.locationId || data.locations[0]?.id || '';
 
-  return <ConsumedClient data={data} defaultLocationId={defaultLocationId} />;
+  return <ConsumedClient data={data} defaultLocationId={defaultLocationId} drafts={drafts} />;
 }

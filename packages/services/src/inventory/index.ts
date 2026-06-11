@@ -121,6 +121,7 @@ export {
   type ExpiringStockItem,
 } from './stock-alert-service';
 export * from './uom-service';
+export * from './uom-conversion-service';
 export * from './ledger-service';
 export * from './stock-depletion-service';
 export * from './production-service';

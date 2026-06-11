@@ -25,14 +25,16 @@ import {
   fetchManualSaleDetailAction,
   updateManualSalesAction,
 } from './actions';
+import { DraftsPanel, type PosDraftItem } from './drafts-panel';
 import { ExportManualSalesButton } from './export-manual-sales-button';
 
 interface Props {
   data: ManualSalesPageData;
   defaultLocationId: string;
+  drafts: PosDraftItem[];
 }
 
-export function ManualSalesClient({ data, defaultLocationId }: Props) {
+export function ManualSalesClient({ data, defaultLocationId, drafts }: Props) {
   const t = useTranslations('pos.manualSales');
   const pagination = useTranslations('common.pagination');
   const [editId, setEditId] = useState<string | null>(null);
@@ -82,6 +84,8 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
   const [detailData, setDetailData] = useState<any>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [deductBom, setDeductBom] = useState(true);
+  const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
+  const [formEpoch, setFormEpoch] = useState(0);
   const [historyDateFrom, setHistoryDateFrom] = useState('');
   const [historyDateTo, setHistoryDateTo] = useState('');
   const [historyLocationFilter, setHistoryLocationFilter] = useState('');
@@ -117,8 +121,83 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
       setEditData(null);
       setEditLocationId(defaultLocationId);
       setEditSalesDate(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' }));
+      // Posting consumed the loaded draft server-side; detach it from the form.
+      setActiveDraftId(null);
+      setFormEpoch((epoch) => epoch + 1);
     }
   }, [state]);
+
+  const collectDraft = () => {
+    const form = document.getElementById('manual-sales-form') as HTMLFormElement | null;
+    const formData = form ? new FormData(form) : null;
+    const sourceReference = String(formData?.get('sourceReference') ?? '');
+    const notes = String(formData?.get('notes') ?? '');
+    const discountTotal = String(formData?.get('discountTotal') ?? '0');
+
+    const hasContent =
+      lineItems.some((item) => item.productId) ||
+      payments.some((payment) => payment.grossSales && payment.grossSales !== '0') ||
+      sourceReference.trim().length > 0 ||
+      notes.trim().length > 0;
+    if (!hasContent) return null;
+
+    const locationId = editLocationId || defaultLocationId;
+    const locationLabel = data.locations.find((loc) => loc.id === locationId)?.label ?? '';
+    return {
+      title: `${editSalesDate} · ${locationLabel}`.trim(),
+      locationId,
+      payload: {
+        editId,
+        locationId,
+        salesDate: editSalesDate,
+        sourceReference,
+        notes,
+        discountTotal,
+        deductBom,
+        payments,
+        lineItems,
+      },
+    };
+  };
+
+  const applyDraft = (draft: PosDraftItem) => {
+    const payload = draft.payload as Record<string, any>;
+    setEditId(typeof payload.editId === 'string' && payload.editId ? payload.editId : null);
+    setEditData({
+      sourceReference: payload.sourceReference ?? '',
+      notes: payload.notes ?? '',
+      discountTotal: payload.discountTotal ?? '0',
+    });
+    setEditLocationId(
+      typeof payload.locationId === 'string' && payload.locationId
+        ? payload.locationId
+        : defaultLocationId,
+    );
+    setEditSalesDate(
+      typeof payload.salesDate === 'string' && payload.salesDate
+        ? payload.salesDate
+        : new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' }),
+    );
+    setDeductBom(payload.deductBom !== false);
+    setPayments(
+      Array.isArray(payload.payments) && payload.payments.length > 0
+        ? payload.payments
+        : [
+            {
+              id: Date.now().toString(),
+              channel: 'walk_in',
+              method: 'cash',
+              grossSales: '',
+              transactionCount: 0,
+            },
+          ],
+    );
+    setLineItems(Array.isArray(payload.lineItems) ? payload.lineItems : []);
+    setFormEpoch((epoch) => epoch + 1);
+    setTimeout(() => {
+      document.getElementById('manual-sales-form')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
 
   const startEdit = async (id: string) => {
     const res = await fetchManualSaleDetailAction(id);
@@ -223,12 +302,13 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
 
       <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
         <form
-          key={editId || 'new'}
+          key={`${editId || 'new'}-${formEpoch}`}
           id="manual-sales-form"
           action={submitAction}
           className="grid gap-4 lg:grid-cols-4"
         >
           <input type="hidden" name="id" value={editId || ''} />
+          <input type="hidden" name="draftId" value={activeDraftId || ''} />
           <Field label={t('location')}>
             <Select
               name="locationId"
@@ -597,6 +677,15 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
             </div>
           ) : null}
         </form>
+
+        <DraftsPanel
+          kind="manual_sales"
+          drafts={drafts}
+          activeDraftId={activeDraftId}
+          collectDraft={collectDraft}
+          applyDraft={applyDraft}
+          onActiveDraftChange={setActiveDraftId}
+        />
       </section>
 
       <section className="rounded-xl border border-brand-cream-3 bg-card shadow-sm">

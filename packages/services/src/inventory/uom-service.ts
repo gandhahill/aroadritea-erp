@@ -23,16 +23,21 @@ export function normalizeUom(uom: string): string {
 export async function convertQty(
   tenantId: string,
   qty: number,
-  fromUom: string,
-  toUom: string,
+  fromUomRaw: string,
+  toUomRaw: string,
   productId?: string,
 ): Promise<Result<number>> {
+  // Rows written via the management UI are stored normalized; normalize the
+  // lookup too so "Pack" still matches a "pack" conversion.
+  const fromUom = normalizeUom(fromUomRaw);
+  const toUom = normalizeUom(toUomRaw);
   if (fromUom === toUom) return ok(qty);
 
   // Fetch all conversions for this tenant that match the UOMs
   // and are either global or specific to this product.
   const conditions = [
     eq(uomConversions.tenantId, tenantId),
+    isNull(uomConversions.deletedAt),
     or(
       and(eq(uomConversions.fromUom, fromUom), eq(uomConversions.toUom, toUom)),
       and(eq(uomConversions.fromUom, toUom), eq(uomConversions.toUom, fromUom)),

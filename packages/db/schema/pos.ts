@@ -207,6 +207,37 @@ export const manualSalesClosings = pgTable(
   ],
 );
 
+// ─── POS Drafts (T-0296) ──────────────────────────────────────────────────────
+//
+// Server-side drafts for POS data-entry forms so a failed posting (e.g. the
+// 2026-06-11 ingredientUomMismatch incident) never costs the cashier their
+// typed-in lines. The payload is the raw form state per kind; it is only
+// validated by the regular posting path when the draft is actually posted.
+
+export const posDrafts = pgTable(
+  'pos_drafts',
+  {
+    ...pk,
+    ...tenantCol,
+    ...locationCol,
+
+    kind: text('kind').notNull(),
+    // 'manual_sales' | 'consumed_ingredients'
+
+    /** Short human label shown in the draft list (e.g. sales date + channel). */
+    title: text('title').notNull().default(''),
+
+    payload: jsonb('payload').notNull().$type<Record<string, unknown>>(),
+
+    ...versionCol,
+    ...auditCols,
+  },
+  (t) => [
+    index('pos_drafts_tenant_kind_idx').on(t.tenantId, t.kind),
+    index('pos_drafts_location_idx').on(t.locationId),
+  ],
+);
+
 export const salesOrders = pgTable(
   'sales_orders',
   {

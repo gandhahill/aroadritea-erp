@@ -6,14 +6,15 @@ import { productVariants, products } from '@erp/db/schema/inventory';
 import {
   createManualSalesClosing,
   deleteManualSalesClosing,
+  deletePosDraft,
   getManualSalesClosingDetail,
   listManualSalesClosings,
   listManualSalesLocations,
 } from '@erp/services/pos';
 import type { AuditContext } from '@erp/shared/types';
-import { describeDeductError } from './deduct-error';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
+import { describeDeductError } from './deduct-error';
 
 export async function fetchManualSaleDetailAction(id: string) {
   const ctx = await getAuditContext();
@@ -310,6 +311,10 @@ export async function createManualSalesAction(
       }),
     };
   }
+
+  // T-0296: the closing posted successfully, so the loaded draft is spent.
+  const draftId = text(formData, 'draftId');
+  if (draftId) await deletePosDraft(draftId, ctx);
 
   revalidatePath('/pos/manual-sales');
   revalidatePath('/reporting/daily-summary');

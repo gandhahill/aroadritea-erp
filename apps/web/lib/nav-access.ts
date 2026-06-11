@@ -244,6 +244,12 @@ export const NAV_ACCESS: NavAccessEntry[] = [
     gate: 'inventory.category',
   },
   {
+    href: '/inventory/uom-conversions',
+    labelKey: 'uomConversions',
+    sectionKey: 'inventory',
+    gate: 'inventory.product',
+  },
+  {
     href: '/inventory/stock',
     labelKey: 'stockByOutlet',
     sectionKey: 'inventory',

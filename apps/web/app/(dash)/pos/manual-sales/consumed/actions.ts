@@ -5,7 +5,7 @@ import { and, db, eq, inArray, isNull, sql } from '@erp/db';
 import { products, stockLevels, stockMovements } from '@erp/db/schema/inventory';
 import { auditRecord } from '@erp/services/audit';
 import { requirePermission } from '@erp/services/iam';
-import { listManualSalesLocations } from '@erp/services/pos';
+import { deletePosDraft, listManualSalesLocations } from '@erp/services/pos';
 import { deductIngredients } from '@erp/services/pos/create-sale';
 import { generateId } from '@erp/shared/id';
 import type { AuditContext } from '@erp/shared/types';
@@ -433,6 +433,10 @@ export async function createConsumedIngredientsAction(_prev: any, formData: Form
         ),
       );
   }
+
+  // T-0296: the entry posted successfully, so the loaded draft is spent.
+  const draftId = String(formData.get('draftId') ?? '').trim();
+  if (draftId) await deletePosDraft(draftId, ctx);
 
   revalidatePath('/pos/manual-sales');
   revalidatePath('/pos/manual-sales/consumed');

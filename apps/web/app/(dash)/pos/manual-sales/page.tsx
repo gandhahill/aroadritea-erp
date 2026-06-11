@@ -2,6 +2,7 @@ import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { fetchManualSalesPageData } from './actions';
+import { fetchPosDraftsAction } from './draft-actions';
 import { ManualSalesClient } from './manual-sales-client';
 
 export const metadata: Metadata = { title: 'Manual Sales Closing' };
@@ -19,13 +20,16 @@ export default async function ManualSalesPage({
   const page = Number.parseInt(params?.page ?? '1', 10);
   const pageSize = Number.parseInt(params?.pageSize ?? '10', 10);
   const requestedLocationId = params?.locationId ?? String(user.locationId ?? '');
-  const data = await fetchManualSalesPageData(
-    requestedLocationId || undefined,
-    Number.isFinite(page) ? page : 1,
-    Number.isFinite(pageSize) ? pageSize : 10,
-  );
+  const [data, drafts] = await Promise.all([
+    fetchManualSalesPageData(
+      requestedLocationId || undefined,
+      Number.isFinite(page) ? page : 1,
+      Number.isFinite(pageSize) ? pageSize : 10,
+    ),
+    fetchPosDraftsAction('manual_sales'),
+  ]);
   // Use the first available location if the session doesn't have one
   const defaultLocationId = requestedLocationId || data.locations[0]?.id || '';
 
-  return <ManualSalesClient data={data} defaultLocationId={defaultLocationId} />;
+  return <ManualSalesClient data={data} defaultLocationId={defaultLocationId} drafts={drafts} />;
 }

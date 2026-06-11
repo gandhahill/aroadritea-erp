@@ -11,6 +11,15 @@ export {
   deleteManualSalesClosing,
   updateManualSalesClosing,
 } from './manual-sales';
+export {
+  savePosDraft,
+  listPosDrafts,
+  deletePosDraft,
+  PosDraftKindSchema,
+  type PosDraftKind,
+  type PosDraftResult,
+  type SavePosDraftInput,
+} from './drafts';
 export { refundSale } from './refund-sale';
 export { openShift, closeShift, getOpenShift } from './shift-service';
 export { recordShiftExpense, approveShiftExpense } from './shift-expense-service';

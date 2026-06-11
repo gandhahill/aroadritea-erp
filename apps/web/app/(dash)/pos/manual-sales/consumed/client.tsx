@@ -17,6 +17,7 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useActionState, useEffect, useState } from 'react';
+import { DraftsPanel, type PosDraftItem } from '../drafts-panel';
 import {
   createConsumedIngredientsAction,
   deleteConsumedIngredientsAction,
@@ -82,6 +83,7 @@ interface Props {
     };
   };
   defaultLocationId: string;
+  drafts: PosDraftItem[];
 }
 
 function formatHistoryQty(value: string): string {
@@ -97,7 +99,7 @@ function toWibDate(iso: string): string {
   return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
 }
 
-export function ConsumedClient({ data, defaultLocationId }: Props) {
+export function ConsumedClient({ data, defaultLocationId, drafts }: Props) {
   const t = useTranslations('pos.manualSales');
   const router = useRouter();
   const [state, submitAction, isPending] = useActionState(createConsumedIngredientsAction, null);
@@ -116,6 +118,7 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
   const [consumedIngredients, setConsumedIngredients] = useState<
     Array<{ ingredientId: string; name: string; qty: number | ''; uom: string }>
   >([]);
+  const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
 
   useEffect(() => {
     if (state?.ok) {
@@ -126,9 +129,55 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
       setEditLocationId(defaultLocationId);
       setEntryDate(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' }));
       setEntryNotes('');
+      // Posting consumed the loaded draft server-side; detach it from the form.
+      setActiveDraftId(null);
       router.refresh();
     }
   }, [state, defaultLocationId, router]);
+
+  const collectDraft = () => {
+    const hasContent =
+      consumedIngredients.some((item) => item.ingredientId) || entryNotes.trim().length > 0;
+    if (!hasContent) return null;
+
+    const locationId = editLocationId || defaultLocationId;
+    const locationLabel = data.locations.find((loc) => loc.id === locationId)?.label ?? '';
+    return {
+      title: `${entryDate} · ${locationLabel}`.trim(),
+      locationId,
+      payload: {
+        referenceId,
+        locationId,
+        date: entryDate,
+        notes: entryNotes,
+        consumedIngredients,
+      },
+    };
+  };
+
+  const applyDraft = (draft: PosDraftItem) => {
+    const payload = draft.payload as Record<string, any>;
+    setReferenceId(
+      typeof payload.referenceId === 'string' && payload.referenceId ? payload.referenceId : null,
+    );
+    setEditLocationId(
+      typeof payload.locationId === 'string' && payload.locationId
+        ? payload.locationId
+        : defaultLocationId,
+    );
+    setEntryDate(
+      typeof payload.date === 'string' && payload.date
+        ? payload.date
+        : new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' }),
+    );
+    setEntryNotes(typeof payload.notes === 'string' ? payload.notes : '');
+    setConsumedIngredients(
+      Array.isArray(payload.consumedIngredients) ? payload.consumedIngredients : [],
+    );
+    setTimeout(() => {
+      document.getElementById('consumed-ingredients-form')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
 
   const startEdit = async (id: string) => {
     setLoadingDetailId(id);
@@ -197,6 +246,7 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
           className="grid gap-4 lg:grid-cols-4"
         >
           <input type="hidden" name="referenceId" value={referenceId ?? ''} />
+          <input type="hidden" name="draftId" value={activeDraftId ?? ''} />
           <Field label={t('location')}>
             <Select
               name="locationId"
@@ -361,6 +411,15 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
             </div>
           ) : null}
         </form>
+
+        <DraftsPanel
+          kind="consumed_ingredients"
+          drafts={drafts}
+          activeDraftId={activeDraftId}
+          collectDraft={collectDraft}
+          applyDraft={applyDraft}
+          onActiveDraftChange={setActiveDraftId}
+        />
       </section>
 
       <section className="rounded-xl border border-brand-cream-3 bg-card shadow-sm">
