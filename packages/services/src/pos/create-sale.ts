@@ -58,7 +58,7 @@ import { and, eq, inArray, sql } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
 import { earnLoyaltyPoints } from '../crm';
 import { requirePermission } from '../iam';
-import { convertQty } from '../inventory/uom-service';
+import { convertQty, normalizeUom } from '../inventory/uom-service';
 import { generateQrPayload } from '../kitchen/generate-qr';
 import { queueOrderItems } from '../kitchen/kds-service';
 import { notifyByPermission } from '../notification';
@@ -307,15 +307,7 @@ function parseQtyToMilli(value: string | number | null | undefined): bigint | nu
   return sign * (whole + fraction);
 }
 
-/**
- * Units are free-text on both stock_levels.uom and bom_lines.uom, sourced from
- * different places (stock from GRN/adjustment, recipe from products.uom). Compare
- * case- and whitespace-insensitively so visually identical units ("ml" vs "ML"
- * vs " ml ") are treated as the same and don't trigger a false uom_mismatch.
- */
-export function normalizeUom(uom: string): string {
-  return uom.trim().toLowerCase();
-}
+export { normalizeUom } from '../inventory/uom-service';
 
 export function resolveIngredientDeductionDecision(
   stock: Pick<IngredientStockRow, 'uom' | 'qtyOnHand' | 'qtyAvailable'>,

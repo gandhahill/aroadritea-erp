@@ -20,6 +20,7 @@ import {
   ShipTransferInputSchema,
   UpdateTransferInputSchema,
 } from './schemas';
+import { toProductUom } from './uom-service';
 
 export interface TransferResult {
   id: string;
@@ -137,6 +138,7 @@ export async function createTransferDraft(
   const foundProducts = await db
     .select({
       id: products.id,
+      uom: products.uom,
       isActive: products.isActive,
       trackBatch: products.trackBatch,
       trackExpiry: products.trackExpiry,
@@ -145,6 +147,9 @@ export async function createTransferDraft(
     .where(and(eq(products.tenantId, ctx.tenantId), inArray(products.id, productIds)));
   const productMap = new Map(foundProducts.map((product) => [product.id, product]));
 
+  // Lines are persisted in the product master uom (SD §9.3) so ship/receive
+  // can write stock_movements/stock_levels without re-checking units.
+  const normalizedLines: Array<(typeof data.lines)[number]> = [];
   for (const line of data.lines) {
     const product = productMap.get(line.productId);
     if (!product) {
@@ -171,6 +176,14 @@ export async function createTransferDraft(
         }),
       );
     }
+    const normalized = await toProductUom(
+      ctx.tenantId,
+      { id: product.id, uom: product.uom },
+      line.qty,
+      line.uom,
+    );
+    if (!normalized.ok) return normalized;
+    normalizedLines.push({ ...line, qty: normalized.value.qty, uom: normalized.value.uom });
   }
 
   const trfId = generateId();
@@ -192,7 +205,7 @@ export async function createTransferDraft(
         updatedBy: ctx.userId,
       });
 
-      const lineValues = data.lines.map((line, idx) => ({
+      const lineValues = normalizedLines.map((line, idx) => ({
         id: generateId(),
         transferId: trfId,
         lineNo: idx + 1,
@@ -780,6 +793,7 @@ export async function updateTransferDraft(
     const foundProducts = await db
       .select({
         id: products.id,
+        uom: products.uom,
         isActive: products.isActive,
         trackBatch: products.trackBatch,
         trackExpiry: products.trackExpiry,
@@ -788,6 +802,9 @@ export async function updateTransferDraft(
       .where(and(eq(products.tenantId, ctx.tenantId), inArray(products.id, productIds)));
     const productMap = new Map(foundProducts.map((product) => [product.id, product]));
 
+    // Same normalization as createTransferDraft: persist lines in the product
+    // master uom (SD §9.3).
+    const normalizedLines: Array<(typeof data.lines)[number]> = [];
     for (const line of data.lines) {
       const product = productMap.get(line.productId);
       if (!product) {
@@ -814,6 +831,14 @@ export async function updateTransferDraft(
           }),
         );
       }
+      const normalized = await toProductUom(
+        ctx.tenantId,
+        { id: product.id, uom: product.uom },
+        line.qty,
+        line.uom,
+      );
+      if (!normalized.ok) return normalized;
+      normalizedLines.push({ ...line, qty: normalized.value.qty, uom: normalized.value.uom });
     }
 
     const beforeSnapshot = {
@@ -850,7 +875,7 @@ export async function updateTransferDraft(
 
       await tx.delete(stockTransferLines).where(eq(stockTransferLines.transferId, data.transferId));
 
-      const lineValues = data.lines.map((line, idx) => ({
+      const lineValues = normalizedLines.map((line, idx) => ({
         id: generateId(),
         transferId: data.transferId,
         lineNo: idx + 1,

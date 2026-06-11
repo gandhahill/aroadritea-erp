@@ -33,6 +33,7 @@ import { getPostingAccountCodes } from '../accounting/posting-accounts';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { generateOpnameNumber } from '../shared/number-generator';
+import { toProductUom } from './uom-service';
 
 type SupportedLocale = 'id' | 'en' | 'zh';
 
@@ -149,11 +150,14 @@ async function upsertStockLevel(params: {
     .then((r) => r[0]);
 
   if (existing) {
+    // Opname is an absolute reset — re-align uom too, so a legacy row stored
+    // in a foreign unit is healed by the next approved count.
     await db
       .update(stockLevels)
       .set({
         qtyOnHand: params.qtyOnHand,
         qtyAvailable: params.qtyOnHand,
+        uom: params.uom,
         lastMovementAt: params.lastMovementAt,
         updatedBy: params.userId,
       })
@@ -627,6 +631,38 @@ export async function approveOpname(
     .from(stockOpnameLines)
     .where(eq(stockOpnameLines.sessionId, sessionId));
 
+  // Normalize counted qty / variance to the product master uom before any
+  // stock write (SD §9.3) — and before the status claim below, so a line in
+  // a foreign unit without a registered uom_conversions row rejects cleanly.
+  const lineProductIds = [...new Set(lines.map((line) => line.productId))];
+  const productUomRows = lineProductIds.length
+    ? await db
+        .select({ id: products.id, uom: products.uom })
+        .from(products)
+        .where(and(eq(products.tenantId, ctx.tenantId), inArray(products.id, lineProductIds)))
+    : [];
+  const productUomById = new Map(productUomRows.map((p) => [p.id, p.uom]));
+
+  const stockLineById = new Map<string, { countedQty: string; varianceQty: string; uom: string }>();
+  for (const line of lines) {
+    const productUom = productUomById.get(line.productId) ?? line.uom;
+    const normalized = await toProductUom(
+      ctx.tenantId,
+      { id: line.productId, uom: productUom },
+      line.countedQty ?? '0',
+      line.uom,
+    );
+    if (!normalized.ok) return normalized;
+    const { factor, uom } = normalized.value;
+    const varianceQty = line.varianceQty ?? '0';
+    stockLineById.set(line.id, {
+      countedQty: normalized.value.qty,
+      varianceQty:
+        factor === 1 ? varianceQty : (Number.parseFloat(varianceQty) * factor).toFixed(3),
+      uom,
+    });
+  }
+
   const now = new Date();
 
   // CLAIM the session before mutating inventory. Two concurrent
@@ -654,14 +690,15 @@ export async function approveOpname(
     lines.map(async (line) => {
       const varianceNum = Number.parseFloat(line.varianceQty ?? '0');
       if (Math.abs(varianceNum) < 0.001) return; // no variance, skip
+      const stockLine = stockLineById.get(line.id)!;
 
       await upsertStockLevel({
         tenantId: ctx.tenantId,
         locationId: session.locationId,
         productId: line.productId,
         variantId: line.variantId ?? null,
-        uom: line.uom,
-        qtyOnHand: line.countedQty ?? '0',
+        uom: stockLine.uom,
+        qtyOnHand: stockLine.countedQty,
         lastMovementAt: now,
         userId: ctx.userId,
       });
@@ -674,8 +711,8 @@ export async function approveOpname(
         productId: line.productId,
         variantId: line.variantId ?? null,
         batchNo: null,
-        qtyDelta: line.varianceQty ?? '0',
-        uom: line.uom,
+        qtyDelta: stockLine.varianceQty,
+        uom: stockLine.uom,
         reason: 'adjustment',
         referenceType: 'manual',
         referenceId: sessionId,

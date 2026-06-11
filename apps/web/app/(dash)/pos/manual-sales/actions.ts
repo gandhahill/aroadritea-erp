@@ -11,6 +11,7 @@ import {
   listManualSalesLocations,
 } from '@erp/services/pos';
 import type { AuditContext } from '@erp/shared/types';
+import { describeDeductError } from './deduct-error';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
 
@@ -291,11 +292,12 @@ export async function createManualSalesAction(
     );
 
     if (!result.ok) {
+      const described = await describeDeductError(result.error, ctx.tenantId);
       return {
         error: t('errorPaymentFailed', {
           method: payment.method,
-          error: errorMessage(result.error),
-          defaultValue: `Gagal pada pembayaran ${payment.method}: ` + errorMessage(result.error),
+          error: described,
+          defaultValue: `Gagal pada pembayaran ${payment.method}: ${described}`,
         }),
       };
     }

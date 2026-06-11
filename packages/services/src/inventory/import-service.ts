@@ -338,7 +338,7 @@ export async function importMasterFromExcel(
 
     // ── Check if product exists by SKU ──
     const existingProduct = await db
-      .select({ id: products.id })
+      .select({ id: products.id, uom: products.uom })
       .from(products)
       .where(and(eq(products.tenantId, tenantId), eq(products.sku, sku)))
       .limit(1)
@@ -346,10 +346,23 @@ export async function importMasterFromExcel(
 
     if (existingProduct) {
       // ── UPDATE ──
+      // SATUAN must match the existing master uom: silently re-uoming a
+      // product would orphan stock_levels rows at other outlets that are
+      // still stored in the old unit (SD §9.3 — products.uom is canonical).
+      if (uom.trim().toLowerCase() !== existingProduct.uom.trim().toLowerCase()) {
+        errors.push({
+          row: rowNum,
+          field: 'SATUAN',
+          message: `SATUAN "${uom}" differs from existing product uom "${existingProduct.uom}"; change the uom via the product UI first — row skipped`,
+        });
+        skippedProducts++;
+        continue;
+      }
+
       const setClause: Record<string, unknown> = {
         name: { id: productName, en: productName, zh: productName },
         categoryId,
-        uom,
+        uom: existingProduct.uom,
         defaultSellPrice: hargaJual,
         defaultCostPrice: hargaModal,
         isActive: true,
@@ -383,7 +396,7 @@ export async function importMasterFromExcel(
             .set({
               qtyOnHand: String(stokAwal),
               qtyAvailable: String(stokAwal),
-              uom,
+              uom: existingProduct.uom,
               avgUnitCost: hargaModal,
               lastMovementAt: new Date(),
             })
@@ -398,7 +411,7 @@ export async function importMasterFromExcel(
             qtyOnHand: String(stokAwal),
             qtyReserved: '0',
             qtyAvailable: String(stokAwal),
-            uom,
+            uom: existingProduct.uom,
             avgUnitCost: hargaModal,
             lastMovementAt: new Date(),
             createdBy: userId,

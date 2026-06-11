@@ -11,6 +11,7 @@ import { generateId } from '@erp/shared/id';
 import type { AuditContext } from '@erp/shared/types';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
+import { describeDeductError } from '../deduct-error';
 
 const MANUAL_INGREDIENT_CONSUMPTION = 'manual_ingredient_consumption';
 
@@ -400,7 +401,7 @@ export async function createConsumedIngredientsAction(_prev: any, formData: Form
   if (!deductResult.ok) {
     return {
       error: t('errorDeductStockFailed', {
-        error: deductResult.error.message || deductResult.error.code,
+        error: await describeDeductError(deductResult.error, ctx.tenantId),
       }),
     };
   }

@@ -73,18 +73,29 @@ export async function seedInitialStock(db: Database, tenantId: string) {
 
   if (outletRows.length === 0) return { inserted: 0 };
 
-  // Resolve product SKU -> id once
+  // Resolve product SKU -> id + uom once
   const productRows = await db
-    .select({ id: products.id, sku: products.sku })
+    .select({ id: products.id, sku: products.sku, uom: products.uom })
     .from(products)
     .where(eq(products.tenantId, tenantId));
-  const skuToId = new Map(productRows.map((r) => [r.sku, r.id]));
+  const skuToProduct = new Map(productRows.map((r) => [r.sku, r]));
 
   let inserted = 0;
   for (const outlet of outletRows) {
     for (const rule of ALL_RULES) {
-      const productId = skuToId.get(rule.sku);
-      if (!productId) continue;
+      const product = skuToProduct.get(rule.sku);
+      if (!product) continue;
+
+      // stock_levels.uom must be the product master uom (SD §9.3). A rule
+      // whose uom drifted from the product seed indicates the seed data is
+      // out of sync — skip instead of planting a mismatched stock row.
+      if (rule.uom.trim().toLowerCase() !== product.uom.trim().toLowerCase()) {
+        console.warn(
+          `[seed:stock-initial] skip ${rule.sku}: rule uom "${rule.uom}" != product uom "${product.uom}"`,
+        );
+        continue;
+      }
+      const productId = product.id;
 
       // onConflictDoNothing on the unique (tenant, location, product, variant, batch)
       // — never overwrites an outlet's real stock after the first seed.
@@ -101,7 +112,7 @@ export async function seedInitialStock(db: Database, tenantId: string) {
           qtyOnHand: rule.qtyOnHand,
           qtyReserved: '0',
           qtyAvailable: rule.qtyOnHand,
-          uom: rule.uom,
+          uom: product.uom,
           lastMovementAt: new Date(),
         })
         .onConflictDoNothing();

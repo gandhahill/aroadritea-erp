@@ -24,6 +24,11 @@ import { createJournal } from '../accounting/create-journal';
 import { getPostingAccountCodes } from '../accounting/posting-accounts';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
+import {
+  type ProductUomQty,
+  scaleUnitCostToProductUom,
+  toProductUom,
+} from '../inventory/uom-service';
 import { ConfirmGRNInputSchema, CreateGRNInputSchema, type GRNLineInput } from './grn-schemas';
 
 // GRNI & inventory posting accounts come from the configurable account map
@@ -411,6 +416,35 @@ export async function confirmGRN(
     return err(AppError.notFound('purchasing.errors.po_not_found'));
   }
 
+  // Normalize every received qty to the product master uom before any stock
+  // write (SD §9.3): a purchase uom (e.g. "pack") must never leak into
+  // stock_levels/stock_movements unless uom_conversions can translate it.
+  // PO remaining-qty checks below stay in the PO line's own uom.
+  const lineProductIds = [...new Set(lines.map((line) => line.productId))];
+  const productUomRows = await db
+    .select({ id: products.id, uom: products.uom })
+    .from(products)
+    .where(and(eq(products.tenantId, ctx.tenantId), inArray(products.id, lineProductIds)));
+  const productUomById = new Map(productUomRows.map((p) => [p.id, p.uom]));
+
+  const stockQtyByLineId = new Map<string, ProductUomQty>();
+  for (const line of lines) {
+    const productUom = productUomById.get(line.productId);
+    if (!productUom) {
+      return err(
+        AppError.notFound('purchasing.errors.product_not_found', { productId: line.productId }),
+      );
+    }
+    const normalized = await toProductUom(
+      ctx.tenantId,
+      { id: line.productId, uom: productUom },
+      line.qtyReceived,
+      line.uom,
+    );
+    if (!normalized.ok) return normalized;
+    stockQtyByLineId.set(line.id, normalized.value);
+  }
+
   // Verify accounting period is open
   const periodCode = grn.receivedDate.substring(0, 7);
   const [period] = await db
@@ -624,9 +658,12 @@ export async function confirmGRN(
           });
         }
 
-        // 2. Create stock movements (reason='purchase')
+        // 2. Create stock movements (reason='purchase') — qty/uom/unit cost in
+        //    the product master uom so stock_levels stays recomputable.
         const movementValues = lines.map((line) => {
           const poLine = poLineMap.get(line.poLineId);
+          const stockQty = stockQtyByLineId.get(line.id) as ProductUomQty;
+          const unitCost = line.unitPrice ?? poLine?.unitPrice ?? null;
           return {
             id: generateId(),
             tenantId: ctx.tenantId,
@@ -637,12 +674,13 @@ export async function confirmGRN(
             variantId: line.variantId ?? null,
             batchNo: line.batchNo ?? null,
             expiryDate: line.expiryDate ?? null,
-            qtyDelta: line.qtyReceived,
-            uom: line.uom,
+            qtyDelta: stockQty.qty,
+            uom: stockQty.uom,
             reason: 'purchase' as const,
             referenceType: 'grn' as const,
             referenceId: grn.id,
-            unitCost: line.unitPrice ?? poLine?.unitPrice ?? null,
+            unitCost:
+              unitCost === null ? null : scaleUnitCostToProductUom(unitCost, stockQty.factor),
             createdBy: ctx.userId,
             updatedBy: ctx.userId,
           };
@@ -672,13 +710,17 @@ export async function confirmGRN(
             .limit(1)
             .then((r) => r[0]);
 
+          const stockQty = stockQtyByLineId.get(line.id) as ProductUomQty;
           if (existingStock) {
             const oldQty = Number.parseFloat(existingStock.qtyOnHand || '0');
-            const recQty = Number.parseFloat(line.qtyReceived);
+            const recQty = Number.parseFloat(stockQty.qty);
             const newQty = oldQty + recQty;
             const oldAvgCost = existingStock.avgUnitCost ?? 0n;
             const poLine = poLineMap.get(line.poLineId);
-            const unitCost = line.unitPrice ?? poLine?.unitPrice ?? 0n;
+            const unitCost = scaleUnitCostToProductUom(
+              line.unitPrice ?? poLine?.unitPrice ?? 0n,
+              stockQty.factor,
+            );
 
             let newAvgCost = unitCost;
             if (newQty > 0.001) {
@@ -691,8 +733,8 @@ export async function confirmGRN(
             await tx
               .update(stockLevels)
               .set({
-                qtyOnHand: sql`${stockLevels.qtyOnHand} + ${line.qtyReceived}::numeric`,
-                qtyAvailable: sql`${stockLevels.qtyAvailable} + ${line.qtyReceived}::numeric`,
+                qtyOnHand: sql`${stockLevels.qtyOnHand} + ${stockQty.qty}::numeric`,
+                qtyAvailable: sql`${stockLevels.qtyAvailable} + ${stockQty.qty}::numeric`,
                 avgUnitCost: newAvgCost,
                 updatedBy: ctx.userId,
                 lastMovementAt: new Date(),
@@ -700,7 +742,10 @@ export async function confirmGRN(
               .where(eq(stockLevels.id, existingStock.id));
           } else {
             const poLine = poLineMap.get(line.poLineId);
-            const unitCost = line.unitPrice ?? poLine?.unitPrice ?? 0n;
+            const unitCost = scaleUnitCostToProductUom(
+              line.unitPrice ?? poLine?.unitPrice ?? 0n,
+              stockQty.factor,
+            );
 
             await tx.insert(stockLevels).values({
               id: generateId(),
@@ -711,10 +756,10 @@ export async function confirmGRN(
               variantId: line.variantId ?? null,
               batchNo: line.batchNo ?? null,
               expiryDate: line.expiryDate ?? null,
-              qtyOnHand: line.qtyReceived,
+              qtyOnHand: stockQty.qty,
               qtyReserved: '0',
-              qtyAvailable: line.qtyReceived,
-              uom: line.uom,
+              qtyAvailable: stockQty.qty,
+              uom: stockQty.uom,
               avgUnitCost: unitCost,
               createdBy: ctx.userId,
               updatedBy: ctx.userId,

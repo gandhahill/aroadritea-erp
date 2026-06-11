@@ -46,6 +46,7 @@ import {
   CreateAdjustmentInputSchema,
   RejectAdjustmentInputSchema,
 } from './schemas';
+import { scaleUnitCostToProductUom, toProductUom } from './uom-service';
 
 // Posting accounts (inventory + loss/gain offsets) come from the configurable
 // account map (Settings → Accounting → Account Mapping); see
@@ -440,6 +441,43 @@ export async function approveAdjustment(
       return err(AppError.businessRule('inventory.adjust.noLines'));
     }
 
+    // 4b. Normalize every line qty to the product master uom before any stock
+    //     write (SD §9.3) — rejected here, before the status claim, so a line
+    //     counted in a foreign unit without a registered conversion can never
+    //     reach stock_levels (2026-06-11 MLI incident).
+    const lineProductIds = [...new Set(lines.map((line) => line.productId))];
+    const productUomRows = await db
+      .select({ id: products.id, uom: products.uom })
+      .from(products)
+      .where(and(eq(products.tenantId, ctx.tenantId), inArray(products.id, lineProductIds)));
+    const productUomById = new Map(productUomRows.map((p) => [p.id, p.uom]));
+
+    const stockLineById = new Map<
+      string,
+      { qtyDelta: string; qtyAfter: string; uom: string; unitCost: bigint | null }
+    >();
+    for (const line of lines) {
+      const productUom = productUomById.get(line.productId);
+      if (!productUom) {
+        return err(AppError.notFound('inventory.adjust.notFound', { productId: line.productId }));
+      }
+      const normalized = await toProductUom(
+        ctx.tenantId,
+        { id: line.productId, uom: productUom },
+        line.qtyDelta,
+        line.uom,
+      );
+      if (!normalized.ok) return normalized;
+      const { factor, uom } = normalized.value;
+      stockLineById.set(line.id, {
+        qtyDelta: normalized.value.qty,
+        qtyAfter:
+          factor === 1 ? line.qtyAfter : (Number.parseFloat(line.qtyAfter) * factor).toFixed(3),
+        uom,
+        unitCost: line.unitCost === null ? null : scaleUnitCostToProductUom(line.unitCost, factor),
+      });
+    }
+
     // 5. Verify accounting period is open
     const periodMonth = adj.adjustmentDate.substring(0, 7);
     const period = await db
@@ -607,33 +645,39 @@ export async function approveAdjustment(
       journalEntryId = jeResult.value.id;
     }
 
-    // 9. Insert stock movements (qty deltas — historical record).
-    const movementValues = lines.map((line) => ({
-      id: generateId(),
-      tenantId: ctx.tenantId,
-      locationId: adj.locationId,
-      occurredAt: new Date(),
-      stockLocationId: null as unknown as string,
-      productId: line.productId,
-      variantId: line.variantId ?? null,
-      batchNo: line.batchNo ?? null,
-      expiryDate: line.expiryDate ?? null,
-      qtyDelta: line.qtyDelta,
-      uom: line.uom,
-      reason: 'adjustment' as const,
-      referenceType: 'stock_adjustment' as const,
-      referenceId: adj.id,
-      unitCost: line.unitCost,
-      createdBy: ctx.userId,
-      updatedBy: ctx.userId,
-    }));
+    // 9. Insert stock movements (qty deltas — historical record), expressed in
+    //    the product master uom (see step 4b).
+    const movementValues = lines.map((line) => {
+      const stockLine = stockLineById.get(line.id)!;
+      return {
+        id: generateId(),
+        tenantId: ctx.tenantId,
+        locationId: adj.locationId,
+        occurredAt: new Date(),
+        stockLocationId: null as unknown as string,
+        productId: line.productId,
+        variantId: line.variantId ?? null,
+        batchNo: line.batchNo ?? null,
+        expiryDate: line.expiryDate ?? null,
+        qtyDelta: stockLine.qtyDelta,
+        uom: stockLine.uom,
+        reason: 'adjustment' as const,
+        referenceType: 'stock_adjustment' as const,
+        referenceId: adj.id,
+        unitCost: stockLine.unitCost,
+        createdBy: ctx.userId,
+        updatedBy: ctx.userId,
+      };
+    });
 
     // 9b. Execute stock movements insert.
     await db.insert(stockMovements).values(movementValues);
 
     // 10. Update / insert stock_levels. Pass the qtyAfter string directly
-    //     to preserve the original decimal precision.
+    //     to preserve the original decimal precision (normalized to the
+    //     product master uom in step 4b).
     for (const line of lines) {
+      const stockLine = stockLineById.get(line.id)!;
       const variantCondition = line.variantId
         ? eq(stockLevels.variantId, line.variantId)
         : isNull(stockLevels.variantId);
@@ -655,8 +699,9 @@ export async function approveAdjustment(
         await db
           .update(stockLevels)
           .set({
-            qtyOnHand: line.qtyAfter,
-            qtyAvailable: line.qtyAfter,
+            qtyOnHand: stockLine.qtyAfter,
+            qtyAvailable: stockLine.qtyAfter,
+            uom: stockLine.uom,
             updatedBy: ctx.userId,
             lastMovementAt: new Date(),
           })
@@ -671,11 +716,11 @@ export async function approveAdjustment(
           variantId: line.variantId ?? null,
           batchNo: line.batchNo ?? null,
           expiryDate: line.expiryDate ?? null,
-          qtyOnHand: line.qtyAfter,
+          qtyOnHand: stockLine.qtyAfter,
           qtyReserved: '0',
-          qtyAvailable: line.qtyAfter,
-          uom: line.uom,
-          avgUnitCost: line.unitCost,
+          qtyAvailable: stockLine.qtyAfter,
+          uom: stockLine.uom,
+          avgUnitCost: stockLine.unitCost,
           createdBy: ctx.userId,
           updatedBy: ctx.userId,
         });
