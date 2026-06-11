@@ -85,4 +85,4 @@ Selesai. Tindak lanjut opsional (tidak diblok): UI manajemen `uom_conversions` (
 
 | SHA | Message | Date |
 |-----|---------|------|
-| _(diisi setelah commit)_ | fix(T-0295): normalize stock uom to product master on every stock write | 2026-06-11 |
+| 50ebc7a | fix(T-0295): normalize stock uom to product master on every stock write | 2026-06-11 |
