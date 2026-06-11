@@ -54,4 +54,4 @@ Tidak ada — selesai; ikut deploy bersama T-0296.
 
 | SHA | Message | Date |
 |-----|---------|------|
-| _(diisi setelah commit)_ | feat: POS drafts + UOM conversions UI | 2026-06-11 |
+| ddb79b4 | feat(T-0296,T-0297): POS save-as-draft + uom conversions management UI | 2026-06-11 |
