@@ -19,7 +19,7 @@ User dapat memilih **Simpan Draft** atau **Posting** di form input penjualan man
 - [x] i18n en/id/zh lengkap (13 kunci `pos.manualSales.draft*`)
 - [x] typecheck + lint + test (665/665) + i18n parity lulus
 - [x] Commit + push
-- [ ] Migrasi DB di VPS + deploy (lihat Next step)
+- [x] Migrasi DB di VPS + deploy (migrasi 0043 applied & `\d pos_drafts` terverifikasi; build OK; pm2 reload; login 200, health 200)
 
 ## Implementation Summary
 
@@ -49,7 +49,7 @@ User dapat memilih **Simpan Draft** atau **Posting** di form input penjualan man
 
 ## Next step
 
-**Deploy ke VPS** (perlu karena ada migrasi DB): di `/home/aroadritea/web/aroadritea.com/public_html/aroadritea-erp` → `git pull` → `pnpm install --frozen-lockfile` (tidak ada dep baru, cepat) → `pnpm db:migrate` → `pnpm build` → `pm2 reload`. Migrasi 0043 additive-only (CREATE TABLE IF NOT EXISTS), aman.
+Tidak ada — selesai dan sudah dideploy ke produksi 2026-06-11 ~17:26 WIB (migrasi 0043 applied, pm2 reload, health check 200).
 
 ## Test status
 
