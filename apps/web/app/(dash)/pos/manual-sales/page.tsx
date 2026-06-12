@@ -30,7 +30,7 @@ export default async function ManualSalesPage({
     userLocationId = employee?.locationId ?? '';
   }
 
-  const requestedLocationId = params?.locationId ?? userLocationId;
+  const requestedLocationId = params?.locationId;
   const [data, drafts] = await Promise.all([
     fetchManualSalesPageData(
       requestedLocationId || undefined,
@@ -39,8 +39,8 @@ export default async function ManualSalesPage({
     ),
     fetchPosDraftsAction('manual_sales'),
   ]);
-  // Use the first available location if the session doesn't have one
-  const defaultLocationId = requestedLocationId || data.locations[0]?.id || '';
+  // Use the employee's location for the input form default, otherwise fallback
+  const defaultLocationId = userLocationId || requestedLocationId || data.locations[0]?.id || '';
 
   return <ManualSalesClient data={data} defaultLocationId={defaultLocationId} drafts={drafts} />;
 }
