@@ -1,7 +1,7 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { and, db, eq, inArray, isNull, sql } from '@erp/db';
+import { and, asc, db, eq, inArray, isNull, sql } from '@erp/db';
 import { products, stockLevels, stockMovements } from '@erp/db/schema/inventory';
 import { auditRecord } from '@erp/services/audit';
 import { requirePermission } from '@erp/services/iam';
@@ -394,9 +394,9 @@ export async function createConsumedIngredientsAction(_prev: any, formData: Form
           eq(stockMovements.referenceType, MANUAL_INGREDIENT_CONSUMPTION),
           eq(stockMovements.referenceId, existingReferenceId),
           eq(stockMovements.reason, 'sale'),
-          isNull(stockMovements.deletedAt),
         ),
       )
+      .orderBy(asc(stockMovements.createdAt))
       .limit(1);
     originalCreatedBy = existingMovements[0]?.createdBy ?? null;
 
