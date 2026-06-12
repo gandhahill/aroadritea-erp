@@ -81,6 +81,11 @@ export const InventoryDeleteUomConversionSchema = z.object({
   confirm: z.string().min(1),
 });
 
+export const InventorySetProductAvailabilitySchema = z.object({
+  product_id: z.string().min(1),
+  is_available: z.boolean(),
+});
+
 export const inventoryTools = [
   {
     name: 'inventory.list_categories',
@@ -343,6 +348,27 @@ export const inventoryTools = [
         return mcpError('INVENTORY_ADJUST_SUBMIT_FAILED', JSON.stringify(submitResult.error));
 
       return mcpSuccess(submitResult.value);
+    },
+  },
+  {
+    name: 'inventory.set_product_availability',
+    description:
+      'Mark a product as available or temporarily unavailable ("86\'d") in the POS. Unavailable products are greyed out and cannot be added to a sale until re-enabled. Independent of is_active (catalog enable/disable) and is_sellable (catalog configuration) — this is a same-day operational toggle.',
+    schema: InventorySetProductAvailabilitySchema,
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = InventorySetProductAvailabilitySchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+
+      const { setProductAvailability } = await import('@erp/services/inventory');
+      const result = await setProductAvailability(
+        { productId: parsed.data.product_id, isAvailable: parsed.data.is_available },
+        {
+          userId: ctx.userId,
+          tenantId: ctx.tenantId,
+          locationId: ctx.locationId ?? '',
+        },
+      );
+      return serializeResult(result);
     },
   },
 ] as const;

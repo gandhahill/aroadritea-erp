@@ -22,6 +22,7 @@ import { memberVouchers } from '@erp/db/schema/member';
 import { posSettings, salesOrders, shifts } from '@erp/db/schema/pos';
 import { promotions } from '@erp/db/schema/promotion';
 import { requirePermission } from '@erp/services/iam';
+import { setProductAvailability } from '@erp/services/inventory';
 import { type MemberLookupResult, findMemberByPhone } from '@erp/services/member';
 import { closeShift, createSale, openShift, refundSale, voidSale } from '@erp/services/pos';
 import { getOpenShift } from '@erp/services/pos';
@@ -61,6 +62,10 @@ export interface ProductListItem {
    * out of stock and the POS disables the add button.
    */
   qtyAvailable: string | null;
+  /** "86" toggle (G4/T-0301) — false means temporarily unavailable today. */
+  isAvailable: boolean;
+  /** Whether the current user may toggle `isAvailable` (inventory.product.update). */
+  canToggleAvailability: boolean;
 }
 
 export interface VariantItem {
@@ -102,6 +107,10 @@ export interface SaleListItem {
 
 export type MemberLookupActionResult =
   | { ok: true; member: MemberLookupResult | null }
+  | { ok: false; error: string };
+
+export type SetProductAvailabilityActionResult =
+  | { ok: true; isAvailable: boolean }
   | { ok: false; error: string };
 
 export interface PosChannelOption {
@@ -222,6 +231,10 @@ export async function fetchProducts(params: {
   const ctx = await getAuditContext();
   const perm = await requirePermission(ctx.userId, 'pos.transact', { locationId: ctx.locationId });
   if (!perm.ok) return [];
+  const availabilityPerm = await requirePermission(ctx.userId, 'inventory.product.update', {
+    locationId: ctx.locationId,
+  });
+  const canToggleAvailability = availabilityPerm.ok;
   const locale = normalizeLocale(await getLocale());
   const conditions = [
     eq(products.tenantId, ctx.tenantId),
@@ -252,6 +265,7 @@ export async function fetchProducts(params: {
       defaultSellPrice: products.defaultSellPrice,
       imageUrl: products.imageUrl,
       kind: products.kind,
+      isAvailable: products.isAvailable,
     })
     .from(products)
     .where(and(...conditions))
@@ -265,6 +279,7 @@ export async function fetchProducts(params: {
         defaultSellPrice: r.defaultSellPrice,
         imageUrl: r.imageUrl,
         kind: r.kind,
+        isAvailable: r.isAvailable,
       })),
     );
 
@@ -377,8 +392,25 @@ export async function fetchProducts(params: {
       kind: p.kind,
       variants: variantsByProduct.get(p.id) ?? [],
       qtyAvailable: productQty !== undefined ? String(productQty) : null,
+      isAvailable: p.isAvailable,
+      canToggleAvailability,
     };
   });
+}
+
+/**
+ * Toggle a product's "86" (temporary unavailability) flag — G4/T-0301.
+ * Gated on `inventory.product.update`; the POS only renders the toggle
+ * control when `fetchProducts` reports `canToggleAvailability: true`.
+ */
+export async function setProductAvailabilityAction(
+  productId: string,
+  isAvailable: boolean,
+): Promise<SetProductAvailabilityActionResult> {
+  const ctx = await getAuditContext();
+  const result = await setProductAvailability({ productId, isAvailable }, ctx);
+  if (!result.ok) return { ok: false, error: result.error.messageKey };
+  return { ok: true, isAvailable: result.value.isAvailable };
 }
 
 export async function fetchCategories(): Promise<{ id: string; name: string }[]> {

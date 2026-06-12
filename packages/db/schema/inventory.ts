@@ -112,6 +112,11 @@ export const products = pgTable(
     // Image
     imageUrl: text('image_url'),
 
+    // "86" toggle (G4/T-0301) — temporary same-day unavailability, distinct
+    // from isActive (catalog enable/disable) and isSellable (catalog config).
+    isAvailable: boolean('is_available').notNull().default(true),
+    is86dAt: timestamp('is_86d_at', { withTimezone: true }),
+
     ...isActiveFlag,
     ...versionCol,
     ...auditCols,

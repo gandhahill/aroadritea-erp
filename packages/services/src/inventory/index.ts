@@ -8,6 +8,10 @@ export { updateProduct } from './update-product';
 export { deactivateProduct, reactivateProduct } from './deactivate-product';
 export { deleteProductPermanently } from './delete-product';
 export {
+  setProductAvailability,
+  type ProductAvailabilityResult,
+} from './set-product-availability';
+export {
   listProducts,
   getProduct,
   type ProductListItem,

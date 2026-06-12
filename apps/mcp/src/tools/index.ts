@@ -61,6 +61,7 @@ export {
   InventoryListProductsSchema,
   InventoryGetStockSchema,
   InventoryAdjustSchema,
+  InventorySetProductAvailabilitySchema,
   purchasingTools,
   PurchasingCreatePOSchema,
   PurchasingApprovePOSchema,

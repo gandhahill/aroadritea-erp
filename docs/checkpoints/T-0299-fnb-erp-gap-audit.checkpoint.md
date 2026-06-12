@@ -44,6 +44,18 @@ Per Lintang's explicit multi-step instruction (verbatim, Bahasa Indonesia, must 
 - **Part D** (prioritized backlog G1-G15) + "decisions needed from Lintang" written.
 - **TASK.md updated**: T-0299 row in Active Tasks (top of table); "🍵 Backlog T-0299" section in the Backlog (G1-G15, G3a marked done); new T-0300 row in Phase 2 Done table.
 
+### Done this session — G4 implemented (T-0301)
+
+- New columns on `products` (`packages/db/schema/inventory.ts`): `isAvailable: boolean('is_available').notNull().default(true)` and `is86dAt: timestamp('is_86d_at', { withTimezone: true })` (nullable). Migration `packages/db/migrations/0044_fine_orphan.sql` generated via `pnpm generate` — **not yet applied to any database**.
+- New `packages/services/src/inventory/set-product-availability.ts` (`setProductAvailability`), modeled on `deactivate-product.ts`: `requirePermission(inventory.product.update)` → validate `productId` → fetch existing row → update `isAvailable`/`is86dAt` (set `is86dAt = now()` when 86'ing, `null` when restoring) → `auditRecord({ action: 'update', entityType: 'product', before, after })` → return `{ id, isAvailable, is86dAt }`. Exported from `packages/services/src/inventory/index.ts`.
+- `apps/web/app/(dash)/pos/actions.ts`: `fetchProducts` now also computes `canToggleAvailability` (non-blocking `requirePermission(inventory.product.update)` check) and returns `isAvailable`/`canToggleAvailability` per product; new `setProductAvailabilityAction(productId, isAvailable)` server action wraps the service.
+- `apps/web/app/(dash)/pos/product-search.tsx`: products with `isAvailable === false` ("86'd") are now greyed out (`opacity-60`, same treatment as out-of-stock), show an "Unavailable today" badge, and have their add/variant buttons disabled. Users with `canToggleAvailability` see an eye/eye-slash button (top-right of the product image) to toggle the flag; failures show an auto-clearing (4s) inline error banner (no toast lib exists in POS — same local-state pattern as elsewhere).
+- New MCP tool `inventory.set_product_availability` in `apps/mcp/src/tools/phase2.ts` (+ schema export in `apps/mcp/src/tools/index.ts`) — permission enforced inside the service, no redundant `checkPermission`.
+- i18n ×3 (`apps/web/messages/{id,en,zh}.json`, key prefix `pos.*`): `unavailableToday`, `markUnavailableToday`, `markAvailableAgain`, `toggleAvailabilityFailed`.
+- **No new test file** for `setProductAvailability` — consistent with sibling DB-backed mutation functions (`deactivateProduct`, `reactivateProduct`, `updateProduct`) which also have zero test coverage in `packages/services/tests/`, and CLAUDE.md forbids `vi.mock('@erp/db')`.
+- Verified: `tsc --noEmit` clean for `packages/db`, `packages/services`, `apps/mcp`, `apps/web`; `pnpm lint:permissions` PASS (130 permissions, no mismatches); scoped Biome on all 10 touched files PASS; all 3 locale JSON files parse.
+- **Outstanding**: migration `0044_fine_orphan.sql` is generated but not applied to the dev/prod DB — needs `drizzle-kit migrate` (or equivalent) during the next deploy.
+
 ### Done this session — G3a implemented (T-0300)
 
 - `packages/services/src/promotion/evaluator.ts`: replaced the silent `else { continue }` for `buy_x_get_y`/`free_item`/`complimentary` with explicit handling per kind. New `applyGetItemBenefit()` helper computes line-level discounts (`appliesTo: 'line'`, `lineId` = `CartLine.id`, which by existing convention (`create-sale.ts:778`) equals `productId`):
@@ -74,24 +86,22 @@ Per Lintang's explicit multi-step instruction (verbatim, Bahasa Indonesia, must 
 
 ## Next step
 
-> **Implement G4** — "86" toggle for products: `isAvailable`/`is86dAt` columns on `products`, a POS toggle button, and auto-grey-out in `product-search.tsx` when a product is 86'd. Small, no ADR, high visible value.
+> **Implement G15** — increment `promotions.usageCount` when a promotion is applied to a sale, so `usageLimit` (checked in `evaluator.ts:71-78`) actually binds (Finding 5).
 
-Concrete plan for G4:
-1. `packages/db/schema/inventory.ts`: add `isAvailable: boolean('is_available').notNull().default(true)` and `is86dAt: timestamp('is_86d_at')` (nullable) to `products` (new migration).
-2. Service: small helper in `packages/services/src/inventory/` (or wherever product mutations live) to toggle availability — must write `audit_log` (CLAUDE.md §5.3/§5.8 mandatory audit).
-3. `apps/web/app/(dash)/pos/product-search.tsx`: when `!product.isAvailable`, render the product greyed-out/disabled (not clickable to add to cart).
-4. POS UI: a toggle button (likely on a product card long-press/context action, or a small admin-only "86" switch) calling the new service action.
-5. i18n ×3 (id/en/zh) for any new labels ("86'd", "Out of stock today", toggle button text, etc.) per CLAUDE.md's absolute i18n rule.
-6. MCP tool consideration (CLAUDE.md §6): if `inventory_upsert_*` tools exist for products, consider exposing the toggle there too (check `apps/mcp/src/tools/` for existing product upsert tool first).
-7. Tests: service-level test for the toggle (audit log written, `isAvailable` flips).
-8. Run typecheck (services + web) + relevant test suite + Biome on touched files + i18n parity check.
-9. Update TASK.md (new `T-0301`), this checkpoint, commit `feat(T-0301): ...`, push.
+Concrete plan for G15:
+1. Read `packages/services/src/pos/create-sale.ts` around where `promotionApplications` rows are inserted (grep `promotionApplications` / `appliedPromotions`) to find the exact insertion point.
+2. For each distinct `promotionId` applied to the sale, increment `promotions.usageCount` by 1 (or by the number of times it was applied, per business semantics — check `evaluator.ts:71-78` for how `usageCount` is compared against `usageLimit` to decide per-sale vs per-application increment).
+3. This must happen atomically within the same transaction as the sale insert (no separate audit needed beyond the existing sale audit trail — `usageCount` is a derived counter on `promotions`, not a new transactional entity).
+4. Add/extend a test in `packages/services/tests/promotion-evaluator.test.ts` or a new `create-sale`-adjacent test verifying `usageCount` increments after a sale and that a promo at `usageLimit` is excluded from the next evaluation.
+5. Run typecheck (services) + full services test suite + scoped Biome.
+6. Update TASK.md (new `T-0302`), this checkpoint (mark G15 done, set Next step to G2), commit `feat(T-0302): ...`, push.
 
-**After G4**, per Part E: G15 (increment `usageCount`, small/self-contained, fixes Finding 5) is a good next quick win, then G2 (KDS UI, larger).
+**After G15**, per Part E: G2 (KDS UI — backend done, needs routes/nav/SSE) is the next larger item, then G1 (modifier picker, needs small ADR for `groupRole`).
 
 ## Test status
 
 - **Unit**: G3a (T-0300) — 13/13 new tests PASS, 678/678 total services tests PASS, typecheck clean.
+- G4 (T-0301) — no new tests (matches untested sibling mutation functions); typecheck (db/services/mcp/web) + permission-lint + scoped Biome + i18n JSON parse all PASS.
 - **Integration**: N/A
 - **E2E**: N/A
 
@@ -101,21 +111,31 @@ Concrete plan for G4:
 |------|--------|------|
 | `docs/benchmark/fnb-erp-feature-checklist.md` | created (earlier in session) | ~260-item from-scratch checklist, §0-§17 |
 | `docs/benchmark/fnb-erp-gap-analysis.md` | created + edited | Living gap-analysis doc: Parts A-E; title renumbered T-0299; Finding 2 "G3a done" addendum; new Finding 5/G15; Part D/E updated |
-| `TASK.md` | edited | T-0298→T-0299 renumbering (Active Tasks row + Backlog section heading); G3a row marked done; new G15 row; new T-0300 Done-table row |
-| `docs/checkpoints/T-0299-fnb-erp-gap-audit.checkpoint.md` | created | this file (replaces deleted `T-0298-fnb-erp-gap-audit.checkpoint.md`) |
+| `TASK.md` | edited | T-0298→T-0299 renumbering (Active Tasks row + Backlog section heading); G3a/G4 rows marked done; new G15 row; new T-0300/T-0301 Done-table rows |
+| `docs/checkpoints/T-0299-fnb-erp-gap-audit.checkpoint.md` | created + edited | this file (replaces deleted `T-0298-fnb-erp-gap-audit.checkpoint.md`) |
 | `packages/services/src/promotion/evaluator.ts` | edited | G3a: `buy_x_get_y`/`free_item` line-level discounts via new `applyGetItemBenefit()` |
 | `packages/services/tests/promotion-evaluator.test.ts` | created | G3a: 13 new tests, all PASS |
+| `packages/db/schema/inventory.ts` | edited | G4: added `products.isAvailable`/`is86dAt` columns |
+| `packages/db/migrations/0044_fine_orphan.sql` + `meta/0044_snapshot.json` + `meta/_journal.json` | created/edited | G4: migration for the two new columns (NOT yet applied to any DB) |
+| `packages/services/src/inventory/set-product-availability.ts` | created | G4: `setProductAvailability` service (audit `update`) |
+| `packages/services/src/inventory/index.ts` | edited | G4: export `setProductAvailability` |
+| `apps/web/app/(dash)/pos/actions.ts` | edited | G4: `fetchProducts` returns `isAvailable`/`canToggleAvailability`; new `setProductAvailabilityAction` |
+| `apps/web/app/(dash)/pos/product-search.tsx` | edited | G4: 86'd products greyed out + badge + toggle button + error banner |
+| `apps/web/messages/{id,en,zh}.json` | edited | G4: `pos.unavailableToday`/`markUnavailableToday`/`markAvailableAgain`/`toggleAvailabilityFailed` |
+| `apps/mcp/src/tools/phase2.ts` + `apps/mcp/src/tools/index.ts` | edited | G4: new MCP tool `inventory.set_product_availability` |
 
 ## Commits So Far
 
 | SHA | Message | Date |
 |-----|---------|------|
 | `de4952f` | feat(T-0300): implement buy_x_get_y/free_item promotion evaluation (G3a) | 2026-06-12 |
+| `<pending>` | feat(T-0301): "86" product availability toggle in POS (G4) | 2026-06-12 |
 
 ## Handoff Notes
 
 - This is a **multi-session marathon task** explicitly authorized by Lintang ("ini adalah tugas panjang, tolong kerjakan sampai selesai, tidak perlu terburu-buru"). Do not try to "wrap up" — pick the next G-item and keep going.
 - The from-scratch checklist (`fnb-erp-feature-checklist.md`) was deliberately written WITHOUT reading this repo first, to avoid anchoring bias — do not "fix" it to match repo reality; it's the *target*, the gap-analysis doc is the *comparison*.
 - When picking up §0-2/4-17 deep-audit passes (Part C ⬜ items), apply the SAME dual-lens standard as §3: don't just check "does a page exist" — trace one real user action through to confirm the backend logic actually fires (the KDS/modifier/promotion findings were all "page would suggest done, but trace the data flow and it dead-ends").
-- **Before assigning any new `T-NNNN`**: check the HIGHEST existing ID across BOTH the Active Tasks table AND the Done tables in TASK.md (not just one or the other) — this session hit a collision (T-0298 used twice) because a prior turn only checked one location. T-0300 is the highest used ID as of this checkpoint; next available is **T-0301**.
-- If resuming after a long gap, re-read `docs/benchmark/fnb-erp-gap-analysis.md` Part E for the prioritized continuation order: G4 → G15 → G2 → G1 → remaining ⬜ audits → Lintang's 4 decisions.
+- **Before assigning any new `T-NNNN`**: check the HIGHEST existing ID across BOTH the Active Tasks table AND the Done tables in TASK.md (not just one or the other) — this session hit a collision (T-0298 used twice) because a prior turn only checked one location. T-0301 is the highest used ID as of this checkpoint; next available is **T-0302**.
+- Migration `0044_fine_orphan.sql` (G4/T-0301, adds `products.is_available`/`is_86d_at`) is generated but **not applied to any database yet** — remember this when planning the next deploy (`drizzle-kit migrate` or the project's usual apply step).
+- If resuming after a long gap, re-read `docs/benchmark/fnb-erp-gap-analysis.md` Part E for the prioritized continuation order: G4 ✅ → G15 → G2 → G1 → remaining ⬜ audits → Lintang's 4 decisions.

@@ -11,7 +11,13 @@ import { displayAssetUrl } from '@/lib/display-asset-url';
 import { Input } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState, useTransition } from 'react';
-import { type ProductListItem, type VariantItem, fetchCategories, fetchProducts } from './actions';
+import {
+  type ProductListItem,
+  type VariantItem,
+  fetchCategories,
+  fetchProducts,
+  setProductAvailabilityAction,
+} from './actions';
 import { usePosCart } from './pos-cart-context';
 
 export function ProductSearch() {
@@ -23,6 +29,7 @@ export function ProductSearch() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [isPending, startTransition] = useTransition();
+  const [toggleError, setToggleError] = useState<string | null>(null);
 
   // Debounce search input
   useEffect(() => {
@@ -47,6 +54,25 @@ export function ProductSearch() {
       setProducts(prods);
     });
   }, [activeCategory, debouncedSearch]);
+
+  // Auto-clear availability-toggle errors after a few seconds.
+  useEffect(() => {
+    if (!toggleError) return;
+    const timer = setTimeout(() => setToggleError(null), 4000);
+    return () => clearTimeout(timer);
+  }, [toggleError]);
+
+  async function handleToggleAvailability(product: ProductListItem) {
+    setToggleError(null);
+    const result = await setProductAvailabilityAction(product.id, !product.isAvailable);
+    if (!result.ok) {
+      setToggleError(result.error);
+      return;
+    }
+    setProducts((prev) =>
+      prev.map((p) => (p.id === product.id ? { ...p, isAvailable: result.isAvailable } : p)),
+    );
+  }
 
   function handleAddProduct(product: ProductListItem, variant?: VariantItem) {
     const unitPrice = variant ? variant.sellPrice : product.defaultSellPrice;
@@ -119,6 +145,12 @@ export function ProductSearch() {
         ))}
       </div>
 
+      {toggleError ? (
+        <div className="mx-3 mt-2 shrink-0 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
+          {t('toggleAvailabilityFailed')}
+        </div>
+      ) : null}
+
       {/* Product grid */}
       <div className="flex-1 overflow-y-auto p-3 min-h-0">
         {isPending && products.length === 0 ? (
@@ -153,38 +185,93 @@ export function ProductSearch() {
               // "0" or negative means we have a stock record and it's empty.
               const productOutOfStock =
                 product.qtyAvailable !== null && Number(product.qtyAvailable) <= 0;
+              // "86" toggle (G4/T-0301): manually marked unavailable for today.
+              const is86d = !product.isAvailable;
+              const unavailable = productOutOfStock || is86d;
               return (
                 <div
                   key={product.id}
                   className={`flex min-h-[190px] flex-col gap-2 rounded-lg border border-brand-cream-3 bg-card p-3 text-left transition-shadow hover:border-brand-red/30 hover:shadow-sm ${
-                    productOutOfStock ? 'opacity-60' : ''
+                    unavailable ? 'opacity-60' : ''
                   }`}
                 >
                   {/* Product image */}
-                  {product.imageUrl ? (
-                    <img
-                      src={displayAssetUrl(product.imageUrl)}
-                      alt={product.name}
-                      className="h-16 w-full rounded-md object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-16 w-full items-center justify-center rounded-md bg-brand-cream-2">
-                      <svg
-                        className="h-8 w-8 text-brand-red/40"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
+                  <div className="relative">
+                    {product.imageUrl ? (
+                      <img
+                        src={displayAssetUrl(product.imageUrl)}
+                        alt={product.name}
+                        className="h-16 w-full rounded-md object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-16 w-full items-center justify-center rounded-md bg-brand-cream-2">
+                        <svg
+                          className="h-8 w-8 text-brand-red/40"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                        >
+                          <path d="M3 8h12v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
+                          <path d="M15 10h2a3 3 0 0 1 0 6h-2" />
+                          <path d="M7 3v3M11 3v3" strokeLinecap="round" />
+                        </svg>
+                      </div>
+                    )}
+                    {product.canToggleAvailability ? (
+                      <button
+                        type="button"
+                        onClick={() => void handleToggleAvailability(product)}
+                        title={is86d ? t('markAvailableAgain') : t('markUnavailableToday')}
+                        aria-label={is86d ? t('markAvailableAgain') : t('markUnavailableToday')}
+                        className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-card/90 text-brand-ink-3 shadow-sm hover:text-brand-red"
                       >
-                        <path d="M3 8h12v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
-                        <path d="M15 10h2a3 3 0 0 1 0 6h-2" />
-                        <path d="M7 3v3M11 3v3" strokeLinecap="round" />
-                      </svg>
-                    </div>
-                  )}
+                        {is86d ? (
+                          <svg
+                            aria-hidden="true"
+                            className="h-3.5 w-3.5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            aria-hidden="true"
+                            className="h-3.5 w-3.5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88"
+                            />
+                          </svg>
+                        )}
+                      </button>
+                    ) : null}
+                  </div>
                   <p className="w-full text-xs font-medium leading-tight text-brand-ink">
                     {product.name}
-                    {productOutOfStock && !hasVariants ? (
+                    {is86d ? (
+                      <span className="ml-1 rounded bg-rose-100 px-1 text-[9px] font-semibold uppercase text-rose-700">
+                        {t('unavailableToday')}
+                      </span>
+                    ) : productOutOfStock && !hasVariants ? (
                       <span className="ml-1 rounded bg-rose-100 px-1 text-[9px] font-semibold uppercase text-rose-700">
                         {t('outOfStock')}
                       </span>
@@ -195,7 +282,7 @@ export function ProductSearch() {
                       {product.variants.map((variant) => {
                         const variantOutOfStock =
                           variant.qtyAvailable !== null && Number(variant.qtyAvailable) <= 0;
-                        const disabled = variantOutOfStock || productOutOfStock;
+                        const disabled = variantOutOfStock || unavailable;
                         return (
                           <button
                             key={variant.id}
@@ -204,14 +291,16 @@ export function ProductSearch() {
                             onClick={() => !disabled && handleAddProduct(product, variant)}
                             title={
                               disabled
-                                ? t('outOfStock')
+                                ? is86d
+                                  ? t('unavailableToday')
+                                  : t('outOfStock')
                                 : `${variant.name} - ${formatRupiah(variant.sellPrice)}`
                             }
                             className="min-h-9 rounded-md border border-brand-cream-3 bg-brand-cream-2 px-2 py-1 text-left text-[10px] font-medium leading-tight text-brand-ink-2 hover:border-brand-red/40 hover:text-brand-red disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-brand-cream-3 disabled:hover:text-brand-ink-2"
                           >
                             <span className="line-clamp-1 block">
                               {variant.name}
-                              {disabled ? ` · ${t('outOfStock')}` : ''}
+                              {disabled ? ` · ${is86d ? t('unavailableToday') : t('outOfStock')}` : ''}
                             </span>
                             <span className="block text-[10px] font-semibold text-brand-red">
                               {formatRupiah(variant.sellPrice)}
@@ -223,8 +312,8 @@ export function ProductSearch() {
                   ) : (
                     <button
                       type="button"
-                      disabled={productOutOfStock}
-                      onClick={() => !productOutOfStock && handleAddProduct(product)}
+                      disabled={unavailable}
+                      onClick={() => !unavailable && handleAddProduct(product)}
                       className="mt-auto flex min-h-9 items-center justify-between rounded-md border border-brand-cream-3 bg-brand-cream-2 px-2 py-1 text-xs font-semibold text-brand-red hover:border-brand-red/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-brand-cream-3"
                     >
                       <span>{formatRupiah(product.defaultSellPrice)}</span>
