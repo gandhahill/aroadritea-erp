@@ -142,7 +142,7 @@ Concrete plan for G2 (larger item — split into staff board first, customer dis
 |-----|---------|------|
 | `de4952f` | feat(T-0300): implement buy_x_get_y/free_item promotion evaluation (G3a) | 2026-06-12 |
 | `0111183` | feat(T-0301): "86" product availability toggle in POS (G4) | 2026-06-12 |
-| `<pending>` | feat(T-0302): increment promotions.usageCount after sale (G15) | 2026-06-12 |
+| `f7d44be` | feat(T-0302): increment promotions.usageCount after sale (G15) | 2026-06-12 |
 
 ## Handoff Notes
 
