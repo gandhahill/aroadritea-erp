@@ -129,7 +129,7 @@ Concrete plan for G15:
 | SHA | Message | Date |
 |-----|---------|------|
 | `de4952f` | feat(T-0300): implement buy_x_get_y/free_item promotion evaluation (G3a) | 2026-06-12 |
-| `<pending>` | feat(T-0301): "86" product availability toggle in POS (G4) | 2026-06-12 |
+| `0111183` | feat(T-0301): "86" product availability toggle in POS (G4) | 2026-06-12 |
 
 ## Handoff Notes
 
