@@ -382,7 +382,24 @@ export async function createConsumedIngredientsAction(_prev: any, formData: Form
   const consumptionDate = String(formData.get('date') ?? '').trim();
   const notes = String(formData.get('notes') ?? '').trim() || null;
 
+  // Preserve original creator when editing (mirrors manual sales behavior)
+  let originalCreatedBy: string | null = null;
   if (existingReferenceId) {
+    const existingMovements = await db
+      .select({ createdBy: stockMovements.createdBy })
+      .from(stockMovements)
+      .where(
+        and(
+          eq(stockMovements.tenantId, ctx.tenantId),
+          eq(stockMovements.referenceType, MANUAL_INGREDIENT_CONSUMPTION),
+          eq(stockMovements.referenceId, existingReferenceId),
+          eq(stockMovements.reason, 'sale'),
+          isNull(stockMovements.deletedAt),
+        ),
+      )
+      .limit(1);
+    originalCreatedBy = existingMovements[0]?.createdBy ?? null;
+
     const reversed = await reverseConsumedIngredients(existingReferenceId, ctx, {
       notFound: t('consumedNotFound'),
     });
@@ -412,6 +429,11 @@ export async function createConsumedIngredientsAction(_prev: any, formData: Form
       updatedAt: new Date(),
       updatedBy: ctx.userId,
     };
+
+    // Restore original creator when editing so "dibuat oleh" stays correct
+    if (originalCreatedBy) {
+      updateSet.createdBy = originalCreatedBy;
+    }
 
     if (/^\d{4}-\d{2}-\d{2}$/.test(consumptionDate)) {
       const occurredAt = new Date(`${consumptionDate}T00:00:00+07:00`);

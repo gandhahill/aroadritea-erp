@@ -15,7 +15,7 @@ import {
   TableHead,
   toast,
 } from '@erp/ui';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useActionState, useEffect, useState } from 'react';
 import {
@@ -28,6 +28,13 @@ import {
 import { DraftsPanel, type PosDraftItem } from './drafts-panel';
 import { ExportManualSalesButton } from './export-manual-sales-button';
 
+function pickLocalized(value: unknown, locale: string): string {
+  const record = value as Record<string, string> | null | undefined;
+  if (!record || typeof record !== 'object') return String(value ?? '');
+  const key = locale === 'zh' ? 'zh' : locale === 'en' ? 'en' : 'id';
+  return record[key] ?? record.id ?? record.en ?? record.zh ?? '';
+}
+
 interface Props {
   data: ManualSalesPageData;
   defaultLocationId: string;
@@ -37,6 +44,7 @@ interface Props {
 export function ManualSalesClient({ data, defaultLocationId, drafts }: Props) {
   const t = useTranslations('pos.manualSales');
   const pagination = useTranslations('common.pagination');
+  const locale = useLocale();
   const [editId, setEditId] = useState<string | null>(null);
   const [editData, setEditData] = useState<any | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -792,11 +800,16 @@ export function ManualSalesClient({ data, defaultLocationId, drafts }: Props) {
                         setDetailModalOpen(true);
                         setDetailData(null);
                         setLoadingDetail(true);
-                        const res = await fetchManualSaleDetailAction(item.id);
-                        if (res.ok) {
-                          setDetailData(res.value);
+                        try {
+                          const res = await fetchManualSaleDetailAction(item.id);
+                          if (res.ok) {
+                            setDetailData(res.value);
+                          }
+                        } catch {
+                          // Error is handled by the detailData === null branch
+                        } finally {
+                          setLoadingDetail(false);
                         }
-                        setLoadingDetail(false);
                       }}
                     >
                       <Td>{item.number}</Td>
@@ -947,7 +960,11 @@ export function ManualSalesClient({ data, defaultLocationId, drafts }: Props) {
                         <tbody className="divide-y divide-brand-cream-3">
                           {detailData.stockMovements.map((m: any, i: number) => (
                             <tr key={i}>
-                              <td className="px-3 py-2 text-brand-ink">{m.productName}</td>
+                              <td className="px-3 py-2 text-brand-ink">
+                                {typeof m.productName === 'object'
+                                  ? pickLocalized(m.productName, locale)
+                                  : m.productName}
+                              </td>
                               <td className="px-3 py-2 text-right text-brand-red">
                                 {m.qtyDelta} {m.uom}
                               </td>

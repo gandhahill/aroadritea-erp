@@ -19,7 +19,18 @@ export default async function ManualSalesPage({
   const params = await searchParams;
   const page = Number.parseInt(params?.page ?? '1', 10);
   const pageSize = Number.parseInt(params?.pageSize ?? '10', 10);
-  const requestedLocationId = params?.locationId ?? String(user.locationId ?? '');
+
+  // Resolve employee outlet location when session has no locationId
+  let userLocationId = String(user.locationId ?? '');
+  if (!userLocationId) {
+    const tenantId = String(user.tenantId ?? 'default');
+    const userId = String(user.id ?? '');
+    const { resolveEmployeeForUser } = await import('@erp/services/hr');
+    const employee = await resolveEmployeeForUser(tenantId, userId);
+    userLocationId = employee?.locationId ?? '';
+  }
+
+  const requestedLocationId = params?.locationId ?? userLocationId;
   const [data, drafts] = await Promise.all([
     fetchManualSalesPageData(
       requestedLocationId || undefined,
