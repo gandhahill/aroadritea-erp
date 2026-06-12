@@ -110,7 +110,7 @@ Concrete plan for G4:
 
 | SHA | Message | Date |
 |-----|---------|------|
-| _(not yet committed)_ | | |
+| `de4952f` | feat(T-0300): implement buy_x_get_y/free_item promotion evaluation (G3a) | 2026-06-12 |
 
 ## Handoff Notes
 
