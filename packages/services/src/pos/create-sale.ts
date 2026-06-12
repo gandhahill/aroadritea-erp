@@ -49,7 +49,7 @@ import {
   salesOrders,
   shifts,
 } from '@erp/db/schema/pos';
-import { promotionApplications } from '@erp/db/schema/promotion';
+import { promotionApplications, promotions } from '@erp/db/schema/promotion';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
@@ -1335,6 +1335,18 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
     }
     await saveIdempotency(db, data.locationId, data.idempotencyKey, 200, { id: saleId });
     claimedIdempotencyId = null;
+
+    // 14b. Increment usage count for each distinct promotion applied to this
+    // sale, so `usageLimit` (checked in evaluatePromotions) actually binds (G15).
+    const appliedPromotionIds = [
+      ...new Set(promoResult.appliedPromotions.map((p) => p.promotionId)),
+    ];
+    if (appliedPromotionIds.length > 0) {
+      await db
+        .update(promotions)
+        .set({ usageCount: sql`${promotions.usageCount} + 1` })
+        .where(inArray(promotions.id, appliedPromotionIds));
+    }
 
     // 15. Audit log
     await db.insert(auditLog).values({

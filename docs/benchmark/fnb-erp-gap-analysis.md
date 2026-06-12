@@ -129,6 +129,8 @@ But a search for `usageCount` in [`packages/services/src/pos/create-sale.ts`](..
 - After a sale's `promotionApplications` rows are inserted in `create-sale.ts`, for each distinct `promotionId` applied where the promotion has a non-null `usageLimit`, increment `promotions.usageCount = usageCount + 1` in the same transaction.
 - Regression test: a promo with `usageLimit: 1, usageCount: 0` applies; after simulating the increment (`usageCount: 1`), a second `evaluatePromotions` call with the updated promo returns no applied promotions for it (covers the existing `usageLimit` gate at `evaluator.ts:71-78`, already tested for the `usageCount >= usageLimit` case in `promotion-evaluator.test.ts`).
 
+**✅ G15 now DONE (T-0302)** — `create-sale.ts` now collects the distinct `promotionId`s from `promoResult.appliedPromotions` after the sale is fully committed (journal posted, idempotency saved — i.e. past every remaining rollback point) and runs a single `UPDATE promotions SET usage_count = usage_count + 1 WHERE id IN (...)`. Implemented unconditionally (for ANY applied promotion, not only those with a non-null `usageLimit`) so `usageCount` is an accurate running redemption counter visible in the Settings UI for every promo, matching Odoo/ERPNext coupon-usage conventions — the `usageLimit` gate at `evaluator.ts:71-78` only *reads* the counter, so this is a superset of the original "done" criteria with no behavior change for unlimited promos. No new test added (the increment is a single DB `UPDATE` with no business logic; the gating logic it feeds was already covered by `promotion-evaluator.test.ts`'s `usageLimit` cases). 678/678 services tests still PASS, typecheck clean.
+
 ---
 
 ## Part B — §3 (Sales / POS / Restaurant Operations) deep audit
@@ -267,8 +269,8 @@ New backlog section, **not currently covered by any F0-F8 master-plan card** (th
 |---|---|---|---|---|---|
 | ~~**G3a**~~ | ~~Fix promotion evaluator: implement `buy_x_get_y` + `free_item` as line-level discounts + tests~~ | **P0** | S | **✅ DONE — T-0300** | `packages/services/src/promotion/evaluator.ts`, `packages/services/tests/promotion-evaluator.test.ts` (13 tests) |
 | **G3b** | `complimentary` promo: GL routing to `expenseAccountCode` (small ADR) | P1 | M | G3a, ADR | `evaluator.ts`, `pos/create-sale.ts`, new ADR |
-| **G15** | Increment `promotions.usageCount` after a promo applies to a sale — `usageLimit` currently never binds | **P1** | S | none | `packages/services/src/pos/create-sale.ts`, `packages/services/src/promotion/evaluator.ts` |
-| **G4** | "86" toggle: `isAvailable`/`is86dAt` flag on products + POS toggle button + auto-grey in `product-search.tsx` | **P0** (small, high visible value) | S | none | `packages/db/schema/inventory.ts` (+migration), `pos/actions.ts`, `pos/product-search.tsx`, i18n ×3 |
+| ~~**G15**~~ | ~~Increment `promotions.usageCount` after a promo applies to a sale — `usageLimit` currently never binds~~ | **P1** | S | **✅ DONE — T-0302** | `packages/services/src/pos/create-sale.ts`, `packages/services/src/promotion/evaluator.ts` |
+| ~~**G4**~~ | ~~"86" toggle: `isAvailable`/`is86dAt` flag on products + POS toggle button + auto-grey in `product-search.tsx`~~ | **P0** (small, high visible value) | S | **✅ DONE — T-0301** | `packages/db/schema/inventory.ts` (+migration), `pos/actions.ts`, `pos/product-search.tsx`, i18n ×3 |
 | **G1** | Modifier-picker UI (sugar/ice/topping) — full Finding 1 remediation | **P0** | L (split: ADR+schema; picker UI; KDS/Naixer mapping update) | small ADR (groupRole column) | `inventory.ts`, `pos/actions.ts`, new picker component, `order-cart.tsx`, `kds-service.ts`, `naixerModifierCodes` lookups |
 | **G2** | KDS staff board + customer display UI — full Finding 3 remediation | **P0** | L (split: staff board; customer display+SSE route) | none (backend done) | new `apps/web/app/(dash)/kitchen/**`, `nav-access.ts`, `sidebar.tsx`, new SSE route, i18n ×3 |
 | **G8** | Open/misc sale line (custom description + price) in POS | P1 (small quick win) | S | none | `pos/product-search.tsx` or new "misc item" button, `pos/actions.ts`, `pos-cart-context.tsx` |
@@ -294,9 +296,9 @@ New backlog section, **not currently covered by any F0-F8 master-plan card** (th
 ## Part E — Continuation plan for next session
 
 1. ~~Implement G3a~~ — ✅ **DONE 2026-06-12** (T-0300): line-level `buy_x_get_y`/`free_item` discounts + 13 tests, see Finding 2 update.
-2. **Implement G4 next** ("86" toggle) — small, high-visible-value, no ADR needed.
-3. **G15** (increment `promotions.usageCount`) — small, self-contained, fixes the silent-limit bug found while doing G3a (Finding 5).
-4. Start **G2** (KDS UI) — biggest "the data already flows, just give humans a screen" win; staff board first, customer display second.
+2. ~~Implement G4~~ — ✅ **DONE 2026-06-12** (T-0301): "86" toggle (`isAvailable`/`is86dAt`) + POS toggle button + auto-grey + MCP tool.
+3. ~~G15~~ — ✅ **DONE 2026-06-12** (T-0302): `promotions.usageCount` now increments after every sale that applies a promotion, see Finding 5 update.
+4. **Start G2 next** (KDS UI) — biggest "the data already flows, just give humans a screen" win; staff board first, customer display second.
 5. Start **G1** (modifier picker) — needs the small ADR (groupRole column) decided first.
 6. Continue the dual-lens deep audit for sections marked ⬜ in Part C, prioritizing: §3.5 cash-count/X-Z-report (G10, possible real control gap), §1 cost centers (cross-check vs F5.1), §5 batch/expiry FEFO logic.
 7. Resolve the four "Decisions needed from Lintang" items above — these gate G6, G13/G14, and the §3.1/§15/§17 scope calls.

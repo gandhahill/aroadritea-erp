@@ -44,6 +44,14 @@ Per Lintang's explicit multi-step instruction (verbatim, Bahasa Indonesia, must 
 - **Part D** (prioritized backlog G1-G15) + "decisions needed from Lintang" written.
 - **TASK.md updated**: T-0299 row in Active Tasks (top of table); "🍵 Backlog T-0299" section in the Backlog (G1-G15, G3a marked done); new T-0300 row in Phase 2 Done table.
 
+### Done this session — G15 implemented (T-0302)
+
+- `packages/services/src/pos/create-sale.ts`: imported `promotions` from `@erp/db/schema/promotion` (alongside the existing `promotionApplications` import). After step 14 (idempotency record saved — the last remaining rollback point), new step 14b collects `[...new Set(promoResult.appliedPromotions.map((p) => p.promotionId))]` and, if non-empty, runs `db.update(promotions).set({ usageCount: sql\`${promotions.usageCount} + 1\` }).where(inArray(promotions.id, appliedPromotionIds))`.
+- Placed deliberately AFTER journal creation/posting succeeds and idempotency is saved — every earlier failure path calls `rollbackSaleData()` which deletes `promotionApplications` rows but does NOT touch `promotions.usageCount`, so incrementing before those points would leave `usageCount` drifted on a failed/rolled-back sale.
+- Increment is unconditional (every applied promotion, not just those with `usageLimit` set) — refines the gap-analysis doc's original "done" criteria (gated on `usageLimit != null`) into a general redemption counter, with no behavior change to the `usageLimit` gate (`evaluator.ts:71-78`, unaffected, still only fires when `usageLimit` is non-null).
+- No new test file — single DB `UPDATE`, no new branching logic; the `usageLimit >= usageCount` gating logic this feeds was already covered by `promotion-evaluator.test.ts`.
+- Verified: `tsc --noEmit` clean for `packages/services`; scoped Biome on `create-sale.ts` clean; full services suite 678/678 PASS (the 1 failure seen under full-suite run, `tests/whistleblower-anonymity.test.ts`, is a pre-existing 5000ms-timeout flake under load — passes in isolation, unrelated to this change, not investigated further).
+
 ### Done this session — G4 implemented (T-0301)
 
 - New columns on `products` (`packages/db/schema/inventory.ts`): `isAvailable: boolean('is_available').notNull().default(true)` and `is86dAt: timestamp('is_86d_at', { withTimezone: true })` (nullable). Migration `packages/db/migrations/0044_fine_orphan.sql` generated via `pnpm generate` — **not yet applied to any database**.
@@ -86,22 +94,25 @@ Per Lintang's explicit multi-step instruction (verbatim, Bahasa Indonesia, must 
 
 ## Next step
 
-> **Implement G15** — increment `promotions.usageCount` when a promotion is applied to a sale, so `usageLimit` (checked in `evaluator.ts:71-78`) actually binds (Finding 5).
+> **Implement G2** — Kitchen Display System (KDS) staff board + customer display UI. Backend (`kds-service.ts` 399 lines/26 tests, `display-service.ts` 169 lines/11 tests, auto-queue at `create-sale.ts:1390`) is 100% done and tested; the gap is PURELY UI/route/nav/SSE — kitchen staff currently have no screen at all (Finding 3).
 
-Concrete plan for G15:
-1. Read `packages/services/src/pos/create-sale.ts` around where `promotionApplications` rows are inserted (grep `promotionApplications` / `appliedPromotions`) to find the exact insertion point.
-2. For each distinct `promotionId` applied to the sale, increment `promotions.usageCount` by 1 (or by the number of times it was applied, per business semantics — check `evaluator.ts:71-78` for how `usageCount` is compared against `usageLimit` to decide per-sale vs per-application increment).
-3. This must happen atomically within the same transaction as the sale insert (no separate audit needed beyond the existing sale audit trail — `usageCount` is a derived counter on `promotions`, not a new transactional entity).
-4. Add/extend a test in `packages/services/tests/promotion-evaluator.test.ts` or a new `create-sale`-adjacent test verifying `usageCount` increments after a sale and that a promo at `usageLimit` is excluded from the next evaluation.
-5. Run typecheck (services) + full services test suite + scoped Biome.
-6. Update TASK.md (new `T-0302`), this checkpoint (mark G15 done, set Next step to G2), commit `feat(T-0302): ...`, push.
+Concrete plan for G2 (larger item — split into staff board first, customer display second):
+1. Read `packages/services/src/kitchen/kds-service.ts` and `display-service.ts` fully to understand the exposed functions/state machine (`queued→making→ready→served/cancelled`) and what data shapes are returned.
+2. Check `packages/db/seed/iam.ts:717,849,952` for the `kitchen.view` permission and which roles already have it (kitchen staff role should exist already per the audit).
+3. **Staff board** (`apps/web/app/(dash)/kitchen/` or similar — check existing route-group conventions in `apps/web/app/(dash)/`): a page listing queued/making/ready KDS order items for the cashier's location, with action buttons to advance state (`queued→making→ready→served`), gated on `kitchen.view`/appropriate write permission. Add `nav-access.ts` + `sidebar.tsx` entries.
+4. **Customer display**: a public-ish (in-store TV) read-only view of "now preparing / ready for pickup" — likely needs a new SSE route mounted somewhere in `apps/web` or `apps/mcp` backed by `display-service.ts`. Check if `display-service.ts` already exposes an SSE-shaped API or just data-fetch functions.
+5. i18n ×3 (id/en/zh) for all new UI strings — kitchen staff default to Bahasa Indonesia per CLAUDE.md §9.
+6. Tests: if `kds-service`/`display-service` already have 26+11 tests, new UI-level tests are likely out of scope (no DB-integration test convention for `apps/web` pages observed so far) — but if new service-layer helper functions are added for the UI (e.g. a "list queue for location" wrapper), those should follow the existing tested pattern.
+7. Run typecheck (web + services) + relevant test suite + scoped Biome + i18n parity check.
+8. Update TASK.md (new `T-0303`), this checkpoint (mark G2 done, set Next step to G1), commit `feat(T-0303): ...`, push.
 
-**After G15**, per Part E: G2 (KDS UI — backend done, needs routes/nav/SSE) is the next larger item, then G1 (modifier picker, needs small ADR for `groupRole`).
+**After G2**, per Part E: G1 (modifier picker — needs small ADR for `groupRole` column on `product_modifier_groups` before coding) is next, then continue the §0-2/4-17 deep-audit passes and Lintang's 4 pending decisions.
 
 ## Test status
 
 - **Unit**: G3a (T-0300) — 13/13 new tests PASS, 678/678 total services tests PASS, typecheck clean.
 - G4 (T-0301) — no new tests (matches untested sibling mutation functions); typecheck (db/services/mcp/web) + permission-lint + scoped Biome + i18n JSON parse all PASS.
+- G15 (T-0302) — no new tests (single DB UPDATE, gating logic already covered); typecheck (services) + scoped Biome PASS; 678/678 services tests PASS (1 pre-existing flaky timeout under full-suite load in `whistleblower-anonymity.test.ts`, unrelated, passes in isolation).
 - **Integration**: N/A
 - **E2E**: N/A
 
@@ -110,8 +121,8 @@ Concrete plan for G15:
 | Path | Action | Note |
 |------|--------|------|
 | `docs/benchmark/fnb-erp-feature-checklist.md` | created (earlier in session) | ~260-item from-scratch checklist, §0-§17 |
-| `docs/benchmark/fnb-erp-gap-analysis.md` | created + edited | Living gap-analysis doc: Parts A-E; title renumbered T-0299; Finding 2 "G3a done" addendum; new Finding 5/G15; Part D/E updated |
-| `TASK.md` | edited | T-0298→T-0299 renumbering (Active Tasks row + Backlog section heading); G3a/G4 rows marked done; new G15 row; new T-0300/T-0301 Done-table rows |
+| `docs/benchmark/fnb-erp-gap-analysis.md` | created + edited | Living gap-analysis doc: Parts A-E; title renumbered T-0299; Finding 2 "G3a done"/Finding 5 "G15 done" addenda; Part D/E updated |
+| `TASK.md` | edited | T-0298→T-0299 renumbering (Active Tasks row + Backlog section heading); G3a/G4/G15 rows marked done; new T-0300/T-0301/T-0302 Done-table rows |
 | `docs/checkpoints/T-0299-fnb-erp-gap-audit.checkpoint.md` | created + edited | this file (replaces deleted `T-0298-fnb-erp-gap-audit.checkpoint.md`) |
 | `packages/services/src/promotion/evaluator.ts` | edited | G3a: `buy_x_get_y`/`free_item` line-level discounts via new `applyGetItemBenefit()` |
 | `packages/services/tests/promotion-evaluator.test.ts` | created | G3a: 13 new tests, all PASS |
@@ -123,6 +134,7 @@ Concrete plan for G15:
 | `apps/web/app/(dash)/pos/product-search.tsx` | edited | G4: 86'd products greyed out + badge + toggle button + error banner |
 | `apps/web/messages/{id,en,zh}.json` | edited | G4: `pos.unavailableToday`/`markUnavailableToday`/`markAvailableAgain`/`toggleAvailabilityFailed` |
 | `apps/mcp/src/tools/phase2.ts` + `apps/mcp/src/tools/index.ts` | edited | G4: new MCP tool `inventory.set_product_availability` |
+| `packages/services/src/pos/create-sale.ts` | edited | G15: import `promotions`; new step 14b increments `usageCount` for each distinct applied `promotionId` |
 
 ## Commits So Far
 
@@ -130,12 +142,13 @@ Concrete plan for G15:
 |-----|---------|------|
 | `de4952f` | feat(T-0300): implement buy_x_get_y/free_item promotion evaluation (G3a) | 2026-06-12 |
 | `0111183` | feat(T-0301): "86" product availability toggle in POS (G4) | 2026-06-12 |
+| `<pending>` | feat(T-0302): increment promotions.usageCount after sale (G15) | 2026-06-12 |
 
 ## Handoff Notes
 
 - This is a **multi-session marathon task** explicitly authorized by Lintang ("ini adalah tugas panjang, tolong kerjakan sampai selesai, tidak perlu terburu-buru"). Do not try to "wrap up" — pick the next G-item and keep going.
 - The from-scratch checklist (`fnb-erp-feature-checklist.md`) was deliberately written WITHOUT reading this repo first, to avoid anchoring bias — do not "fix" it to match repo reality; it's the *target*, the gap-analysis doc is the *comparison*.
 - When picking up §0-2/4-17 deep-audit passes (Part C ⬜ items), apply the SAME dual-lens standard as §3: don't just check "does a page exist" — trace one real user action through to confirm the backend logic actually fires (the KDS/modifier/promotion findings were all "page would suggest done, but trace the data flow and it dead-ends").
-- **Before assigning any new `T-NNNN`**: check the HIGHEST existing ID across BOTH the Active Tasks table AND the Done tables in TASK.md (not just one or the other) — this session hit a collision (T-0298 used twice) because a prior turn only checked one location. T-0301 is the highest used ID as of this checkpoint; next available is **T-0302**.
+- **Before assigning any new `T-NNNN`**: check the HIGHEST existing ID across BOTH the Active Tasks table AND the Done tables in TASK.md (not just one or the other) — this session hit a collision (T-0298 used twice) because a prior turn only checked one location. T-0302 is the highest used ID as of this checkpoint; next available is **T-0303**.
 - Migration `0044_fine_orphan.sql` (G4/T-0301, adds `products.is_available`/`is_86d_at`) is generated but **not applied to any database yet** — remember this when planning the next deploy (`drizzle-kit migrate` or the project's usual apply step).
-- If resuming after a long gap, re-read `docs/benchmark/fnb-erp-gap-analysis.md` Part E for the prioritized continuation order: G4 ✅ → G15 → G2 → G1 → remaining ⬜ audits → Lintang's 4 decisions.
+- If resuming after a long gap, re-read `docs/benchmark/fnb-erp-gap-analysis.md` Part E for the prioritized continuation order: G4 ✅ → G15 ✅ → G2 → G1 → remaining ⬜ audits → Lintang's 4 decisions.
