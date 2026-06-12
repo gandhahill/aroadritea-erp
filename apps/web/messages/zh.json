@@ -2029,6 +2029,7 @@
     "manualSales": "手动销售录入",
     "posOrders": "订单历史",
     "demoMode": "演示模式",
+    "kitchen": "厨房显示屏",
     "productsMenu": "产品与菜单",
     "recipes": "配方 (BOM)",
     "stockOpname": "库存盘点",
@@ -3530,6 +3531,36 @@
     "remainingBalance": "余额",
     "paidInFull": "已结清！",
     "thankYouForOrder": "感谢您的订购"
+  },
+  "kitchen": {
+    "title": "厨房显示屏",
+    "subtitle": "实时追踪并更新订单制作状态。",
+    "noLocations": "您尚无任何厨房看板的访问权限。",
+    "selectLocation": "门店",
+    "empty": "暂无订单",
+    "elapsedMinutes": "{minutes}分钟",
+    "columns": {
+      "queued": "等待中",
+      "making": "制作中",
+      "ready": "已完成"
+    },
+    "actions": {
+      "start": "开始制作",
+      "markReady": "标记完成",
+      "markServed": "标记已取",
+      "updating": "更新中…"
+    }
+  },
+  "kitchenDisplay": {
+    "title": "订单状态",
+    "connected": "已连接",
+    "disconnected": "连接中断",
+    "empty": "—",
+    "columns": {
+      "queued": "已接单",
+      "making": "制作中",
+      "ready": "可取餐"
+    }
   },
   "settings": {
     "title": "设置",

@@ -224,6 +224,9 @@ export const NAV_ACCESS: NavAccessEntry[] = [
   { href: '/pos/orders', labelKey: 'posOrders', sectionKey: 'pos', gate: 'pos.view' },
   { href: '/pos/demo', labelKey: 'demoMode', sectionKey: 'pos', gate: 'pos.demo.use' },
 
+  // Kitchen (KDS)
+  { href: '/kitchen', labelKey: 'kitchen', sectionKey: 'kitchen', gate: 'kitchen.view' },
+
   // Inventory
   {
     href: '/inventory/products',

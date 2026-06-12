@@ -2031,6 +2031,7 @@
     "manualSales": "Input Penjualan Manual",
     "posOrders": "Riwayat Pesanan",
     "demoMode": "Mode Demo",
+    "kitchen": "Tampilan Dapur",
     "promotions": "Promosi",
     "loyalty": "Loyalty / Poin",
     "attendancePolicy": "Kebijakan Presensi",
@@ -4122,6 +4123,36 @@
     "remainingBalance": "Sisa",
     "paidInFull": "Lunas!",
     "thankYouForOrder": "Terima kasih atas pesanannya"
+  },
+  "kitchen": {
+    "title": "Tampilan Dapur",
+    "subtitle": "Pantau dan perbarui status penyiapan pesanan secara real-time.",
+    "noLocations": "Anda belum memiliki akses ke papan dapur manapun.",
+    "selectLocation": "Outlet",
+    "empty": "Tidak ada pesanan",
+    "elapsedMinutes": "{minutes}m",
+    "columns": {
+      "queued": "Menunggu",
+      "making": "Diproses",
+      "ready": "Siap"
+    },
+    "actions": {
+      "start": "Mulai Buat",
+      "markReady": "Tandai Siap",
+      "markServed": "Tandai Diambil",
+      "updating": "Memperbarui…"
+    }
+  },
+  "kitchenDisplay": {
+    "title": "Status Pesanan",
+    "connected": "Terhubung",
+    "disconnected": "Terputus",
+    "empty": "—",
+    "columns": {
+      "queued": "Diterima",
+      "making": "Diproses",
+      "ready": "Siap Diambil"
+    }
   },
   "settings": {
     "title": "Pengaturan",

@@ -965,6 +965,7 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'pos.shift.open',
     'pos.shift.close',
     'promotion.view',
+    'kitchen.view',
     'hr.attendance.write',
     'hr.sop.read',
     'ai.assistant.use',

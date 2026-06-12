@@ -7,14 +7,17 @@
 
 import { db } from '@erp/db';
 import { kdsOrderItems } from '@erp/db/schema/kitchen';
+import { products, productVariants } from '@erp/db/schema/inventory';
 import { salesOrderLines, salesOrders } from '@erp/db/schema/pos';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
+
+type LocalizedName = { id: string; en: string; zh: string };
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -116,12 +119,33 @@ export async function queueOrderItems(
     );
   }
 
+  // Resolve product/variant display names (KDS shows the actual menu item, not
+  // a raw `productId`) — batch-fetched to avoid N+1 queries per line.
+  const productIds = [...new Set(lines.map((l) => l.productId))];
+  const variantIds = [...new Set(lines.map((l) => l.variantId).filter((v): v is string => !!v))];
+
+  const productRows = productIds.length
+    ? await db
+        .select({ id: products.id, name: products.name })
+        .from(products)
+        .where(inArray(products.id, productIds))
+    : [];
+  const variantRows = variantIds.length
+    ? await db
+        .select({ id: productVariants.id, name: productVariants.name })
+        .from(productVariants)
+        .where(inArray(productVariants.id, variantIds))
+    : [];
+
+  const productNameById = new Map(productRows.map((p) => [p.id, p.name as LocalizedName]));
+  const variantNameById = new Map(variantRows.map((v) => [v.id, v.name as LocalizedName]));
+
   const now = new Date();
   const results: KdsItemResult[] = [];
   const resolvedPickupNumber = input.pickupNumber ?? Math.floor(Math.random() * 999) + 1;
 
   for (const line of lines) {
-    const productSummary = buildProductSummary(line);
+    const productSummary = buildProductSummary(line, productNameById, variantNameById);
     const id = generateId();
     const qrPayload = line.kdsQrToken ?? line.kdsQrPayload;
 
@@ -380,8 +404,15 @@ export async function cancelOrderItems(
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-function buildProductSummary(line: typeof salesOrderLines.$inferSelect): string {
-  const parts: string[] = [`Product: ${line.productId}`];
+function buildProductSummary(
+  line: typeof salesOrderLines.$inferSelect,
+  productNameById: Map<string, LocalizedName>,
+  variantNameById: Map<string, LocalizedName>,
+): string {
+  // Kitchen staff UI defaults to Bahasa Indonesia (CLAUDE.md §9).
+  const productName = productNameById.get(line.productId)?.id ?? line.productId;
+  const variantName = line.variantId ? variantNameById.get(line.variantId)?.id : null;
+  const parts: string[] = [variantName ? `${productName} (${variantName})` : productName];
   if (line.modifierJson) {
     const mods = line.modifierJson as {
       sugar?: string;

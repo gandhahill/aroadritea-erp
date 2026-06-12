@@ -78,6 +78,10 @@ export function middleware(request: NextRequest) {
     // which posts without a session cookie. The route gates itself by
     // session-or-internal-secret, so middleware does not need to.
     '/api/error-report',
+    // Kitchen customer display kiosk (SD §21.7) — stateless screen with no
+    // session, shows the live order queue for one location.
+    '/kitchen-display',
+    '/api/kitchen/display',
     '/favicon.ico',
     '/favicon.svg',
     '/manifest.json',

@@ -2032,6 +2032,7 @@
     "manualSales": "Manual Sales Entry",
     "posOrders": "Order History",
     "demoMode": "Demo Mode",
+    "kitchen": "Kitchen Display",
     "promotions": "Promotions",
     "loyalty": "Loyalty / Points",
     "attendancePolicy": "Attendance Policy",
@@ -3530,6 +3531,36 @@
     "remainingBalance": "Remaining Balance",
     "paidInFull": "Paid in Full!",
     "thankYouForOrder": "Thank you for your order"
+  },
+  "kitchen": {
+    "title": "Kitchen Display",
+    "subtitle": "Track and update order preparation status in real time.",
+    "noLocations": "You don't have access to any kitchen board yet.",
+    "selectLocation": "Outlet",
+    "empty": "No orders",
+    "elapsedMinutes": "{minutes}m",
+    "columns": {
+      "queued": "Queued",
+      "making": "Preparing",
+      "ready": "Ready"
+    },
+    "actions": {
+      "start": "Start Preparing",
+      "markReady": "Mark Ready",
+      "markServed": "Mark Served",
+      "updating": "Updating…"
+    }
+  },
+  "kitchenDisplay": {
+    "title": "Order Status",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "empty": "—",
+    "columns": {
+      "queued": "Received",
+      "making": "Preparing",
+      "ready": "Ready for Pickup"
+    }
   },
   "settings": {
     "title": "Settings",
