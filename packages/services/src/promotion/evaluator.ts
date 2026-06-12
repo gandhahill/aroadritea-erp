@@ -130,8 +130,22 @@ export function evaluatePromotions(
       if (discountAmount > remainingCartSubtotal) {
         discountAmount = remainingCartSubtotal;
       }
+    } else if (promo.kind === 'buy_x_get_y' || promo.kind === 'free_item') {
+      const lineDiscounts = applyGetItemBenefit(promo, cart);
+      if (lineDiscounts.length === 0) continue;
+
+      for (const entry of lineDiscounts) {
+        result.appliedPromotions.push(entry);
+        result.totalDiscount += entry.discountAmount;
+        remainingCartSubtotal -= entry.discountAmount;
+      }
+
+      if (!promo.stackable) {
+        hasNonStackable = true;
+      }
+      continue;
     } else {
-      // 'buy_x_get_y', 'free_item', 'complimentary' not fully implemented yet
+      // 'complimentary' not implemented yet — GL expense routing needs an ADR (see G3b)
       continue;
     }
 
@@ -151,4 +165,58 @@ export function evaluatePromotions(
   }
 
   return result;
+}
+
+/**
+ * Computes line-level discounts for 'buy_x_get_y' and 'free_item' promotions.
+ *
+ * Both kinds discount up to `getQty` units of `getProductId` by `discountBps`
+ * (default 10000 = 100%, i.e. free). 'buy_x_get_y' additionally requires the
+ * cart to already hold >= `buyQty` units of `buyProductId`; 'free_item' relies
+ * only on the generic conditions checked earlier in evaluatePromotions.
+ *
+ * Promotions only discount items already in the cart — they never add new lines.
+ * `getVariantId` is not matched: CartLine carries no variant dimension yet.
+ */
+function applyGetItemBenefit(promo: PromotionItem, cart: Cart): AppliedPromotion[] {
+  const { benefits } = promo;
+  const getProductId = benefits.getProductId;
+  const getQty = benefits.getQty ?? 0;
+  if (!getProductId || getQty <= 0) return [];
+
+  if (promo.kind === 'buy_x_get_y') {
+    const buyProductId = benefits.buyProductId;
+    const buyQty = benefits.buyQty ?? 0;
+    if (!buyProductId || buyQty <= 0) return [];
+
+    const ownedQty = cart.lines
+      .filter((l) => l.productId === buyProductId)
+      .reduce((sum, l) => sum + l.qty, 0);
+    if (ownedQty < buyQty) return [];
+  }
+
+  const targetLines = cart.lines.filter((l) => l.productId === getProductId);
+  if (targetLines.length === 0) return [];
+
+  const discountBps = benefits.discountBps ?? 10000;
+  let remainingQty = getQty;
+  const applied: AppliedPromotion[] = [];
+
+  for (const line of targetLines) {
+    if (remainingQty <= 0) break;
+    const units = Math.min(line.qty, remainingQty);
+    const perUnitDiscount = (line.unitPrice * BigInt(discountBps)) / BigInt(10000);
+    const discountAmount = perUnitDiscount * BigInt(units);
+    if (discountAmount <= rupiah(0)) continue;
+
+    applied.push({
+      promotionId: promo.id,
+      discountAmount,
+      appliesTo: 'line',
+      lineId: line.id,
+    });
+    remainingQty -= units;
+  }
+
+  return applied;
 }
