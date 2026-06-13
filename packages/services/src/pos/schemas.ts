@@ -32,15 +32,25 @@ export type CloseShiftInput = z.infer<typeof CloseShiftInputSchema>;
 
 // ─── Sales Order ──────────────────────────────────────────────────────────────
 
+// Modifier selection — ADR-0019. Canonical shape for sales_order_lines.modifier_json.
+const ModifierSelectionSchema = z.object({
+  groupId: z.string().min(1),
+  groupRole: z.enum(['sugar', 'ice', 'topping', 'size', 'cup', 'other', 'custom']),
+  groupName: z.string().min(1),
+  optionId: z.string().min(1),
+  optionName: z.string().min(1),
+  extraPrice: z.string().regex(/^\d+$/), // bigint rupiah, snapshot at order time
+});
+
 const LineInputSchema = z
   .object({
     productId: z.string().min(1),
     variantId: z.string().optional(),
     qty: z.number().int().positive(),
-    unitPrice: z.string().regex(/^\d+$/), // bigint rupiah (inclusive PB1)
+    unitPrice: z.string().regex(/^\d+$/), // bigint rupiah (inclusive PB1, incl. modifier extras)
     lineDiscount: z.string().regex(/^\d+$/).optional().default('0'),
     lineDiscountReason: z.string().trim().min(3).max(255).optional(),
-    modifierJson: z.record(z.string(), z.unknown()).optional(),
+    modifierJson: z.array(ModifierSelectionSchema).optional(),
     notes: z.string().optional(),
   })
   .superRefine((line, ctx) => {

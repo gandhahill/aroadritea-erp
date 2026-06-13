@@ -17,6 +17,7 @@
     "./log-scrub": "./src/security/log-scrub.ts",
     "./hmac": "./src/security/hmac.ts",
     "./i18n-keys": "./src/i18n-keys/index.ts",
+    "./pos/modifiers": "./src/pos/modifiers.ts",
     "./erp/entity-extension-registry": "./src/erp/entity-extension-registry.ts",
     "./amount-to-words": "./src/amount-to-words.ts",
     "./binderbyte-couriers": "./src/binderbyte-couriers.ts",

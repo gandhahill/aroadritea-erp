@@ -16,6 +16,8 @@ export type {
   DbProduct,
   DbVariant,
   DbModifier,
+  DbModifierGroup,
+  DbModifierGroupOption,
   DbPromotion,
   DbTaxRate,
   DbShift,

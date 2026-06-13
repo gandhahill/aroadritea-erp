@@ -2525,6 +2525,13 @@
       "date": "日期",
       "orderNumber": "订单号"
     },
+    "modifierPicker": {
+      "subtitle": "选择选项后再加入订单。",
+      "required": "必选",
+      "optional": "可选",
+      "maxSelections": "最多 {count} 项",
+      "addToCart": "加入订单"
+    },
     "common": {
       "cancel": "取消",
       "delete": "删除"

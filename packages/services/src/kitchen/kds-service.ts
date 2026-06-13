@@ -11,6 +11,7 @@ import { products, productVariants } from '@erp/db/schema/inventory';
 import { salesOrderLines, salesOrders } from '@erp/db/schema/pos';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
+import { groupModifierSelectionsByRole, parseModifierSelections } from '@erp/shared/pos/modifiers';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, desc, eq, inArray, sql } from 'drizzle-orm';
@@ -404,7 +405,7 @@ export async function cancelOrderItems(
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-function buildProductSummary(
+export function buildProductSummary(
   line: typeof salesOrderLines.$inferSelect,
   productNameById: Map<string, LocalizedName>,
   variantNameById: Map<string, LocalizedName>,
@@ -413,17 +414,12 @@ function buildProductSummary(
   const productName = productNameById.get(line.productId)?.id ?? line.productId;
   const variantName = line.variantId ? variantNameById.get(line.variantId)?.id : null;
   const parts: string[] = [variantName ? `${productName} (${variantName})` : productName];
-  if (line.modifierJson) {
-    const mods = line.modifierJson as {
-      sugar?: string;
-      ice?: string;
-      toppings?: Array<{ name: string }>;
-    };
-    if (mods.sugar) parts.push(`Sugar: ${mods.sugar}`);
-    if (mods.ice) parts.push(`Ice: ${mods.ice}`);
-    if (mods.toppings?.length) {
-      parts.push(`Toppings: ${mods.toppings.map((t) => t.name).join(', ')}`);
-    }
+  const grouped = groupModifierSelectionsByRole(parseModifierSelections(line.modifierJson));
+  for (const selections of grouped.values()) {
+    const [first] = selections;
+    if (!first) continue;
+    const optionNames = selections.map((s) => s.optionName).join(', ');
+    parts.push(`${first.groupName}: ${optionNames}`);
   }
   return parts.join(' | ');
 }

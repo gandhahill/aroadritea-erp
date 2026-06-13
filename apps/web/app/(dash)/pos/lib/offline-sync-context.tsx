@@ -22,6 +22,7 @@ import {
   maxPendingOrderAttempts,
   startHeartbeat,
   startSyncScheduler,
+  upsertModifierGroups,
   upsertModifiers,
   upsertProducts,
   upsertPromotions,
@@ -95,6 +96,7 @@ export function OfflineSyncProvider({ children }: { children: React.ReactNode })
         upsertProducts(data.products as any),
         upsertVariants(data.variants as any),
         upsertModifiers(data.modifiers as any),
+        upsertModifierGroups(data.modifierGroups as any),
         upsertPromotions(data.promotions as any),
         upsertTaxRates(data.taxRates as any),
       ]);

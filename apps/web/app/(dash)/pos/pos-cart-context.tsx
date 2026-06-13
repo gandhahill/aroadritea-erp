@@ -14,6 +14,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import type { ModifierSelection } from '@erp/shared/pos/modifiers';
 import { applyVoucherAction, evaluateCartPromotionsAction } from './actions';
 
 export interface CartLine {
@@ -23,8 +24,8 @@ export interface CartLine {
   productName: string;
   variantName?: string;
   qty: number;
-  unitPrice: string; // bigint string
-  modifierJson?: Record<string, unknown>;
+  unitPrice: string; // bigint string, includes modifier extraPrice (ADR-0019)
+  modifierJson?: ModifierSelection[];
   notes?: string;
   lineDiscount?: string;
   lineDiscountReason?: string;

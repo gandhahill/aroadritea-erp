@@ -16,15 +16,24 @@ import {
   getMasterSnapshotAgeMs,
   isMasterStale,
   setDemoMeta,
+  upsertDemoModifierGroups,
   upsertDemoModifiers,
   upsertDemoProducts,
   upsertDemoPromotions,
   upsertDemoTaxRates,
   upsertDemoVariants,
 } from './demo-db';
-import type { DbModifier, DbProduct, DbPromotion, DbTaxRate, DbVariant } from './indexeddb';
+import type {
+  DbModifier,
+  DbModifierGroup,
+  DbProduct,
+  DbPromotion,
+  DbTaxRate,
+  DbVariant,
+} from './indexeddb';
 import {
   getActivePromotions,
+  getModifierGroups,
   getModifiers,
   getProducts,
   getTaxRates,
@@ -35,6 +44,7 @@ export interface DemoMasterDataSource {
   products: DbProduct[];
   variants: DbVariant[];
   modifiers: DbModifier[];
+  modifierGroups: DbModifierGroup[];
   promotions: DbPromotion[];
   taxRates: DbTaxRate[];
 }
@@ -59,6 +69,7 @@ async function writeDemoMasterData(
     upsertDemoProducts(source.products),
     upsertDemoVariants(source.variants),
     upsertDemoModifiers(source.modifiers),
+    upsertDemoModifierGroups(source.modifierGroups),
     upsertDemoPromotions(source.promotions),
     upsertDemoTaxRates(source.taxRates),
   ]);
@@ -115,15 +126,19 @@ export async function snapshotMasterData(): Promise<SnapshotResult> {
 
   try {
     // Read from production IndexedDB
-    const [products, variants, modifiers, promotions, taxRates] = await Promise.all([
+    const [products, variants, modifiers, modifierGroups, promotions, taxRates] = await Promise.all([
       getProducts(),
       getVariants(),
       getModifiers(),
+      getModifierGroups(),
       getActivePromotions(),
       getTaxRates(),
     ]);
 
-    return writeDemoMasterData({ products, variants, modifiers, promotions, taxRates }, snapshotAt);
+    return writeDemoMasterData(
+      { products, variants, modifiers, modifierGroups, promotions, taxRates },
+      snapshotAt,
+    );
   } catch (err) {
     errors.push(err instanceof Error ? err.message : String(err));
     return {

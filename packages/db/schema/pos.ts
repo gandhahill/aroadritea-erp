@@ -25,6 +25,7 @@ import {
   timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
+import type { ModifierSelection } from '@erp/shared/pos/modifiers';
 import { auditCols, locationCol, pk, tenantCol, versionCol } from './common';
 
 // ─── Shifts ───────────────────────────────────────────────────────────────────
@@ -321,12 +322,8 @@ export const salesOrderLines = pgTable(
     lineTax: bigint('line_tax', { mode: 'bigint' }).notNull().default(sql`0`),
     lineTotal: bigint('line_total', { mode: 'bigint' }).notNull(),
 
-    // Modifier snapshot — frozen at order time
-    modifierJson: jsonb('modifier_json').$type<{
-      sugar?: string;
-      ice?: string;
-      toppings?: Array<{ name: string; price: number }>;
-    }>(),
+    // Modifier snapshot — frozen at order time (ADR-0019)
+    modifierJson: jsonb('modifier_json').$type<ModifierSelection[]>(),
 
     // KDS integration (SD §33)
     kdsQrToken: text('kds_qr_token'),

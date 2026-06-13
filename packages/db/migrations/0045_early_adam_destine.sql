@@ -1,0 +1,1 @@
+ALTER TABLE "product_modifier_groups" ADD COLUMN "group_role" text DEFAULT 'custom' NOT NULL;

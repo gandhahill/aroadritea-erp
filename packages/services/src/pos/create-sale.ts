@@ -52,6 +52,7 @@ import {
 import { promotionApplications, promotions } from '@erp/db/schema/promotion';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
+import { parseModifierSelections, sumModifierExtraPrice } from '@erp/shared/pos/modifiers';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray, sql } from 'drizzle-orm';
@@ -401,14 +402,10 @@ function ingredientUomMismatchError(
 }
 
 function normalizeNaixerModifiers(modifierJson: unknown): NaixerModifierInput[] {
-  if (!Array.isArray(modifierJson)) return [];
-  return modifierJson.flatMap((item) => {
-    if (!item || typeof item !== 'object') return [];
-    const record = item as Record<string, unknown>;
-    const kind = typeof record.kind === 'string' ? record.kind : null;
-    const optionId = typeof record.optionId === 'string' ? record.optionId : null;
-    return kind && optionId ? [{ kind, optionId }] : [];
-  });
+  return parseModifierSelections(modifierJson).map((selection) => ({
+    kind: selection.groupRole,
+    optionId: selection.optionId,
+  }));
 }
 
 /** Deduct ingredients from stock_levels. */
@@ -678,6 +675,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
       }
 
       const submittedPrice = BigInt(line.unitPrice);
+      const modifierExtra = sumModifierExtraPrice(parseModifierSelections(line.modifierJson));
       if (line.variantId) {
         const variant = variantMap.get(line.variantId);
         if (!variant) {
@@ -694,7 +692,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
           );
         }
         const expectedPrice =
-          variant.sellPrice > BigInt(0) ? variant.sellPrice : p.defaultSellPrice;
+          (variant.sellPrice > BigInt(0) ? variant.sellPrice : p.defaultSellPrice) + modifierExtra;
         if (submittedPrice !== expectedPrice) {
           return err(
             AppError.businessRule('pos.createSale.priceMismatch', {
@@ -705,11 +703,11 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
             }),
           );
         }
-      } else if (submittedPrice !== p.defaultSellPrice) {
+      } else if (submittedPrice !== p.defaultSellPrice + modifierExtra) {
         return err(
           AppError.businessRule('pos.createSale.priceMismatch', {
             productId: line.productId,
-            expected: p.defaultSellPrice.toString(),
+            expected: (p.defaultSellPrice + modifierExtra).toString(),
             actual: submittedPrice.toString(),
           }),
         );

@@ -4,8 +4,10 @@
  * Tests status transitions (pure logic) and type contracts.
  */
 
+import type { salesOrderLines } from '@erp/db/schema/pos';
+import type { ModifierSelection } from '@erp/shared/pos/modifiers';
 import { describe, expect, it } from 'vitest';
-import { type KdsStatus, isValidTransition } from '../src/kitchen/kds-service';
+import { type KdsStatus, buildProductSummary, isValidTransition } from '../src/kitchen/kds-service';
 
 // ─── Status transition validation ───────────────────────────────────────────
 
@@ -150,5 +152,97 @@ describe('transition table completeness', () => {
   it('cancelled has 0 valid targets', () => {
     const validTargets = ALL_STATUSES.filter((to) => isValidTransition('cancelled', to));
     expect(validTargets).toHaveLength(0);
+  });
+});
+
+// ─── buildProductSummary (G1/ADR-0019 — ModifierSelection[] display) ───────────
+
+describe('buildProductSummary', () => {
+  const productNameById = new Map([
+    ['prod-tea', { id: 'Es Teh Lemon', en: 'Iced Lemon Tea', zh: '柠檬冰茶' }],
+  ]);
+  const variantNameById = new Map([['var-large', { id: 'Besar', en: 'Large', zh: '大' }]]);
+
+  function line(overrides: {
+    productId?: string;
+    variantId?: string | null;
+    modifierJson?: ModifierSelection[] | null;
+  }): typeof salesOrderLines.$inferSelect {
+    return {
+      productId: overrides.productId ?? 'prod-tea',
+      variantId: overrides.variantId ?? null,
+      modifierJson: overrides.modifierJson ?? null,
+    } as unknown as typeof salesOrderLines.$inferSelect;
+  }
+
+  it('shows just the product name when there are no modifiers', () => {
+    expect(buildProductSummary(line({}), productNameById, variantNameById)).toBe('Es Teh Lemon');
+  });
+
+  it('includes variant name in parentheses', () => {
+    expect(buildProductSummary(line({ variantId: 'var-large' }), productNameById, variantNameById)).toBe(
+      'Es Teh Lemon (Besar)',
+    );
+  });
+
+  it('groups sugar/ice/topping selections by groupRole using the snapshotted group name', () => {
+    const modifierJson: ModifierSelection[] = [
+      {
+        groupId: 'modgrp-sugar-level',
+        groupRole: 'sugar',
+        groupName: 'Level Gula',
+        optionId: 'modopt-sugar-less',
+        optionName: 'Less Sugar',
+        extraPrice: '0',
+      },
+      {
+        groupId: 'modgrp-ice-level',
+        groupRole: 'ice',
+        groupName: 'Level Es',
+        optionId: 'modopt-ice-normal',
+        optionName: 'Normal Ice',
+        extraPrice: '0',
+      },
+      {
+        groupId: 'modgrp-topping',
+        groupRole: 'topping',
+        groupName: 'Topping',
+        optionId: 'modopt-topping-cheese-pearl',
+        optionName: 'Cheese Pearl',
+        extraPrice: '5000',
+      },
+      {
+        groupId: 'modgrp-topping',
+        groupRole: 'topping',
+        groupName: 'Topping',
+        optionId: 'modopt-topping-oat-pearl',
+        optionName: 'Oat Pearl',
+        extraPrice: '5000',
+      },
+    ];
+
+    expect(buildProductSummary(line({ modifierJson }), productNameById, variantNameById)).toBe(
+      'Es Teh Lemon | Level Gula: Less Sugar | Level Es: Normal Ice | Topping: Cheese Pearl, Oat Pearl',
+    );
+  });
+
+  it('ignores malformed modifierJson (legacy/dead shapes) instead of throwing', () => {
+    const legacyObjectShape = { sugar: 'Normal', ice: 'Less', toppings: [{ name: 'Pearl' }] };
+    expect(
+      buildProductSummary(
+        line({ modifierJson: legacyObjectShape as unknown as ModifierSelection[] }),
+        productNameById,
+        variantNameById,
+      ),
+    ).toBe('Es Teh Lemon');
+
+    const legacyArrayShape = [{ kind: 'sugar', optionId: 'modopt-sugar-normal' }];
+    expect(
+      buildProductSummary(
+        line({ modifierJson: legacyArrayShape as unknown as ModifierSelection[] }),
+        productNameById,
+        variantNameById,
+      ),
+    ).toBe('Es Teh Lemon');
   });
 });

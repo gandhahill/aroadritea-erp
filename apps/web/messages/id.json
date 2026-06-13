@@ -2525,6 +2525,13 @@
       "date": "Tgl",
       "orderNumber": "No."
     },
+    "modifierPicker": {
+      "subtitle": "Pilih opsi sebelum menambahkan ke pesanan.",
+      "required": "Wajib",
+      "optional": "Opsional",
+      "maxSelections": "maks. {count}",
+      "addToCart": "Tambah ke Pesanan"
+    },
     "common": {
       "cancel": "Batal",
       "delete": "Hapus"

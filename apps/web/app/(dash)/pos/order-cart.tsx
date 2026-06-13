@@ -108,6 +108,11 @@ function CartLineItem({
             <p className="text-sm font-medium text-brand-ink">{line.productName}</p>
           </div>
           {line.variantName && <p className="text-xs text-brand-ink-3">{line.variantName}</p>}
+          {line.modifierJson && line.modifierJson.length > 0 && (
+            <p className="text-xs text-brand-ink-3">
+              {line.modifierJson.map((m) => m.optionName).join(', ')}
+            </p>
+          )}
         </div>
 
         {/* Line total */}

@@ -1,6 +1,7 @@
 'use client';
 
 import type { DemoOrder } from '@erp/offline';
+import { groupModifierSelectionsByRole, parseModifierSelections } from '@erp/shared/pos/modifiers';
 import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
 
@@ -21,20 +22,10 @@ function buildLabels(order: DemoOrder): LabelEntry[] {
   const total = order.lines.reduce((sum, l) => sum + Math.ceil(Number(l.qty)), 0);
   for (const line of order.lines) {
     const count = Math.ceil(Number(line.qty));
-    const mods = line.modifierJson as
-      | { sugar?: string; ice?: string; toppings?: Array<{ name?: string }> }
-      | undefined;
-    const parts: string[] = [];
-    if (mods?.sugar) parts.push(`Gula ${mods.sugar}`);
-    if (mods?.ice) parts.push(`Es ${mods.ice}`);
-    if (mods?.toppings && mods.toppings.length > 0) {
-      parts.push(
-        mods.toppings
-          .map((t) => t.name)
-          .filter((n): n is string => Boolean(n))
-          .join(', '),
-      );
-    }
+    const grouped = groupModifierSelectionsByRole(parseModifierSelections(line.modifierJson));
+    const parts = [...grouped.values()].map((selections) =>
+      selections.map((s) => s.optionName).join(', '),
+    );
     const modifier = parts.length > 0 ? parts.join(' · ') : null;
     for (let i = 0; i < count; i++) {
       running += 1;

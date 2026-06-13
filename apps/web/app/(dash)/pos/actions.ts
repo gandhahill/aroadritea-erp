@@ -13,6 +13,8 @@ import { and, db, desc, eq, ilike, inArray, isNull, or, sql } from '@erp/db';
 import { taxRates } from '@erp/db/schema/accounting';
 import {
   productCategories,
+  productModifierGroups,
+  productModifierLinks,
   productModifierOptions,
   productVariants,
   products,
@@ -21,6 +23,7 @@ import {
 import { memberVouchers } from '@erp/db/schema/member';
 import { posSettings, salesOrders, shifts } from '@erp/db/schema/pos';
 import { promotions } from '@erp/db/schema/promotion';
+import type { ModifierGroupRole } from '@erp/shared/pos/modifiers';
 import { requirePermission } from '@erp/services/iam';
 import { setProductAvailability } from '@erp/services/inventory';
 import { type MemberLookupResult, findMemberByPhone } from '@erp/services/member';
@@ -66,6 +69,8 @@ export interface ProductListItem {
   isAvailable: boolean;
   /** Whether the current user may toggle `isAvailable` (inventory.product.update). */
   canToggleAvailability: boolean;
+  /** Modifier groups linked to this product (sugar/ice/topping pickers — G1). */
+  modifierGroups: ModifierGroupItem[];
 }
 
 export interface VariantItem {
@@ -76,6 +81,27 @@ export interface VariantItem {
   attributes: Record<string, string>;
   /** Same null/"0" convention as ProductListItem.qtyAvailable, scoped to this variant. */
   qtyAvailable: string | null;
+}
+
+/** Modifier option within a group — ADR-0019 / G1 picker UI. */
+export interface ModifierOptionItem {
+  id: string;
+  name: string;
+  extraPrice: string;
+  isDefault: boolean;
+  sortOrder: number;
+}
+
+/** Modifier group linked to a product (e.g. sugar level, ice level, topping). */
+export interface ModifierGroupItem {
+  id: string;
+  name: string;
+  groupRole: ModifierGroupRole;
+  selectionType: 'single' | 'multiple';
+  isRequired: boolean;
+  maxSelections: number | null;
+  sortOrder: number;
+  options: ModifierOptionItem[];
 }
 
 export interface ShiftStatusItem {
@@ -329,6 +355,84 @@ export async function fetchProducts(params: {
     categoryRows.map((c) => [c.id, c.name as NameRecord]),
   );
 
+  // Modifier groups linked to each product (sugar/ice/topping pickers — G1/ADR-0019)
+  const linkRows = productIds.length
+    ? await db
+        .select({
+          productId: productModifierLinks.productId,
+          modifierGroupId: productModifierLinks.modifierGroupId,
+          sortOrder: productModifierLinks.sortOrder,
+        })
+        .from(productModifierLinks)
+        .where(inArray(productModifierLinks.productId, productIds))
+        .orderBy(productModifierLinks.sortOrder)
+    : [];
+
+  const modifierGroupIds = [...new Set(linkRows.map((l) => l.modifierGroupId))];
+  const modifierGroupRows = modifierGroupIds.length
+    ? await db
+        .select()
+        .from(productModifierGroups)
+        .where(
+          and(
+            eq(productModifierGroups.tenantId, ctx.tenantId),
+            eq(productModifierGroups.isActive, true),
+            inArray(productModifierGroups.id, modifierGroupIds),
+          ),
+        )
+    : [];
+  const modifierOptionRows = modifierGroupIds.length
+    ? await db
+        .select()
+        .from(productModifierOptions)
+        .where(
+          and(
+            eq(productModifierOptions.tenantId, ctx.tenantId),
+            eq(productModifierOptions.isActive, true),
+            inArray(productModifierOptions.groupId, modifierGroupIds),
+          ),
+        )
+        .orderBy(productModifierOptions.sortOrder)
+    : [];
+
+  const optionsByGroup = new Map<string, ModifierOptionItem[]>();
+  for (const o of modifierOptionRows) {
+    const list = optionsByGroup.get(o.groupId) ?? [];
+    list.push({
+      id: o.id,
+      name: localizeName(o.name, locale, o.id),
+      extraPrice: o.extraPrice.toString(),
+      isDefault: o.isDefault,
+      sortOrder: o.sortOrder,
+    });
+    optionsByGroup.set(o.groupId, list);
+  }
+
+  const modifierGroupById = new Map<string, ModifierGroupItem>(
+    modifierGroupRows.map((g) => [
+      g.id,
+      {
+        id: g.id,
+        name: localizeName(g.name, locale, g.id),
+        groupRole: g.groupRole as ModifierGroupRole,
+        selectionType: g.selectionType as 'single' | 'multiple',
+        isRequired: g.isRequired,
+        maxSelections: g.maxSelections,
+        sortOrder: g.sortOrder,
+        options: optionsByGroup.get(g.id) ?? [],
+      },
+    ]),
+  );
+
+  const modifierGroupsByProduct = new Map<string, ModifierGroupItem[]>();
+  for (const link of linkRows) {
+    const group = modifierGroupById.get(link.modifierGroupId);
+    if (!group) continue;
+    const list = modifierGroupsByProduct.get(link.productId) ?? [];
+    list.push(group);
+    modifierGroupsByProduct.set(link.productId, list);
+  }
+
   // Stock per outlet (current shift location). A row in stock_levels with
   // qtyAvailable > 0 = available; qtyAvailable = 0 = out of stock; no row at
   // all = untracked (treat as available). We keep two maps: one keyed by
@@ -394,6 +498,7 @@ export async function fetchProducts(params: {
       qtyAvailable: productQty !== undefined ? String(productQty) : null,
       isAvailable: p.isAvailable,
       canToggleAvailability,
+      modifierGroups: modifierGroupsByProduct.get(p.id) ?? [],
     };
   });
 }
@@ -520,7 +625,7 @@ export async function fetchMasterDataRaw() {
   const ctx = await getAuditContext();
   const perm = await requirePermission(ctx.userId, 'pos.transact', { locationId: ctx.locationId });
   if (!perm.ok) {
-    return { products: [], variants: [], modifiers: [], promotions: [], taxRates: [] };
+    return { products: [], variants: [], modifiers: [], modifierGroups: [], promotions: [], taxRates: [] };
   }
 
   const productRows = await db
@@ -569,6 +674,77 @@ export async function fetchMasterDataRaw() {
     return String(name);
   }
 
+  // Modifier groups + options for the offline picker UI (G1/ADR-0019)
+  const productIds = productRows.map((p) => p.id);
+  const linkRows = productIds.length
+    ? await db
+        .select({
+          productId: productModifierLinks.productId,
+          modifierGroupId: productModifierLinks.modifierGroupId,
+          sortOrder: productModifierLinks.sortOrder,
+        })
+        .from(productModifierLinks)
+        .where(inArray(productModifierLinks.productId, productIds))
+        .orderBy(productModifierLinks.sortOrder)
+    : [];
+  const modifierGroupIds = [...new Set(linkRows.map((l) => l.modifierGroupId))];
+  const modifierGroupRows = modifierGroupIds.length
+    ? await db
+        .select()
+        .from(productModifierGroups)
+        .where(
+          and(
+            eq(productModifierGroups.tenantId, ctx.tenantId),
+            eq(productModifierGroups.isActive, true),
+            inArray(productModifierGroups.id, modifierGroupIds),
+          ),
+        )
+    : [];
+  const modifierOptionRows = modifierGroupIds.length
+    ? await db
+        .select()
+        .from(productModifierOptions)
+        .where(
+          and(
+            eq(productModifierOptions.tenantId, ctx.tenantId),
+            eq(productModifierOptions.isActive, true),
+            inArray(productModifierOptions.groupId, modifierGroupIds),
+          ),
+        )
+        .orderBy(productModifierOptions.sortOrder)
+    : [];
+
+  const optionsByGroup = new Map<string, ModifierOptionItem[]>();
+  for (const o of modifierOptionRows) {
+    const list = optionsByGroup.get(o.groupId) ?? [];
+    list.push({
+      id: o.id,
+      name: localizeNameRaw(o.name),
+      extraPrice: o.extraPrice.toString(),
+      isDefault: o.isDefault,
+      sortOrder: o.sortOrder,
+    });
+    optionsByGroup.set(o.groupId, list);
+  }
+
+  const modifierGroupItems: ModifierGroupItem[] = modifierGroupRows.map((g) => ({
+    id: g.id,
+    name: localizeNameRaw(g.name),
+    groupRole: g.groupRole as ModifierGroupRole,
+    selectionType: g.selectionType as 'single' | 'multiple',
+    isRequired: g.isRequired,
+    maxSelections: g.maxSelections,
+    sortOrder: g.sortOrder,
+    options: optionsByGroup.get(g.id) ?? [],
+  }));
+
+  const modifierGroupIdsByProduct = new Map<string, string[]>();
+  for (const link of linkRows) {
+    const list = modifierGroupIdsByProduct.get(link.productId) ?? [];
+    list.push(link.modifierGroupId);
+    modifierGroupIdsByProduct.set(link.productId, list);
+  }
+
   return {
     products: productRows.map((p) => ({
       id: p.id,
@@ -579,6 +755,7 @@ export async function fetchMasterDataRaw() {
       imageUrl: p.imageUrl,
       kind: p.kind,
       updatedAt: p.updatedAt.toISOString(),
+      modifierGroupIds: modifierGroupIdsByProduct.get(p.id) ?? [],
     })),
     variants: variantRows.map((v) => ({
       id: v.id,
@@ -596,6 +773,7 @@ export async function fetchMasterDataRaw() {
       category: m.groupId,
       isActive: m.isActive,
     })),
+    modifierGroups: modifierGroupItems,
     promotions: promotionRows.map((p) => ({
       id: p.id,
       name: localizeNameRaw(p.name),

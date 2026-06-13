@@ -2525,6 +2525,13 @@
       "date": "Date",
       "orderNumber": "No."
     },
+    "modifierPicker": {
+      "subtitle": "Choose options before adding to the order.",
+      "required": "Required",
+      "optional": "Optional",
+      "maxSelections": "max {count}",
+      "addToCart": "Add to Order"
+    },
     "common": {
       "cancel": "Cancel",
       "delete": "Delete"

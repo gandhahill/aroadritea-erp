@@ -205,6 +205,12 @@ export const productModifierGroups = pgTable(
     selectionType: text('selection_type').notNull().default('single'),
     // 'single' | 'multiple'
 
+    // ADR-0019: lets generic group/option schema drive role-aware UI
+    // (picker rendering, KDS summary, Naixer modifier-code mapping)
+    // without string-matching the localized group name.
+    groupRole: text('group_role').notNull().default('custom'),
+    // 'sugar' | 'ice' | 'topping' | 'size' | 'cup' | 'other' | 'custom'
+
     isRequired: boolean('is_required').notNull().default(false),
     maxSelections: integer('max_selections'), // NULL = unlimited (for multiple)
 

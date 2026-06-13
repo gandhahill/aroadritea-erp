@@ -14,6 +14,7 @@ import { and, db, eq } from '@erp/db';
 import { partners } from '@erp/db/schema/accounting';
 import { products } from '@erp/db/schema/inventory';
 import { posSettings, salesOrderLines, salesOrders } from '@erp/db/schema/pos';
+import { groupModifierSelectionsByRole, parseModifierSelections } from '@erp/shared/pos/modifiers';
 import { getLocale } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
 import QRCode from 'qrcode';
@@ -128,13 +129,10 @@ export default async function LabelPrintPage({ params }: Props) {
     const count = Math.ceil(Number(line.qty));
     const qrPayload = line.kdsQrToken ?? line.kdsQrPayload ?? fallbackQrPayload;
     const qrSvg = await renderQrSvg(qrPayload, 64);
-    const mods = line.modifierJson;
-    const modParts: string[] = [];
-    if (mods?.sugar) modParts.push(`Gula ${mods.sugar}`);
-    if (mods?.ice) modParts.push(`Es ${mods.ice}`);
-    if (mods?.toppings && mods.toppings.length > 0) {
-      modParts.push(mods.toppings.map((t) => t.name).join(', '));
-    }
+    const grouped = groupModifierSelectionsByRole(parseModifierSelections(line.modifierJson));
+    const modParts = [...grouped.values()].map((selections) =>
+      selections.map((s) => s.optionName).join(', '),
+    );
     const modifier = modParts.length > 0 ? modParts.join(' · ') : null;
     for (let i = 0; i < count; i++) {
       runningIndex += 1;

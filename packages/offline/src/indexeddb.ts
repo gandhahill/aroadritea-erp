@@ -21,13 +21,14 @@ import { type IDBPDatabase, openDB } from 'idb';
 // ─── Database constants ────────────────────────────────────────────────────────
 
 export const DB_NAME = 'aroadri-pos';
-export const DB_VERSION = 1;
+export const DB_VERSION = 2;
 
 /** Object store names. */
 export const STORE = {
   PRODUCTS: 'products',
   VARIANTS: 'variants',
   MODIFIERS: 'modifiers',
+  MODIFIER_GROUPS: 'modifier_groups',
   PROMOTIONS: 'promotions',
   TAX_RATES: 'tax_rates',
   SHIFTS: 'shifts',
@@ -46,6 +47,8 @@ export interface DbProduct {
   imageUrl: string | null;
   kind: string;
   updatedAt: string; // ISO date string
+  /** Modifier groups linked to this product (sugar/ice/topping pickers — G1/ADR-0019). */
+  modifierGroupIds: string[];
 }
 
 export interface DbVariant {
@@ -64,6 +67,27 @@ export interface DbModifier {
   price: string; // bigint as string
   category: string;
   isActive: boolean;
+}
+
+/** Modifier option within a group, as snapshotted for offline use (G1/ADR-0019). */
+export interface DbModifierGroupOption {
+  id: string;
+  name: string;
+  extraPrice: string; // bigint as string
+  isDefault: boolean;
+  sortOrder: number;
+}
+
+/** Modifier group (e.g. sugar level, ice level, topping) — G1/ADR-0019. */
+export interface DbModifierGroup {
+  id: string;
+  name: string;
+  groupRole: string;
+  selectionType: 'single' | 'multiple';
+  isRequired: boolean;
+  maxSelections: number | null;
+  sortOrder: number;
+  options: DbModifierGroupOption[];
 }
 
 export interface DbPromotion {
@@ -145,6 +169,11 @@ export async function openOfflineDb(): Promise<IDBPDatabase> {
       // 3. Modifiers cache
       if (!db.objectStoreNames.contains(STORE.MODIFIERS)) {
         db.createObjectStore(STORE.MODIFIERS, { keyPath: 'id' });
+      }
+
+      // 3b. Modifier groups cache (sugar/ice/topping pickers — G1/ADR-0019)
+      if (!db.objectStoreNames.contains(STORE.MODIFIER_GROUPS)) {
+        db.createObjectStore(STORE.MODIFIER_GROUPS, { keyPath: 'id' });
       }
 
       // 4. Promotions cache
@@ -234,6 +263,19 @@ export async function upsertModifiers(modifiers: DbModifier[]): Promise<void> {
 export async function getModifiers(): Promise<DbModifier[]> {
   const db = await getOfflineDb();
   return db.getAll(STORE.MODIFIERS);
+}
+
+// ─── Modifier groups ───────────────────────────────────────────────────────────
+
+export async function upsertModifierGroups(groups: DbModifierGroup[]): Promise<void> {
+  const db = await getOfflineDb();
+  const tx = db.transaction(STORE.MODIFIER_GROUPS, 'readwrite');
+  await Promise.all([...groups.map((g) => tx.store.put(g)), tx.done]);
+}
+
+export async function getModifierGroups(): Promise<DbModifierGroup[]> {
+  const db = await getOfflineDb();
+  return db.getAll(STORE.MODIFIER_GROUPS);
 }
 
 // ─── Promotions ────────────────────────────────────────────────────────────────

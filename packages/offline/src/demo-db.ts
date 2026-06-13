@@ -11,18 +11,26 @@
  */
 
 import { type IDBPDatabase, openDB } from 'idb';
-import type { DbModifier, DbProduct, DbPromotion, DbTaxRate, DbVariant } from './indexeddb';
+import type {
+  DbModifier,
+  DbModifierGroup,
+  DbProduct,
+  DbPromotion,
+  DbTaxRate,
+  DbVariant,
+} from './indexeddb';
 
 // ─── Database constants ────────────────────────────────────────────────────────
 
 export const DEMO_DB_NAME = 'aroadri-pos-demo';
-export const DEMO_DB_VERSION = 1;
+export const DEMO_DB_VERSION = 2;
 
 /** Object store names — subset of production (no pending_orders). */
 export const DEMO_STORE = {
   PRODUCTS: 'products',
   VARIANTS: 'variants',
   MODIFIERS: 'modifiers',
+  MODIFIER_GROUPS: 'modifier_groups',
   PROMOTIONS: 'promotions',
   TAX_RATES: 'tax_rates',
   META: 'meta',
@@ -50,6 +58,9 @@ export async function openDemoDb(): Promise<IDBPDatabase> {
       }
       if (!db.objectStoreNames.contains(DEMO_STORE.MODIFIERS)) {
         db.createObjectStore(DEMO_STORE.MODIFIERS, { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains(DEMO_STORE.MODIFIER_GROUPS)) {
+        db.createObjectStore(DEMO_STORE.MODIFIER_GROUPS, { keyPath: 'id' });
       }
       if (!db.objectStoreNames.contains(DEMO_STORE.PROMOTIONS)) {
         db.createObjectStore(DEMO_STORE.PROMOTIONS, { keyPath: 'id' });
@@ -142,6 +153,17 @@ export async function upsertDemoModifiers(modifiers: DbModifier[]): Promise<void
   const db = await getDemoDb();
   const tx = db.transaction(DEMO_STORE.MODIFIERS, 'readwrite');
   await Promise.all([...modifiers.map((m) => tx.store.put(m)), tx.done]);
+}
+
+export async function upsertDemoModifierGroups(groups: DbModifierGroup[]): Promise<void> {
+  const db = await getDemoDb();
+  const tx = db.transaction(DEMO_STORE.MODIFIER_GROUPS, 'readwrite');
+  await Promise.all([...groups.map((g) => tx.store.put(g)), tx.done]);
+}
+
+export async function getDemoModifierGroups(): Promise<DbModifierGroup[]> {
+  const db = await getDemoDb();
+  return db.getAll(DEMO_STORE.MODIFIER_GROUPS);
 }
 
 export async function upsertDemoPromotions(promos: DbPromotion[]): Promise<void> {

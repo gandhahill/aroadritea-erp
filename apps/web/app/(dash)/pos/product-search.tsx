@@ -8,6 +8,8 @@
 'use client';
 
 import { displayAssetUrl } from '@/lib/display-asset-url';
+import type { ModifierSelection } from '@erp/shared/pos/modifiers';
+import { sumModifierExtraPrice } from '@erp/shared/pos/modifiers';
 import { Input } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState, useTransition } from 'react';
@@ -18,6 +20,7 @@ import {
   fetchProducts,
   setProductAvailabilityAction,
 } from './actions';
+import { ModifierPickerModal } from './modifier-picker-modal';
 import { usePosCart } from './pos-cart-context';
 
 export function ProductSearch() {
@@ -30,6 +33,10 @@ export function ProductSearch() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [isPending, startTransition] = useTransition();
   const [toggleError, setToggleError] = useState<string | null>(null);
+  const [pickerTarget, setPickerTarget] = useState<{
+    product: ProductListItem;
+    variant?: VariantItem;
+  } | null>(null);
 
   // Debounce search input
   useEffect(() => {
@@ -75,7 +82,20 @@ export function ProductSearch() {
   }
 
   function handleAddProduct(product: ProductListItem, variant?: VariantItem) {
-    const unitPrice = variant ? variant.sellPrice : product.defaultSellPrice;
+    if (product.modifierGroups.length > 0) {
+      setPickerTarget({ product, variant });
+      return;
+    }
+    addProductToCart(product, variant);
+  }
+
+  function addProductToCart(
+    product: ProductListItem,
+    variant?: VariantItem,
+    modifierJson?: ModifierSelection[],
+  ) {
+    const basePrice = variant ? variant.sellPrice : product.defaultSellPrice;
+    const unitPrice = (BigInt(basePrice) + sumModifierExtraPrice(modifierJson ?? [])).toString();
     const variantName = variant ? variant.name : undefined;
     addLine({
       productId: product.id,
@@ -84,7 +104,14 @@ export function ProductSearch() {
       variantName,
       qty: 1,
       unitPrice,
+      modifierJson: modifierJson && modifierJson.length > 0 ? modifierJson : undefined,
     });
+  }
+
+  function handleConfirmModifiers(selections: ModifierSelection[]) {
+    if (!pickerTarget) return;
+    addProductToCart(pickerTarget.product, pickerTarget.variant, selections);
+    setPickerTarget(null);
   }
 
   return (
@@ -326,6 +353,15 @@ export function ProductSearch() {
           </div>
         )}
       </div>
+      {pickerTarget ? (
+        <ModifierPickerModal
+          open
+          product={pickerTarget.product}
+          variant={pickerTarget.variant}
+          onConfirm={handleConfirmModifiers}
+          onCancel={() => setPickerTarget(null)}
+        />
+      ) : null}
     </div>
   );
 }

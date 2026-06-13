@@ -2,7 +2,7 @@
 
 - **Owner**: Claude Sonnet 4.6
 - **Started**: 2026-06-11 (carried over, multi-session)
-- **Last updated**: 2026-06-13
+- **Last updated**: 2026-06-13 (G1 implemented)
 - **Status**: 🟨 IN_PROGRESS
 - **Phase**: cross-cutting (new backlog, not part of F0-F8 master plan)
 - **Branch**: master (docs + first G-item code; further implementation work may branch `feat/T-0299-<slug>` per item)
@@ -23,7 +23,7 @@ Per Lintang's explicit multi-step instruction (verbatim, Bahasa Indonesia, must 
 - [x] Gap analysis doc created: [`docs/benchmark/fnb-erp-gap-analysis.md`](../benchmark/fnb-erp-gap-analysis.md)
 - [x] TASK.md updated: T-0299 active entry + "🍵 Backlog T-0299" section (G1-G15)
 - [x] G3a implemented + tested (T-0300) — first quick-win from the backlog
-- [x] G4 implemented (T-0301), G15 implemented (T-0302), G2 implemented (T-0303)
+- [x] G4 implemented (T-0301), G15 implemented (T-0302), G2 implemented (T-0303), G1 implemented (T-0304)
 - [ ] §0-2, §4-17 still only first-pass (Part C of gap analysis) — needs follow-up deep passes
 - [ ] Lintang's 4 pending business decisions (table service? project mgmt? QC checklist? tips/service charge?) — not yet asked
 
@@ -36,6 +36,7 @@ Per Lintang's explicit multi-step instruction (verbatim, Bahasa Indonesia, must 
 - **Deep dual-lens audit of §3 (POS/Restaurant Operations)** — all 39 items across 8 sub-sections (3.1-3.8) — see Part B of gap-analysis doc.
 - **5 Headline Findings (Part A of gap-analysis doc)**, each with file:line evidence:
   1. **Modifier sugar/ice/topping** (Finding 1 → G1, P0): schema (`packages/db/schema/inventory.ts:185-264` `product_modifier_groups/options/links`) is complete and well-designed, BUT `apps/web/app/(dash)/pos/product-search.tsx` `handleAddProduct()` never sets `modifierJson`, no picker UI exists anywhere, and `kds-service.ts`'s `productSummary` builder hardcodes `modifierJson.sugar/.ice/.toppings` keys — a semantic mismatch vs the generic group/option schema. `fetchMasterDataRaw()` (`pos/actions.ts:487-575`) fetches flat `productModifierOptions` only (no groups, no product links) — even the offline-sync payload can't drive a picker.
+     - **✅ G1 now DONE (T-0304)** — see "Done this session" below.
   2. **Promotion `buy_x_get_y`/`free_item`/`complimentary`** (Finding 2 → G3a/G3b, P0): `packages/services/src/promotion/evaluator.ts:133-136` silently `continue`d for these 3 of 5 kinds — comment said "not fully implemented yet". `promotion_upsert` MCP tool + `/settings/promotions` UI accept all 5 kinds with no warning. `AppliedPromotion.appliesTo: 'order'|'line'` + `lineId?` existed but were unused. **Zero test file** for the evaluator at all.
      - **✅ G3a now DONE (T-0300)** — see "Done this session" below.
   3. **Kitchen Display System (KDS)** (Finding 3 → G2, P0): backend 100% done — `kds-service.ts` (399 lines, 26 tests, full `queued→making→ready→served/cancelled` state machine) + `display-service.ts` (169 lines, 11 tests, customer SSE feed). `create-sale.ts:1390` auto-queues every sale into `kdsOrderItems`. `kitchen.view` permission seeded (`packages/db/seed/iam.ts:717,849,952`) and assigned to roles. BUT zero routes/pages (`apps/web/app/(dash)/**/page.tsx` glob has no `/kitchen`/`/kds`/`/display`), zero `nav-access.ts`/`sidebar.tsx` entries, zero SSE endpoint mounted. TASK.md marks T-0084/T-0085i (the backend tickets) DONE, creating a false impression the feature shipped.
@@ -45,6 +46,26 @@ Per Lintang's explicit multi-step instruction (verbatim, Bahasa Indonesia, must 
 - **Part C** (first-pass presence table for §0-2, §4-17) written — confirms via repo-wide greps: F4.9 saved-views/scheduled-reports = MISSING; delivery-channel reconciliation = MISSING (G5); `correspondence` module = surprisingly DONE (full schema+service+UI+tests, answers §14); maintenance scheduling (§16) and quality/food-safety (§17) = confirmed MISSING via grep (only false-positive COA account match).
 - **Part D** (prioritized backlog G1-G15) + "decisions needed from Lintang" written.
 - **TASK.md updated**: T-0299 row in Active Tasks (top of table); "🍵 Backlog T-0299" section in the Backlog (G1-G15, G3a marked done); new T-0300 row in Phase 2 Done table.
+
+### Done this session — G1 implemented (T-0304)
+
+Full Finding 1 remediation — ADR-0019 + schema + canonical `ModifierSelection[]` type + picker UI + all downstream consumers (KDS, Naixer mapping, label printing, offline/demo sync).
+
+- **ADR-0019** (`docs/adr/0019-modifier-group-role.md`, Accepted, indexed in `docs/adr/README.md`): adds `groupRole` column to `product_modifier_groups` (vocabulary `'sugar'|'ice'|'topping'|'size'|'cup'|'other'|'custom'`, matches `naixer_modifier_codes.modifierKind`) and canonicalizes `salesOrderLines.modifierJson` as a `ModifierSelection[]` array (`{ groupId, groupRole, groupName, optionId, optionName, extraPrice }`), replacing BOTH legacy incompatible shapes (`{sugar,ice,toppings}` object and `{kind,optionId}[]`).
+- **Schema/migration**: `packages/db/schema/inventory.ts` — `productModifierGroups.groupRole: text('group_role').notNull().default('custom')`. Migration `packages/db/migrations/0045_early_adam_destine.sql` generated (`ALTER TABLE product_modifier_groups ADD COLUMN group_role text DEFAULT 'custom' NOT NULL`) — **NOT yet applied to any DB** (same as 0044, blocked by local DB connectivity). Seed (`packages/db/seed/menu.ts`): `modgrp-sugar-level`→`'sugar'`, `modgrp-ice-level`→`'ice'`, `modgrp-topping`→`'topping'`.
+- **`packages/db/schema/pos.ts`**: `salesOrderLines.modifierJson` retyped from the hardcoded `{sugar?,ice?,toppings?}` object to `jsonb('modifier_json').$type<ModifierSelection[]>()`. No data migration needed — Finding 1 confirmed this column was always empty (picker never existed).
+- **New shared module** `packages/shared/src/pos/modifiers.ts` (exported via `@erp/shared/pos/modifiers`, new `exports` entry in `packages/shared/package.json`): `ModifierSelection`/`ModifierGroupRole` types + `parseModifierSelections()` (defensive — ignores malformed/legacy shapes instead of throwing), `groupModifierSelectionsByRole()`, `sumModifierExtraPrice()`.
+- **`packages/services/src/pos/schemas.ts`**: new `ModifierSelectionSchema` (zod, mirrors `ModifierSelection`); `LineInputSchema.modifierJson` changed from `z.record(...)` to `z.array(ModifierSelectionSchema).optional()`.
+- **`packages/services/src/pos/create-sale.ts`**: `normalizeNaixerModifiers()` now built on `parseModifierSelections()` (maps `groupRole`→`kind`, `optionId` passthrough — 1:1 rename, no shape change for the Naixer lookup). Price validation: `expectedPrice = (variant.sellPrice || product.defaultSellPrice) + sumModifierExtraPrice(parseModifierSelections(line.modifierJson))` — modifier extras are now included in the price-mismatch check for both variant and non-variant lines.
+- **`packages/services/src/kitchen/kds-service.ts`**: `buildProductSummary()` rewritten to group `ModifierSelection[]` by `groupRole` via `groupModifierSelectionsByRole()`, producing `"Es Teh Lemon | Level Gula: Less Sugar | Level Es: Normal Ice | Topping: Cheese Pearl, Oat Pearl"`-style summaries using the snapshotted `groupName`/`optionName` (not hardcoded English keys). 4 new tests in `kds-service.test.ts` (no-modifier, variant-in-parens, full sugar/ice/topping grouping, malformed-legacy-shape-ignored ×2) — all PASS.
+- **Picker UI**: new `apps/web/app/(dash)/pos/modifier-picker-modal.tsx` (`ModifierPickerModal`) — modal rendering each product's modifier groups sorted by `sortOrder`; single-selection groups behave like radio buttons (re-click deselects only if the group is NOT required); multiple-selection groups behave like checkboxes bounded by `maxSelections`; `buildInitialSelections()` pre-selects `isDefault` options; `missingRequired` blocks confirm until all required groups have a selection. Wired into `apps/web/app/(dash)/pos/product-search.tsx`: `handleAddProduct()` now opens the picker when `product.modifierGroups.length > 0`, else adds directly via new `addProductToCart()` which computes `unitPrice = basePrice + sumModifierExtraPrice(selections)` and sets `CartLine.modifierJson` only when non-empty.
+- **`apps/web/app/(dash)/pos/order-cart.tsx`**: cart line now shows selected modifier option names under the variant name.
+- **`apps/web/app/(dash)/pos/pos-cart-context.tsx`**: `CartLine.modifierJson?: ModifierSelection[]` (was `Record<string, unknown>`).
+- **Label printing** (`apps/web/app/(print)/pos/print/label/[orderId]/page.tsx` + `apps/web/app/(print)/pos/print/demo-label/label-client.tsx`): both rebuilt to group `ModifierSelection[]` by `groupRole` and join option names per group (` · `-separated) — replaces legacy `mods.sugar/ice/toppings` parsing.
+- **Offline/demo IndexedDB extension** (`packages/offline/src/`): `indexeddb.ts` `DB_VERSION` 1→2, new `MODIFIER_GROUPS` store + `DbModifierGroup`/`DbModifierGroupOption` types + `upsertModifierGroups()`/`getModifierGroups()`; `DbProduct` gained `modifierGroupIds: string[]`. `demo-db.ts` mirrors this (`DEMO_DB_VERSION` 1→2, `DEMO_STORE.MODIFIER_GROUPS`, `upsertDemoModifierGroups()`/`getDemoModifierGroups()`). `demo-master.ts` snapshot now includes `modifierGroups` in both `DemoMasterDataSource` and `snapshotMasterData()`. `index.ts` re-exports the new types. `apps/web/app/(dash)/pos/actions.ts` `fetchMasterDataRaw()` now also returns `modifierGroups: ModifierGroupItem[]` and per-product `modifierGroupIds: string[]`; `offline-sync-context.tsx`'s `syncMasterData()` persists them via `upsertModifierGroups()`.
+- **i18n ×3** (`apps/web/messages/{id,en,zh}.json`): new `pos.modifierPicker.{subtitle,required,optional,maxSelections,addToCart}`.
+- **Verified**: monorepo-wide `tsc --noEmit` (db/shared/services/mcp/web/offline) clean (fixed one `noUncheckedIndexedAccess` error each in `kds-service.ts` and `modifier-picker-modal.tsx` during this pass); `pnpm lint:permissions` PASS; scoped Biome on all 15 touched/created files PASS; i18n parity script (`scripts/check-i18n.mjs`) PASS (4759 keys, en=id=zh); `@erp/shared` 91/91 tests PASS; `@erp/services` kitchen (31/31) + pos (102/102) tests PASS.
+- **Outstanding**: migrations `0044_fine_orphan.sql` (G4) and `0045_early_adam_destine.sql` (G1) both NOT yet applied to any DB (local dev machine still cannot reach prod Postgres). Browser/preview verification not attempted for the same reason — picker UI is unverified in a live browser.
 
 ### Done this session — G15 implemented (T-0302)
 
@@ -95,7 +116,7 @@ Per Lintang's explicit multi-step instruction (verbatim, Bahasa Indonesia, must 
 
 - Gap-analysis doc is structured as a **living document** (Part C explicitly marks ⬜ items as first-pass-only) rather than blocking on a full 260-item deep audit before any implementation starts — matches "long task, no rush, but make progress" framing.
 - G-items are framed as **additive** to the F0-F8 master plan (not replacing it) — small/self-contained ones (G3a/G4/G8/G9/G15) can be done as interleaved hotfixes; large ones (G1/G2) need dedicated sessions.
-- For Finding 1 (modifiers), recommended approach is a **small ADR adding `groupRole` column** to `product_modifier_groups` rather than rewriting `kds-service.ts`'s consumer logic — least invasive path to reconcile the generic schema with the hardcoded `sugar/ice/toppings` consumer.
+- For Finding 1 (modifiers), recommended approach is a **small ADR adding `groupRole` column** to `product_modifier_groups` rather than rewriting `kds-service.ts`'s consumer logic — least invasive path to reconcile the generic schema with the hardcoded `sugar/ice/toppings` consumer. **Done**: ADR-0019, implemented as T-0304.
 - For Finding 2, split into G3a (pure pricing logic, no ADR, self-contained — done) and G3b (`complimentary`'s `expenseAccountCode` touches journal posting — needs its own ADR per CLAUDE.md §5.4 "do not add ad-hoc accounts from code").
 - **Task ID renumbering (this session)**: the original checkpoint/TASK.md rows for this audit were mistakenly assigned `T-0298`, which collided with an already-DONE, pre-existing task (`T-0298` = MCP tools for uom_conversions CRUD, commit `7cc689a`). Renumbered: this audit umbrella → **T-0299**; the completed G3a code change → its own **T-0300** (matches the existing convention where each concrete code change gets its own ID). Old file `docs/checkpoints/T-0298-fnb-erp-gap-audit.checkpoint.md` deleted (replaced by this file).
 
@@ -109,21 +130,14 @@ Per Lintang's explicit multi-step instruction (verbatim, Bahasa Indonesia, must 
 
 ## Next step
 
-> **Implement G1** — Modifier picker UI (gula/es/topping), full Finding 1 remediation. Schema is 100% complete (`packages/db/schema/inventory.ts:185-264`, `product_modifier_groups/options/links`), but `pos/product-search.tsx`'s `handleAddProduct()` never sets `modifierJson`, no picker UI exists anywhere, `kds-service.ts`'s `productSummary` builder hardcodes `modifierJson.sugar/.ice/.toppings` keys (semantic mismatch with the generic group/option schema), and `fetchMasterDataRaw()` (`pos/actions.ts:487-575`) only fetches flat `productModifierOptions` (no groups, no product links).
+> **G1 is DONE (T-0304)**. Per Part E continuation order: G4 ✅ → G15 ✅ → G2 ✅ → G1 ✅ → **next: remaining ⬜ audit passes** (§0-2, §4-17 of `docs/benchmark/fnb-erp-gap-analysis.md` Part C, prioritizing §3.5 cash-count/X-Z-report for G10, §1 cost centers, §5 batch/expiry FEFO) → Lintang's 4 pending business decisions (dine-in/table service §3.1/G6; internal Project/Task module §15; QC/food-safety checklist §17; tips/service charge §3.4).
 
-Concrete plan for G1 (large item — start with the small ADR per the "Decisions" section above):
-1. **Write the small ADR first**: add a `groupRole` column to `product_modifier_groups` (e.g. enum `'sugar' | 'ice' | 'topping' | 'custom'`) so `kds-service.ts`'s consumer can map generic groups back to the `sugar`/`ice`/`toppings` keys it currently hardcodes — least invasive reconciliation between the generic schema and the existing consumer. Follow `docs/adr/README.md` format; number = next available ADR (check `docs/adr/` for the highest existing number).
-2. Migration for the new `groupRole` column + backfill existing rows (if any) based on group name heuristics or leave nullable/`'custom'` default.
-3. `pos/actions.ts` `fetchMasterDataRaw()`: extend to fetch `product_modifier_groups` + `product_modifier_options` + the product-to-group links (not just flat `productModifierOptions`), so the offline-sync payload can drive a picker.
-4. New picker component (likely a modal/sheet triggered from `product-search.tsx`'s `handleAddProduct()`): renders modifier groups for the selected product, lets the user choose options per group (respecting `groupRole`-based UI conventions — e.g. single-select for sugar/ice, multi-select for toppings), and sets `modifierJson` on the cart line before adding it via `order-cart.tsx`.
-5. `kds-service.ts`'s `buildProductSummary`: update to read `modifierJson` via the new generic group/option shape (using `groupRole` to map back to `sugar`/`ice`/`toppings` for display), keeping the KDS board's existing display format.
-6. `naixerModifierCodes` lookups: confirm the modifier codes used for Naixer KDS QR payloads still resolve correctly against the new `modifierJson` shape.
-7. i18n ×3 (id/en/zh) for all new picker UI strings.
-8. Tests: cover any new service-layer logic (e.g. a "list modifier groups for product" helper) following the existing tested pattern; `kds-service.ts` changes should keep its 26 tests passing and likely need new cases for the updated `buildProductSummary`.
-9. Run typecheck (web + services + db + mcp) + relevant test suites + scoped Biome + i18n parity check + `pnpm lint:permissions`.
-10. Update TASK.md (new `T-0304`+ as needed — G1 is large, may split into multiple tasks per the "ADR+schema / picker UI / KDS+Naixer mapping" split noted in Part D), this checkpoint (mark G1 progress), commit, push.
-
-**After G1**, per Part E: continue the §0-2/4-17 deep-audit passes (prioritizing §3.5 cash-count/X-Z-report for G10, §1 cost centers, §5 batch/expiry FEFO) and Lintang's 4 pending business decisions.
+Concrete plan for the next session:
+1. Re-read `docs/benchmark/fnb-erp-gap-analysis.md` Part C for the ⬜ first-pass items in §0-2/4-17.
+2. Apply the same dual-lens standard as §3 (presence AND logic): for G10 (§3.5 cash-count/X-Z-report), trace whether shift-closing actually records a denomination breakdown and whether an X/Z report can be generated — Part C flagged this as a possible real control gap, not cosmetic.
+3. For each ⬜ item resolved (DONE/PARTIAL/MISSING + logic check), update the gap-analysis doc and, if a gap is found, add it to the "🍵 Backlog T-0299" section in `TASK.md` with a `G16+` code.
+4. When ready, message Lintang on WhatsApp with the 4 pending business decisions (listed in "Open issues / Questions" below) — these block scoping for G6/§15/§17/§3.4.
+5. Continue picking small/self-contained G-items (G8 open/misc sale line, G9 promo auto-expiry) as interleaved hotfixes per the "Decisions" framing.
 
 **Known environment caveat (not a code TODO)**: this dev machine currently cannot reach the production Postgres host (`ETIMEDOUT 103.93.162.50:5432`) — browser-based UI verification is blocked for the whole app until this network issue is resolved (likely VPN/firewall on Lintang's side). `apps/web/.env` now exists (gitignored) and correctly loads `DATABASE_URL` etc. — once connectivity is restored, browser verification should work without further env changes.
 
@@ -133,8 +147,9 @@ Concrete plan for G1 (large item — start with the small ADR per the "Decisions
 - G4 (T-0301) — no new tests (matches untested sibling mutation functions); typecheck (db/services/mcp/web) + permission-lint + scoped Biome + i18n JSON parse all PASS.
 - G15 (T-0302) — no new tests (single DB UPDATE, gating logic already covered); typecheck (services) + scoped Biome PASS; 678/678 services tests PASS (1 pre-existing flaky timeout under full-suite load in `whistleblower-anonymity.test.ts`, unrelated, passes in isolation).
 - G2 (T-0303) — no new tests (UI/route/nav-only, no new service-layer logic); monorepo-wide typecheck + `pnpm lint:permissions` + scoped Biome (8 files) + i18n JSON parity all PASS; 678/678 services tests PASS (incl. 26/26 `kds-service`).
+- G1 (T-0304) — 4 new `kds-service.test.ts` tests for `buildProductSummary` (31/31 kitchen tests PASS); monorepo-wide typecheck (db/shared/services/mcp/web/offline) clean (2 `noUncheckedIndexedAccess` fixes); `pnpm lint:permissions` PASS; scoped Biome (15 files) PASS; i18n parity script PASS (4759 keys); `@erp/shared` 91/91 PASS; `@erp/services` pos 102/102 PASS.
 - **Integration**: N/A
-- **E2E**: attempted via preview browser, BLOCKED by local DB connectivity (`ETIMEDOUT 103.93.162.50:5432`) — see "Done this session — G2 implemented (T-0303)" above.
+- **E2E**: attempted via preview browser, BLOCKED by local DB connectivity (`ETIMEDOUT 103.93.162.50:5432`) — see "Done this session — G2 implemented (T-0303)" above. G1 picker UI is similarly unverified in a live browser for the same reason.
 
 ## Files Touched
 
@@ -165,6 +180,30 @@ Concrete plan for G1 (large item — start with the small ADR per the "Decisions
 | `packages/services/src/kitchen/kds-service.ts` | edited | G2: `buildProductSummary` resolves localized product/variant names |
 | `packages/db/seed/iam.ts` | edited | G2: `kitchen.view` added to `cashier` role |
 | `apps/web/.env` | created (gitignored, NOT committed) | local-dev fix: Next dev server now loads monorepo-root `.env` vars |
+| `docs/adr/0019-modifier-group-role.md` | created | G1: ADR-0019, `groupRole` + canonical `ModifierSelection[]` |
+| `docs/adr/README.md` | edited | G1: ADR-0019 indexed |
+| `packages/db/schema/inventory.ts` | edited | G1: `productModifierGroups.groupRole` column |
+| `packages/db/schema/pos.ts` | edited | G1: `salesOrderLines.modifierJson` retyped to `ModifierSelection[]` |
+| `packages/db/migrations/0045_early_adam_destine.sql` + `meta/0045_snapshot.json` + `meta/_journal.json` | created/edited | G1: migration for `group_role` column (NOT yet applied) |
+| `packages/db/seed/menu.ts` | edited | G1: `groupRole` for the 3 seeded modifier groups |
+| `packages/shared/src/pos/modifiers.ts` | created | G1: `ModifierSelection`/`ModifierGroupRole` types + `parseModifierSelections`/`groupModifierSelectionsByRole`/`sumModifierExtraPrice` |
+| `packages/shared/package.json` | edited | G1: new `./pos/modifiers` export |
+| `packages/services/src/pos/schemas.ts` | edited | G1: `ModifierSelectionSchema`, `LineInputSchema.modifierJson` as array |
+| `packages/services/src/pos/create-sale.ts` | edited | G1: `normalizeNaixerModifiers` + price validation use `ModifierSelection[]` |
+| `packages/services/src/kitchen/kds-service.ts` | edited | G1: `buildProductSummary` groups by `groupRole`; fixed `noUncheckedIndexedAccess` |
+| `packages/services/tests/kds-service.test.ts` | edited | G1: 4 new `buildProductSummary` tests |
+| `apps/web/app/(dash)/pos/modifier-picker-modal.tsx` | created | G1: `ModifierPickerModal` component |
+| `apps/web/app/(dash)/pos/product-search.tsx` | edited | G1: wires picker into `handleAddProduct`/`addProductToCart` |
+| `apps/web/app/(dash)/pos/order-cart.tsx` | edited | G1: shows selected modifier option names |
+| `apps/web/app/(dash)/pos/pos-cart-context.tsx` | edited | G1: `CartLine.modifierJson: ModifierSelection[]` |
+| `apps/web/app/(dash)/pos/actions.ts` | edited | G1: `fetchMasterDataRaw()` returns `modifierGroups` + per-product `modifierGroupIds` |
+| `apps/web/app/(print)/pos/print/label/[orderId]/page.tsx` + `(print)/pos/print/demo-label/label-client.tsx` | edited | G1: label printing groups by `groupRole` |
+| `packages/offline/src/indexeddb.ts` | edited | G1: `DB_VERSION` 1→2, `MODIFIER_GROUPS` store, `DbModifierGroup`/`DbModifierGroupOption`, `DbProduct.modifierGroupIds` |
+| `packages/offline/src/demo-db.ts` | edited | G1: `DEMO_DB_VERSION` 1→2, `DEMO_STORE.MODIFIER_GROUPS`, `upsertDemoModifierGroups`/`getDemoModifierGroups` |
+| `packages/offline/src/demo-master.ts` | edited | G1: snapshot includes `modifierGroups` |
+| `packages/offline/src/index.ts` | edited | G1: re-export `DbModifierGroup`/`DbModifierGroupOption` |
+| `apps/web/app/(dash)/pos/lib/offline-sync-context.tsx` | edited | G1: `syncMasterData()` persists `modifierGroups` |
+| `apps/web/messages/{id,en,zh}.json` | edited | G1: `pos.modifierPicker.*` |
 
 ## Commits So Far
 
@@ -174,14 +213,17 @@ Concrete plan for G1 (large item — start with the small ADR per the "Decisions
 | `0111183` | feat(T-0301): "86" product availability toggle in POS (G4) | 2026-06-12 |
 | `f7d44be` | feat(T-0302): increment promotions.usageCount after sale (G15) | 2026-06-12 |
 | `010227b` | feat: kitchen display module and KDS service improvements (G2/T-0303) | 2026-06-12 |
+| _pending_ | feat(T-0304): modifier picker UI + canonical ModifierSelection[] (G1, ADR-0019) | 2026-06-13 |
+| _pending_ | docs(T-0304): record commit SHA in checkpoint | 2026-06-13 |
 
 ## Handoff Notes
 
 - This is a **multi-session marathon task** explicitly authorized by Lintang ("ini adalah tugas panjang, tolong kerjakan sampai selesai, tidak perlu terburu-buru"). Do not try to "wrap up" — pick the next G-item and keep going.
 - The from-scratch checklist (`fnb-erp-feature-checklist.md`) was deliberately written WITHOUT reading this repo first, to avoid anchoring bias — do not "fix" it to match repo reality; it's the *target*, the gap-analysis doc is the *comparison*.
 - When picking up §0-2/4-17 deep-audit passes (Part C ⬜ items), apply the SAME dual-lens standard as §3: don't just check "does a page exist" — trace one real user action through to confirm the backend logic actually fires (the KDS/modifier/promotion findings were all "page would suggest done, but trace the data flow and it dead-ends").
-- **Before assigning any new `T-NNNN`**: check the HIGHEST existing ID across BOTH the Active Tasks table AND the Done tables in TASK.md (not just one or the other) — this session hit a collision (T-0298 used twice) because a prior turn only checked one location. T-0303 is the highest used ID as of this checkpoint; next available is **T-0304**.
-- Migration `0044_fine_orphan.sql` (G4/T-0301, adds `products.is_available`/`is_86d_at`) is generated but **not applied to any database yet** — remember this when planning the next deploy (`drizzle-kit migrate` or the project's usual apply step).
+- **Before assigning any new `T-NNNN`**: check the HIGHEST existing ID across BOTH the Active Tasks table AND the Done tables in TASK.md (not just one or the other) — this session hit a collision (T-0298 used twice) because a prior turn only checked one location. T-0304 is the highest used ID as of this checkpoint; next available is **T-0305**.
+- Migrations `0044_fine_orphan.sql` (G4/T-0301, adds `products.is_available`/`is_86d_at`) and `0045_early_adam_destine.sql` (G1/T-0304, adds `product_modifier_groups.group_role`) are generated but **not applied to any database yet** — remember this when planning the next deploy (`drizzle-kit migrate` or the project's usual apply step).
 - The `kitchen.view` cashier-role seed change (G2/T-0303, `packages/db/seed/iam.ts`) needs the IAM seed re-run on deploy for existing environments (new environments seed correctly from scratch).
-- If resuming after a long gap, re-read `docs/benchmark/fnb-erp-gap-analysis.md` Part E for the prioritized continuation order: G4 ✅ → G15 ✅ → G2 ✅ → **G1 (next)** → remaining ⬜ audits → Lintang's 4 decisions.
+- If resuming after a long gap, re-read `docs/benchmark/fnb-erp-gap-analysis.md` Part E for the prioritized continuation order: G4 ✅ → G15 ✅ → G2 ✅ → G1 ✅ → **remaining ⬜ audits (next)** → Lintang's 4 decisions.
+- G1's picker UI (`modifier-picker-modal.tsx`) and the offline/demo IndexedDB extension are code-complete and typecheck/test-clean but **unverified in a live browser** (same `ETIMEDOUT 103.93.162.50:5432` blocker as G2) — if connectivity is restored before the next audit pass, prioritize a quick smoke test of the POS modifier picker (add a tea product with sugar/ice/topping groups to the cart, confirm price + KDS summary + printed label all reflect the selections).
 - **Known environment caveat**: this dev machine currently cannot reach the production Postgres host (`connect ETIMEDOUT 103.93.162.50:5432`, confirmed via raw TCP probe) — blocks ALL browser-based UI verification (every page needs DB-backed session), not specific to any feature. `apps/web/.env` (gitignored) was created this session and correctly loads `DATABASE_URL`/secrets from the repo-root `.env` — once network connectivity is restored, browser verification should work without further env changes. This is external infra, not a code TODO.
