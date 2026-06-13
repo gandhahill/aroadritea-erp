@@ -286,6 +286,7 @@ New backlog section, **not currently covered by any F0-F8 master-plan card** (th
 | **G13** | Combo/meal-deal builder | ⬜ audit first | M-L | audit | TBD |
 | **G14** | Service charge line item (on/off + %) | ⬜ audit first, P1 if confirmed needed | S-M | audit + business confirmation | `posSettings`, `create-sale.ts`, tax calc |
 | **G16** | GRN zero-cost line policy: `confirmGRN` posts no JE when `unitPrice=0` on both GRN line and PO line (silent free-goods). Schema/zod already treat `0` as valid (samples/donations), so a hard fail would break that flow — **decision needed from Lintang**: (a) leave as-is, (b) warn-only banner before confirm, or (c) add explicit `isFreeGoods` flag on GRN line required to accept a zero-cost line | P2 (audit first) | S-M | Lintang decision | `packages/services/src/purchasing/grn-service.ts` (lines ~525-554), `packages/db/schema/purchasing.ts` |
+| **G17** | `postInvoice` (manual Accounting → Invoices) cannot post ANY invoice with `taxAmount > 0`: the AR/AP partner line carries `invoice.total` (subtotal+tax) but the income/expense lines only carry `line.subtotal` (no tax JE line at all) → `totalDebit !== totalCredit` → `createJournal` rejects with `accounting.journal.notBalanced`. The manual-invoice UI already exposes a tax-rate selector (0 / PB1 10% / PPN 11%, see `invoices/new/client.tsx` lines ~465-475) but it is end-to-end broken for any non-zero rate. **Needs Lintang business-semantics confirmation before implementing** (which `tax_rates.code` does each UI option map to — same `PB1`/`PPN_OUT` used by POS, or a separate manual-invoice tax code?) to avoid posting incorrect GL entries | **P0** | M | Lintang decision on tax-code mapping, then: schema migration | `packages/db/schema/accounting.ts` (`invoiceLines` needs `taxCode` column + migration), `packages/services/src/accounting/invoice.ts` (`createInvoice` persist `line.taxCode`; `postInvoice` resolve `taxRates.postingAccountId` per code, pattern: `pos/posting.ts` `resolvePosPostingConfig`, and push a balancing tax JE line — credit for sales, debit for purchase), `apps/web/app/(dash)/accounting/invoices/new/client.tsx` (map taxRate option → taxCode) |
 
 ### Decisions needed from Lintang (not auto-build)
 
@@ -294,6 +295,7 @@ New backlog section, **not currently covered by any F0-F8 master-plan card** (th
 - **§17 Quality/Food Safety**: what does Aroadri actually need to log for BPOM/halal/internal QC (daily fridge temps? cleaning checklists? cert expiry reminders)? Determines whether G7-adjacent "inspection checklist" feature is worth building.
 - **§3.4 Tips / Service charge**: does Aroadri ever collect tips or apply a service charge? (Different from the existing donation/rounding feature.)
 - **G16 GRN zero-cost lines**: see G16 row above — leave as-is, warn-only, or require an explicit "free goods" flag?
+- **G17 manual-invoice tax code mapping**: see G17 row above — when a manual Accounting → Invoice line has tax rate PB1 10% / PPN 11%, should it post to the SAME `tax_rates`/posting accounts as POS (`PB1`, `PPN_OUT`), or does manual invoicing need its own tax code(s)? Blocks implementing the fix for the currently-broken tax-on-invoice flow.
 
 ---
 
@@ -305,7 +307,36 @@ New backlog section, **not currently covered by any F0-F8 master-plan card** (th
 4. ~~Implement G2~~ — ✅ **DONE 2026-06-13** (T-0303): KDS staff board (`/kitchen`) + customer display (`/kitchen-display/[locationId]`) + SSE route + nav/sidebar + i18n ×3, see Finding 3 update.
 5. ~~Implement G1~~ — ✅ **DONE 2026-06-13** (T-0304): modifier picker UI + canonical `ModifierSelection[]` (ADR-0019, `groupRole`), see Finding 1 update.
 6. ~~Fixed 2 cross-cutting bugs from the external `E:\erp-benchmark` analysis~~ — ✅ **DONE 2026-06-13** (T-0305): invoice line tax now uses `calculateExclusiveTax` (round-half-up, was truncating division in `accounting/invoice.ts`); `hr/leave-service.ts` `approveLeave` now claims via conditional `UPDATE ... WHERE status='pending'` to close a check-then-act race on concurrent approvals. Added `packages/shared/tests/money.test.ts` (39 tests) covering the rounding helpers. New backlog item **G16** added (GRN zero-cost line policy) pending Lintang decision.
-7. Continue the dual-lens deep audit for sections marked ⬜ in Part C, prioritizing: §3.5 cash-count/X-Z-report (G10, possible real control gap), §1 cost centers (cross-check vs F5.1), §5 batch/expiry FEFO logic. In parallel, triage the remaining findings in `FUNCTIONAL_BUG_AUDIT.md` (12-bug list, esp. CRITICAL #1 "Invoice Payment Routes to Wrong Account" and #2 "Refund Amount Can Exceed Original Payment") and the unread tail of `FEATURE_GAP_ANALYSIS.md` against current code.
-8. Resolve the five "Decisions needed from Lintang" items above (incl. new G16) — these gate G6, G13/G14, G16, and the §3.1/§15/§17 scope calls.
+7. ~~Triage `FUNCTIONAL_BUG_AUDIT.md` CRITICAL #1-4~~ — ✅ **DONE 2026-06-13** (T-0306): all 4 CRITICAL findings reviewed against current code — #1, #2, #4 are **false positives** (see Part F below for per-bug reasoning); #3 is also a false positive but the review of `postInvoice` surfaced a real, separate, more severe latent bug, backlogged as **G17** (tax line imbalance — see Part D). Next: triage HIGH #5-9 and MEDIUM #10-12.
+8. Continue the dual-lens deep audit for sections marked ⬜ in Part C, prioritizing: §3.5 cash-count/X-Z-report (G10, possible real control gap), §1 cost centers (cross-check vs F5.1), §5 batch/expiry FEFO logic. In parallel, continue triaging `FUNCTIONAL_BUG_AUDIT.md` HIGH #5-9 ("Stock Goes Negative via Race Condition", "Shift Close Wrong Variance Calculation", "Member Point Redemption Race Condition", "Stock Adjustment UOM Not Atomic", "GRN Over-Receipt Silently Accepted") + MEDIUM #10-12, and the unread tail (lines 100-1020) of `FEATURE_GAP_ANALYSIS.md` against current code.
+9. Resolve the six "Decisions needed from Lintang" items above (incl. G16, G17) — these gate G6, G13/G14, G16, G17, and the §3.1/§15/§17 scope calls.
 
-All new backlog items above should get their own `T-XXXX` entries in `TASK.md` as they're started (next available: **T-0306**).
+All new backlog items above should get their own `T-XXXX` entries in `TASK.md` as they're started (next available: **T-0307**).
+
+---
+
+## Part F — External audit triage log (`FUNCTIONAL_BUG_AUDIT.md` / `COMPREHENSIVE_ANALYSIS_SUMMARY.md`)
+
+Tracks verdicts on the 3 untracked root-level analysis docs dumped 2026-06-13 (full source benchmark at `E:\erp-benchmark`, comparing this codebase vs 626+ ERPNext/HRMS/Odoo features), so future sessions don't re-investigate already-reviewed items.
+
+### `COMPREHENSIVE_ANALYSIS_SUMMARY.md` — "✓ VERIFIED" bugs
+
+| # | Title | Verdict | Action |
+|---|---|---|---|
+| 1 | Invoice Tax Precision (truncating division) | ✅ Real bug | Fixed T-0305 (`calculateExclusiveTax`, round-half-up) |
+| 2 | Leave Approval Race Condition | ✅ Real bug | Fixed T-0305 (conditional `UPDATE ... WHERE status='pending'` claim) |
+| 3 | GRN Missing Cost Validation | ⚠️ Business policy, not a pure bug | Backlogged as G16 (decision needed from Lintang) |
+
+### `FUNCTIONAL_BUG_AUDIT.md` — 12-bug list
+
+| # | Title | Verdict | Reasoning |
+|---|---|---|---|
+| 1 | Invoice Payment Routes to Wrong Account | ❌ False positive | `payInvoice`'s `partnerLine` match (`l.debit === invoice.total && l.credit === 0n` for sales, symmetric for purchase) can structurally only match the AR/AP line — income/expense lines in `postInvoice` always have `debit='0'` (sales) / `credit='0'` (purchase), so they can never satisfy the predicate unless `invoice.total === 0n`, which `createJournal` already rejects (zero-amount line check). |
+| 2 | Refund Amount Can Exceed Original Payment | ❌ False positive | `refund-sale.ts`: `lineRefundAmount = lineTotal * BigInt(rl.qty) / BigInt(originalQty)` is mathematically bounded by `lineTotal` whenever `0 <= qty <= originalQty`, which is already validated (`qty > remainingQty` rejected). The audit's reproduction requires direct DB tampering of `lineTotal`, an out-of-band integrity assumption shared by every service, not an app-logic flaw. |
+| 3 | Donation Amount Can Exceed Tendered Cash | ❌ False positive | `normalizeSalePayments` (`pos/create-sale.ts`) maintains the invariant `donationRemaining <= cashRetainedRemaining` across the payment loop (provable by induction on the `minBigint` allocation steps), and the final `if (cashRetainedRemaining > 0n) return err(...)` guard (line ~197) is exactly the missing validation the audit asks for — just expressed as a remainder check instead of a pre-check. `sum(paymentDonation)` always equals `donationResult.donatedAmount` exactly when the function returns `ok`. |
+| 4 | Sale Duplicate Prevention Fails Under Load | ❌ False positive | `claimIdempotency` (`packages/services/src/shared/idempotency.ts`) already does `INSERT ... ON CONFLICT DO NOTHING ... RETURNING` against a unique `(idempotencyKey, locationId)` constraint — the exact DB-constraint fix the audit recommends is already implemented. Audit appears to have been written without seeing this file. |
+| 5-12 | (stock race, shift variance, point redemption race, stock adjustment UOM, GRN over-receipt, + 3 more) | ⬜ Not yet reviewed | Next session — see Part E item 8. |
+
+### New finding from this triage (not present in either external doc)
+
+- **G17** (P0, new): reviewing `payInvoice`/`postInvoice` for Bug #1 surfaced that `postInvoice` (`packages/services/src/accounting/invoice.ts`) never emits a tax JE line — for any invoice with `taxAmount > 0n`, `totalDebit !== totalCredit` and `createJournal` rejects it outright. The manual-invoice UI's tax-rate selector has therefore likely never worked end-to-end. See G17 row in Part D for full fix scope (schema migration + service + UI, gated on a Lintang decision about tax-code mapping).
