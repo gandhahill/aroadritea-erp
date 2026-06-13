@@ -2,7 +2,7 @@
 
 - **Owner**: Claude Sonnet 4.6
 - **Started**: 2026-06-11 (carried over, multi-session)
-- **Last updated**: 2026-06-12
+- **Last updated**: 2026-06-13
 - **Status**: 🟨 IN_PROGRESS
 - **Phase**: cross-cutting (new backlog, not part of F0-F8 master plan)
 - **Branch**: master (docs + first G-item code; further implementation work may branch `feat/T-0299-<slug>` per item)
@@ -23,6 +23,7 @@ Per Lintang's explicit multi-step instruction (verbatim, Bahasa Indonesia, must 
 - [x] Gap analysis doc created: [`docs/benchmark/fnb-erp-gap-analysis.md`](../benchmark/fnb-erp-gap-analysis.md)
 - [x] TASK.md updated: T-0299 active entry + "🍵 Backlog T-0299" section (G1-G15)
 - [x] G3a implemented + tested (T-0300) — first quick-win from the backlog
+- [x] G4 implemented (T-0301), G15 implemented (T-0302), G2 implemented (T-0303)
 - [ ] §0-2, §4-17 still only first-pass (Part C of gap analysis) — needs follow-up deep passes
 - [ ] Lintang's 4 pending business decisions (table service? project mgmt? QC checklist? tips/service charge?) — not yet asked
 
@@ -38,6 +39,7 @@ Per Lintang's explicit multi-step instruction (verbatim, Bahasa Indonesia, must 
   2. **Promotion `buy_x_get_y`/`free_item`/`complimentary`** (Finding 2 → G3a/G3b, P0): `packages/services/src/promotion/evaluator.ts:133-136` silently `continue`d for these 3 of 5 kinds — comment said "not fully implemented yet". `promotion_upsert` MCP tool + `/settings/promotions` UI accept all 5 kinds with no warning. `AppliedPromotion.appliesTo: 'order'|'line'` + `lineId?` existed but were unused. **Zero test file** for the evaluator at all.
      - **✅ G3a now DONE (T-0300)** — see "Done this session" below.
   3. **Kitchen Display System (KDS)** (Finding 3 → G2, P0): backend 100% done — `kds-service.ts` (399 lines, 26 tests, full `queued→making→ready→served/cancelled` state machine) + `display-service.ts` (169 lines, 11 tests, customer SSE feed). `create-sale.ts:1390` auto-queues every sale into `kdsOrderItems`. `kitchen.view` permission seeded (`packages/db/seed/iam.ts:717,849,952`) and assigned to roles. BUT zero routes/pages (`apps/web/app/(dash)/**/page.tsx` glob has no `/kitchen`/`/kds`/`/display`), zero `nav-access.ts`/`sidebar.tsx` entries, zero SSE endpoint mounted. TASK.md marks T-0084/T-0085i (the backend tickets) DONE, creating a false impression the feature shipped.
+     - **✅ G2 now DONE (T-0303)** — see "Done this session" below.
   4. **`reservations` table dormant** (Finding 4 → G6, P2): `packages/db/schema/reservations.ts` fully modeled, zero references anywhere (services/UI/MCP/SoT/SD). Needs Lintang's keep/remove decision.
   5. **NEW — Promotion `usageLimit` never binds** (Finding 5 → G15, P1, found while implementing G3a): `evaluator.ts:71-78` correctly checks `usageCount >= usageLimit`, but a repo-wide grep for `usageCount` in `pos/create-sale.ts` (where `promotionApplications` rows are inserted) returns **zero matches** — `usageCount` is never incremented, so `usageCount >= usageLimit` is always `0 >= N` (false). A "first 50 redemptions" promo behaves as unlimited.
 - **Part C** (first-pass presence table for §0-2, §4-17) written — confirms via repo-wide greps: F4.9 saved-views/scheduled-reports = MISSING; delivery-channel reconciliation = MISSING (G5); `correspondence` module = surprisingly DONE (full schema+service+UI+tests, answers §14); maintenance scheduling (§16) and quality/food-safety (§17) = confirmed MISSING via grep (only false-positive COA account match).
@@ -76,6 +78,19 @@ Per Lintang's explicit multi-step instruction (verbatim, Bahasa Indonesia, must 
 - `pnpm typecheck` (packages/services) clean. Full services test suite: 678/678 PASS (665 pre-existing + 13 new).
 - Gap-analysis doc updated: Finding 2 has a "G3a DONE" addendum; new Finding 5 (usageCount/G15) added to Part A; Part D table updated (G3a struck through as done, G15 added); Part E continuation plan reordered (G4 next, then G15).
 
+### Done this session — G2 implemented (T-0303)
+
+- **Staff KDS board** at `apps/web/app/(dash)/kitchen/` (`page.tsx`, `client.tsx`, `actions.ts`): columns per status (`queued`/`making`/`ready`/`served`/`cancelled`), tap-to-advance buttons calling `updateKdsStatus`/`listKdsItems` from `kds-service.ts`, scoped to the staff member's location, gated by the `kitchen.view` permission.
+- **Customer-facing display** at `apps/web/app/kitchen-display/[locationId]/` (`page.tsx`, `display-client.tsx`): read-only, SSE-subscribed "now preparing / ready for pickup" board for in-store TVs.
+- **New SSE route** `apps/web/app/api/kitchen/display/[locationId]/route.ts`, backed by `display-service.ts` (`getDisplayQueue`/`formatSseEvent`/`createQueueUpdateEvent`). Both the display page and this route added to `middleware.ts` `publicPaths` (in-store TV has no login session).
+- **Nav/sidebar**: `apps/web/lib/nav-access.ts` gained a `/kitchen` entry (`gate: 'kitchen.view'`); `apps/web/app/(dash)/sidebar.tsx` gained a new top-level NAV_ITEM + `PATH_TO_MODULE['/kitchen'] = 'kitchen.view'`.
+- **i18n ×3** (`apps/web/messages/{id,en,zh}.json`): `nav.kitchen` label + `kitchen.*`/`kitchenDisplay.*` namespaces for all status labels/buttons.
+- **Two supporting fixes** landed alongside (both needed for the staff board to be usable, not separately scoped):
+  - `packages/services/src/kitchen/kds-service.ts`: `buildProductSummary` now resolves localized product/variant names instead of showing raw product/variant UUIDs.
+  - `packages/db/seed/iam.ts`: added `'kitchen.view'` to the `cashier` role — the role that actually staffs the counter/kitchen at Aroadri's outlets (the permission previously existed but wasn't reachable by the staff who'd use this screen day-to-day).
+- **Verified (code-level, all PASS)**: monorepo-wide `tsc --noEmit`, `pnpm lint:permissions`, scoped Biome on all 8 touched files, i18n JSON parity across `id`/`en`/`zh`, full services suite 678/678 (incl. 26/26 `kds-service` tests).
+- **Browser verification BLOCKED (external infra, not a code defect)**: attempted to verify `/kitchen` and `/kitchen-display/[locationId]` via the preview tooling. First hit a local-dev-only issue — `apps/web/.env` did not exist, so the Next dev server never loaded the monorepo-root `.env`'s `DATABASE_URL` and fell back to a placeholder connection string (`packages/db/client.ts:36`), producing `password authentication failed for user "missing"`. **Fixed** by creating `apps/web/.env` (gitignored, full copy of the repo-root `.env` minus `NODE_ENV=production`) — confirmed loaded via the `- Environments: .env` log line. After that fix, login still fails with `connect ETIMEDOUT 103.93.162.50:5432` — confirmed independently via a raw TCP probe (`/dev/tcp/103.93.162.50/5432` → `TCP FAILED`) that this dev machine currently cannot reach the production Postgres host at all. This affects **every page in the app** (all routes need a DB-backed session), not just `/kitchen` — it is a network/firewall/VPN issue on this machine, unrelated to the KDS code. Per CLAUDE.md ("if you can't test the UI, say so explicitly rather than claiming success"), browser verification is recorded as BLOCKED rather than attempted-and-passed.
+
 ## Decisions
 
 - Gap-analysis doc is structured as a **living document** (Part C explicitly marks ⬜ items as first-pass-only) rather than blocking on a full 260-item deep audit before any implementation starts — matches "long task, no rush, but make progress" framing.
@@ -94,27 +109,32 @@ Per Lintang's explicit multi-step instruction (verbatim, Bahasa Indonesia, must 
 
 ## Next step
 
-> **Implement G2** — Kitchen Display System (KDS) staff board + customer display UI. Backend (`kds-service.ts` 399 lines/26 tests, `display-service.ts` 169 lines/11 tests, auto-queue at `create-sale.ts:1390`) is 100% done and tested; the gap is PURELY UI/route/nav/SSE — kitchen staff currently have no screen at all (Finding 3).
+> **Implement G1** — Modifier picker UI (gula/es/topping), full Finding 1 remediation. Schema is 100% complete (`packages/db/schema/inventory.ts:185-264`, `product_modifier_groups/options/links`), but `pos/product-search.tsx`'s `handleAddProduct()` never sets `modifierJson`, no picker UI exists anywhere, `kds-service.ts`'s `productSummary` builder hardcodes `modifierJson.sugar/.ice/.toppings` keys (semantic mismatch with the generic group/option schema), and `fetchMasterDataRaw()` (`pos/actions.ts:487-575`) only fetches flat `productModifierOptions` (no groups, no product links).
 
-Concrete plan for G2 (larger item — split into staff board first, customer display second):
-1. Read `packages/services/src/kitchen/kds-service.ts` and `display-service.ts` fully to understand the exposed functions/state machine (`queued→making→ready→served/cancelled`) and what data shapes are returned.
-2. Check `packages/db/seed/iam.ts:717,849,952` for the `kitchen.view` permission and which roles already have it (kitchen staff role should exist already per the audit).
-3. **Staff board** (`apps/web/app/(dash)/kitchen/` or similar — check existing route-group conventions in `apps/web/app/(dash)/`): a page listing queued/making/ready KDS order items for the cashier's location, with action buttons to advance state (`queued→making→ready→served`), gated on `kitchen.view`/appropriate write permission. Add `nav-access.ts` + `sidebar.tsx` entries.
-4. **Customer display**: a public-ish (in-store TV) read-only view of "now preparing / ready for pickup" — likely needs a new SSE route mounted somewhere in `apps/web` or `apps/mcp` backed by `display-service.ts`. Check if `display-service.ts` already exposes an SSE-shaped API or just data-fetch functions.
-5. i18n ×3 (id/en/zh) for all new UI strings — kitchen staff default to Bahasa Indonesia per CLAUDE.md §9.
-6. Tests: if `kds-service`/`display-service` already have 26+11 tests, new UI-level tests are likely out of scope (no DB-integration test convention for `apps/web` pages observed so far) — but if new service-layer helper functions are added for the UI (e.g. a "list queue for location" wrapper), those should follow the existing tested pattern.
-7. Run typecheck (web + services) + relevant test suite + scoped Biome + i18n parity check.
-8. Update TASK.md (new `T-0303`), this checkpoint (mark G2 done, set Next step to G1), commit `feat(T-0303): ...`, push.
+Concrete plan for G1 (large item — start with the small ADR per the "Decisions" section above):
+1. **Write the small ADR first**: add a `groupRole` column to `product_modifier_groups` (e.g. enum `'sugar' | 'ice' | 'topping' | 'custom'`) so `kds-service.ts`'s consumer can map generic groups back to the `sugar`/`ice`/`toppings` keys it currently hardcodes — least invasive reconciliation between the generic schema and the existing consumer. Follow `docs/adr/README.md` format; number = next available ADR (check `docs/adr/` for the highest existing number).
+2. Migration for the new `groupRole` column + backfill existing rows (if any) based on group name heuristics or leave nullable/`'custom'` default.
+3. `pos/actions.ts` `fetchMasterDataRaw()`: extend to fetch `product_modifier_groups` + `product_modifier_options` + the product-to-group links (not just flat `productModifierOptions`), so the offline-sync payload can drive a picker.
+4. New picker component (likely a modal/sheet triggered from `product-search.tsx`'s `handleAddProduct()`): renders modifier groups for the selected product, lets the user choose options per group (respecting `groupRole`-based UI conventions — e.g. single-select for sugar/ice, multi-select for toppings), and sets `modifierJson` on the cart line before adding it via `order-cart.tsx`.
+5. `kds-service.ts`'s `buildProductSummary`: update to read `modifierJson` via the new generic group/option shape (using `groupRole` to map back to `sugar`/`ice`/`toppings` for display), keeping the KDS board's existing display format.
+6. `naixerModifierCodes` lookups: confirm the modifier codes used for Naixer KDS QR payloads still resolve correctly against the new `modifierJson` shape.
+7. i18n ×3 (id/en/zh) for all new picker UI strings.
+8. Tests: cover any new service-layer logic (e.g. a "list modifier groups for product" helper) following the existing tested pattern; `kds-service.ts` changes should keep its 26 tests passing and likely need new cases for the updated `buildProductSummary`.
+9. Run typecheck (web + services + db + mcp) + relevant test suites + scoped Biome + i18n parity check + `pnpm lint:permissions`.
+10. Update TASK.md (new `T-0304`+ as needed — G1 is large, may split into multiple tasks per the "ADR+schema / picker UI / KDS+Naixer mapping" split noted in Part D), this checkpoint (mark G1 progress), commit, push.
 
-**After G2**, per Part E: G1 (modifier picker — needs small ADR for `groupRole` column on `product_modifier_groups` before coding) is next, then continue the §0-2/4-17 deep-audit passes and Lintang's 4 pending decisions.
+**After G1**, per Part E: continue the §0-2/4-17 deep-audit passes (prioritizing §3.5 cash-count/X-Z-report for G10, §1 cost centers, §5 batch/expiry FEFO) and Lintang's 4 pending business decisions.
+
+**Known environment caveat (not a code TODO)**: this dev machine currently cannot reach the production Postgres host (`ETIMEDOUT 103.93.162.50:5432`) — browser-based UI verification is blocked for the whole app until this network issue is resolved (likely VPN/firewall on Lintang's side). `apps/web/.env` now exists (gitignored) and correctly loads `DATABASE_URL` etc. — once connectivity is restored, browser verification should work without further env changes.
 
 ## Test status
 
 - **Unit**: G3a (T-0300) — 13/13 new tests PASS, 678/678 total services tests PASS, typecheck clean.
 - G4 (T-0301) — no new tests (matches untested sibling mutation functions); typecheck (db/services/mcp/web) + permission-lint + scoped Biome + i18n JSON parse all PASS.
 - G15 (T-0302) — no new tests (single DB UPDATE, gating logic already covered); typecheck (services) + scoped Biome PASS; 678/678 services tests PASS (1 pre-existing flaky timeout under full-suite load in `whistleblower-anonymity.test.ts`, unrelated, passes in isolation).
+- G2 (T-0303) — no new tests (UI/route/nav-only, no new service-layer logic); monorepo-wide typecheck + `pnpm lint:permissions` + scoped Biome (8 files) + i18n JSON parity all PASS; 678/678 services tests PASS (incl. 26/26 `kds-service`).
 - **Integration**: N/A
-- **E2E**: N/A
+- **E2E**: attempted via preview browser, BLOCKED by local DB connectivity (`ETIMEDOUT 103.93.162.50:5432`) — see "Done this session — G2 implemented (T-0303)" above.
 
 ## Files Touched
 
@@ -135,6 +155,16 @@ Concrete plan for G2 (larger item — split into staff board first, customer dis
 | `apps/web/messages/{id,en,zh}.json` | edited | G4: `pos.unavailableToday`/`markUnavailableToday`/`markAvailableAgain`/`toggleAvailabilityFailed` |
 | `apps/mcp/src/tools/phase2.ts` + `apps/mcp/src/tools/index.ts` | edited | G4: new MCP tool `inventory.set_product_availability` |
 | `packages/services/src/pos/create-sale.ts` | edited | G15: import `promotions`; new step 14b increments `usageCount` for each distinct applied `promotionId` |
+| `apps/web/app/(dash)/kitchen/page.tsx` + `client.tsx` + `actions.ts` | created | G2: staff KDS board — columns per status, tap-to-advance |
+| `apps/web/app/kitchen-display/[locationId]/page.tsx` + `display-client.tsx` | created | G2: customer-facing SSE display |
+| `apps/web/app/api/kitchen/display/[locationId]/route.ts` | created | G2: SSE route backed by `display-service.ts` |
+| `apps/web/middleware.ts` | edited | G2: added `/kitchen-display` + `/api/kitchen/display` to `publicPaths` |
+| `apps/web/lib/nav-access.ts` | edited | G2: new `/kitchen` entry gated by `kitchen.view` |
+| `apps/web/app/(dash)/sidebar.tsx` | edited | G2: new top-level NAV_ITEM + `PATH_TO_MODULE['/kitchen']` |
+| `apps/web/messages/{id,en,zh}.json` | edited | G2: `nav.kitchen` + `kitchen.*`/`kitchenDisplay.*` namespaces |
+| `packages/services/src/kitchen/kds-service.ts` | edited | G2: `buildProductSummary` resolves localized product/variant names |
+| `packages/db/seed/iam.ts` | edited | G2: `kitchen.view` added to `cashier` role |
+| `apps/web/.env` | created (gitignored, NOT committed) | local-dev fix: Next dev server now loads monorepo-root `.env` vars |
 
 ## Commits So Far
 
@@ -143,12 +173,15 @@ Concrete plan for G2 (larger item — split into staff board first, customer dis
 | `de4952f` | feat(T-0300): implement buy_x_get_y/free_item promotion evaluation (G3a) | 2026-06-12 |
 | `0111183` | feat(T-0301): "86" product availability toggle in POS (G4) | 2026-06-12 |
 | `f7d44be` | feat(T-0302): increment promotions.usageCount after sale (G15) | 2026-06-12 |
+| `010227b` | feat: kitchen display module and KDS service improvements (G2/T-0303) | 2026-06-12 |
 
 ## Handoff Notes
 
 - This is a **multi-session marathon task** explicitly authorized by Lintang ("ini adalah tugas panjang, tolong kerjakan sampai selesai, tidak perlu terburu-buru"). Do not try to "wrap up" — pick the next G-item and keep going.
 - The from-scratch checklist (`fnb-erp-feature-checklist.md`) was deliberately written WITHOUT reading this repo first, to avoid anchoring bias — do not "fix" it to match repo reality; it's the *target*, the gap-analysis doc is the *comparison*.
 - When picking up §0-2/4-17 deep-audit passes (Part C ⬜ items), apply the SAME dual-lens standard as §3: don't just check "does a page exist" — trace one real user action through to confirm the backend logic actually fires (the KDS/modifier/promotion findings were all "page would suggest done, but trace the data flow and it dead-ends").
-- **Before assigning any new `T-NNNN`**: check the HIGHEST existing ID across BOTH the Active Tasks table AND the Done tables in TASK.md (not just one or the other) — this session hit a collision (T-0298 used twice) because a prior turn only checked one location. T-0302 is the highest used ID as of this checkpoint; next available is **T-0303**.
+- **Before assigning any new `T-NNNN`**: check the HIGHEST existing ID across BOTH the Active Tasks table AND the Done tables in TASK.md (not just one or the other) — this session hit a collision (T-0298 used twice) because a prior turn only checked one location. T-0303 is the highest used ID as of this checkpoint; next available is **T-0304**.
 - Migration `0044_fine_orphan.sql` (G4/T-0301, adds `products.is_available`/`is_86d_at`) is generated but **not applied to any database yet** — remember this when planning the next deploy (`drizzle-kit migrate` or the project's usual apply step).
-- If resuming after a long gap, re-read `docs/benchmark/fnb-erp-gap-analysis.md` Part E for the prioritized continuation order: G4 ✅ → G15 ✅ → G2 → G1 → remaining ⬜ audits → Lintang's 4 decisions.
+- The `kitchen.view` cashier-role seed change (G2/T-0303, `packages/db/seed/iam.ts`) needs the IAM seed re-run on deploy for existing environments (new environments seed correctly from scratch).
+- If resuming after a long gap, re-read `docs/benchmark/fnb-erp-gap-analysis.md` Part E for the prioritized continuation order: G4 ✅ → G15 ✅ → G2 ✅ → **G1 (next)** → remaining ⬜ audits → Lintang's 4 decisions.
+- **Known environment caveat**: this dev machine currently cannot reach the production Postgres host (`connect ETIMEDOUT 103.93.162.50:5432`, confirmed via raw TCP probe) — blocks ALL browser-based UI verification (every page needs DB-backed session), not specific to any feature. `apps/web/.env` (gitignored) was created this session and correctly loads `DATABASE_URL`/secrets from the repo-root `.env` — once network connectivity is restored, browser verification should work without further env changes. This is external infra, not a code TODO.
