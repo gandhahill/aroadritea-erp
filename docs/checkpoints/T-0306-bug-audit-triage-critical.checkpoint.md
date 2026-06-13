@@ -174,7 +174,7 @@ don't trust the audit's claim, record verdict + reasoning in Part F):
 
 | SHA | Message | Date |
 |-----|---------|------|
-| _pending_ | `docs(T-0306): triage FUNCTIONAL_BUG_AUDIT.md CRITICAL #1-4, backlog G17` | 2026-06-13 |
+| 3ec697d | `docs(T-0306): triage FUNCTIONAL_BUG_AUDIT.md CRITICAL #1-4, backlog G17` | 2026-06-13 |
 
 ## Handoff Notes
 
