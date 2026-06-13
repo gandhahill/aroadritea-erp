@@ -213,7 +213,7 @@ Concrete plan for the next session:
 | `0111183` | feat(T-0301): "86" product availability toggle in POS (G4) | 2026-06-12 |
 | `f7d44be` | feat(T-0302): increment promotions.usageCount after sale (G15) | 2026-06-12 |
 | `010227b` | feat: kitchen display module and KDS service improvements (G2/T-0303) | 2026-06-12 |
-| _pending_ | feat(T-0304): modifier picker UI + canonical ModifierSelection[] (G1, ADR-0019) | 2026-06-13 |
+| `e6ba8f3` | feat(T-0304): modifier picker UI + canonical ModifierSelection[] (G1, ADR-0019) | 2026-06-13 |
 | _pending_ | docs(T-0304): record commit SHA in checkpoint | 2026-06-13 |
 
 ## Handoff Notes
