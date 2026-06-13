@@ -36,7 +36,7 @@ User (Lintang) membuat dokumentasi audit lengkap terpisah di `E:\erp-benchmark` 
 8. [x] Update `docs/benchmark/fnb-erp-gap-analysis.md`: G1 row (sudah di sesi sebelumnya), tambah G16, update Part E
 9. [x] Fix T-0304 row di TASK.md (`_pending_` → `e6ba8f3`, belum terupdate dari sesi sebelumnya)
 10. [x] Tambah T-0305 row di TASK.md Phase 3 Done table
-11. [ ] Commit (single commit, task kecil) + push ke `master`
+11. [x] Commit (single commit, task kecil) + push ke `master`
 
 ## Done so far
 
@@ -97,7 +97,7 @@ Lanjutkan triage `FUNCTIONAL_BUG_AUDIT.md` CRITICAL #1 dan #2:
 
 | SHA | Message | Date |
 |-----|---------|------|
-| _pending_ | `fix(T-0305): correct invoice tax rounding + leave approval race condition` | 2026-06-13 |
+| 953b70b | `fix(T-0305): correct invoice tax rounding + leave approval race condition` | 2026-06-13 |
 
 ## Handoff Notes
 
