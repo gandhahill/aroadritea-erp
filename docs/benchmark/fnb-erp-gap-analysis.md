@@ -273,7 +273,7 @@ New backlog section, **not currently covered by any F0-F8 master-plan card** (th
 | **G3b** | `complimentary` promo: GL routing to `expenseAccountCode` (small ADR) | P1 | M | G3a, ADR | `evaluator.ts`, `pos/create-sale.ts`, new ADR |
 | ~~**G15**~~ | ~~Increment `promotions.usageCount` after a promo applies to a sale — `usageLimit` currently never binds~~ | **P1** | S | **✅ DONE — T-0302** | `packages/services/src/pos/create-sale.ts`, `packages/services/src/promotion/evaluator.ts` |
 | ~~**G4**~~ | ~~"86" toggle: `isAvailable`/`is86dAt` flag on products + POS toggle button + auto-grey in `product-search.tsx`~~ | **P0** (small, high visible value) | S | **✅ DONE — T-0301** | `packages/db/schema/inventory.ts` (+migration), `pos/actions.ts`, `pos/product-search.tsx`, i18n ×3 |
-| **G1** | Modifier-picker UI (sugar/ice/topping) — full Finding 1 remediation | **P0** | L (split: ADR+schema; picker UI; KDS/Naixer mapping update) | small ADR (groupRole column) | `inventory.ts`, `pos/actions.ts`, new picker component, `order-cart.tsx`, `kds-service.ts`, `naixerModifierCodes` lookups |
+| ~~**G1**~~ | ~~Modifier-picker UI (sugar/ice/topping) — full Finding 1 remediation~~ | **P0** | L | **✅ DONE — T-0304** | ADR-0019 (`groupRole`), `inventory.ts` (migration 0045), `@erp/shared/pos/modifiers.ts`, `pos/modifier-picker-modal.tsx`, `pos/product-search.tsx`, `order-cart.tsx`, `kds-service.ts`, `create-sale.ts`, label printing ×2, offline/demo IndexedDB |
 | ~~**G2**~~ | ~~KDS staff board + customer display UI — full Finding 3 remediation~~ | **P0** | L | **✅ DONE — T-0303** | `apps/web/app/(dash)/kitchen/**`, `apps/web/app/kitchen-display/[locationId]/**`, `apps/web/app/api/kitchen/display/[locationId]/route.ts`, `nav-access.ts`, `sidebar.tsx`, `middleware.ts`, i18n ×3 |
 | **G8** | Open/misc sale line (custom description + price) in POS | P1 (small quick win) | S | none | `pos/product-search.tsx` or new "misc item" button, `pos/actions.ts`, `pos-cart-context.tsx` |
 | **G9** | Promotion `status` auto-expiry (cosmetic: stop showing expired promos as "Active" in Settings) | P2 (tiny quick win) | XS | none | `promotion/index.ts` `listPromotions` (compute display status) or a worker tick |
@@ -285,6 +285,7 @@ New backlog section, **not currently covered by any F0-F8 master-plan card** (th
 | **G12** | Quick-key/favorite shortcuts on POS grid | P2 (cosmetic quick win) | S | none | `pos/product-search.tsx`, `posSettings` |
 | **G13** | Combo/meal-deal builder | ⬜ audit first | M-L | audit | TBD |
 | **G14** | Service charge line item (on/off + %) | ⬜ audit first, P1 if confirmed needed | S-M | audit + business confirmation | `posSettings`, `create-sale.ts`, tax calc |
+| **G16** | GRN zero-cost line policy: `confirmGRN` posts no JE when `unitPrice=0` on both GRN line and PO line (silent free-goods). Schema/zod already treat `0` as valid (samples/donations), so a hard fail would break that flow — **decision needed from Lintang**: (a) leave as-is, (b) warn-only banner before confirm, or (c) add explicit `isFreeGoods` flag on GRN line required to accept a zero-cost line | P2 (audit first) | S-M | Lintang decision | `packages/services/src/purchasing/grn-service.ts` (lines ~525-554), `packages/db/schema/purchasing.ts` |
 
 ### Decisions needed from Lintang (not auto-build)
 
@@ -292,6 +293,7 @@ New backlog section, **not currently covered by any F0-F8 master-plan card** (th
 - **§15 Project Management**: any need for an internal "Projects" app (e.g. store-opening checklists, renovation tracking)?
 - **§17 Quality/Food Safety**: what does Aroadri actually need to log for BPOM/halal/internal QC (daily fridge temps? cleaning checklists? cert expiry reminders)? Determines whether G7-adjacent "inspection checklist" feature is worth building.
 - **§3.4 Tips / Service charge**: does Aroadri ever collect tips or apply a service charge? (Different from the existing donation/rounding feature.)
+- **G16 GRN zero-cost lines**: see G16 row above — leave as-is, warn-only, or require an explicit "free goods" flag?
 
 ---
 
@@ -301,8 +303,9 @@ New backlog section, **not currently covered by any F0-F8 master-plan card** (th
 2. ~~Implement G4~~ — ✅ **DONE 2026-06-12** (T-0301): "86" toggle (`isAvailable`/`is86dAt`) + POS toggle button + auto-grey + MCP tool.
 3. ~~G15~~ — ✅ **DONE 2026-06-12** (T-0302): `promotions.usageCount` now increments after every sale that applies a promotion, see Finding 5 update.
 4. ~~Implement G2~~ — ✅ **DONE 2026-06-13** (T-0303): KDS staff board (`/kitchen`) + customer display (`/kitchen-display/[locationId]`) + SSE route + nav/sidebar + i18n ×3, see Finding 3 update.
-5. **Start G1 next** (modifier picker) — needs the small ADR (groupRole column on `product_modifier_groups`) decided first.
-6. Continue the dual-lens deep audit for sections marked ⬜ in Part C, prioritizing: §3.5 cash-count/X-Z-report (G10, possible real control gap), §1 cost centers (cross-check vs F5.1), §5 batch/expiry FEFO logic.
-7. Resolve the four "Decisions needed from Lintang" items above — these gate G6, G13/G14, and the §3.1/§15/§17 scope calls.
+5. ~~Implement G1~~ — ✅ **DONE 2026-06-13** (T-0304): modifier picker UI + canonical `ModifierSelection[]` (ADR-0019, `groupRole`), see Finding 1 update.
+6. ~~Fixed 2 cross-cutting bugs from the external `E:\erp-benchmark` analysis~~ — ✅ **DONE 2026-06-13** (T-0305): invoice line tax now uses `calculateExclusiveTax` (round-half-up, was truncating division in `accounting/invoice.ts`); `hr/leave-service.ts` `approveLeave` now claims via conditional `UPDATE ... WHERE status='pending'` to close a check-then-act race on concurrent approvals. Added `packages/shared/tests/money.test.ts` (39 tests) covering the rounding helpers. New backlog item **G16** added (GRN zero-cost line policy) pending Lintang decision.
+7. Continue the dual-lens deep audit for sections marked ⬜ in Part C, prioritizing: §3.5 cash-count/X-Z-report (G10, possible real control gap), §1 cost centers (cross-check vs F5.1), §5 batch/expiry FEFO logic. In parallel, triage the remaining findings in `FUNCTIONAL_BUG_AUDIT.md` (12-bug list, esp. CRITICAL #1 "Invoice Payment Routes to Wrong Account" and #2 "Refund Amount Can Exceed Original Payment") and the unread tail of `FEATURE_GAP_ANALYSIS.md` against current code.
+8. Resolve the five "Decisions needed from Lintang" items above (incl. new G16) — these gate G6, G13/G14, G16, and the §3.1/§15/§17 scope calls.
 
-All new backlog items above should get their own `T-XXXX` entries in `TASK.md` as they're started (next available: **T-0298**).
+All new backlog items above should get their own `T-XXXX` entries in `TASK.md` as they're started (next available: **T-0306**).

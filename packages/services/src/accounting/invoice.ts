@@ -8,6 +8,7 @@ import { db } from '@erp/db';
 import { invoiceLines, invoices } from '@erp/db/schema/accounting';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
+import { calculateExclusiveTax } from '@erp/shared/money';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq } from 'drizzle-orm';
@@ -63,7 +64,7 @@ export async function createInvoice(
     // Calculate tax per line if rate is provided (bps → e.g. 1000 = 10%)
     let lineTax = 0n;
     if (line.taxRate && line.taxRate > 0) {
-      lineTax = (subtotal * BigInt(line.taxRate)) / 10000n;
+      lineTax = calculateExclusiveTax(subtotal, line.taxRate);
     }
     totalTax += lineTax;
     return {

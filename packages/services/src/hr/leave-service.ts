@@ -100,7 +100,7 @@ export async function approveLeave(
   });
   if (!permCheck.ok) return permCheck;
 
-  await db
+  const claimed = await db
     .update(leaveRequests)
     .set({
       status: 'approved',
@@ -108,7 +108,12 @@ export async function approveLeave(
       approvedAt: new Date(),
       updatedBy: ctx.userId,
     })
-    .where(eq(leaveRequests.id, leaveId));
+    .where(and(eq(leaveRequests.id, leaveId), eq(leaveRequests.status, 'pending')))
+    .returning({ id: leaveRequests.id });
+
+  if (claimed.length === 0) {
+    return err(AppError.conflict('hr.leave.not_pending'));
+  }
 
   const year = leave.startDate.getFullYear();
   const [balance] = await db
